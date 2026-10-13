@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fondo de la splash del sistema: igual al de la splash animada de Compose. -->
+    <color name="splash_background">#0F2A24</color>
+    <!-- Fondo de la ventana (evita destellos blancos mientras carga). -->
+    <color name="window_background">#EDF3EF</color>
+    <!-- Icono de la app: mosaico menta con billetera oscura. -->
+    <color name="ic_launcher_background">#BCF2D0</color>
+</resources>

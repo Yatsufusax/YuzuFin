@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">YuzuFin</string>
+    <string name="tagline">Tu dinero. Tus decisiones.</string>
+
+    <!-- Navegación -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_movements">Movimientos</string>
+    <string name="nav_savings">Ahorros</string>
+    <string name="nav_menu">Menú</string>
+    <string name="nav_add">Registrar</string>
+    <string name="action_back">Volver</string>
+
+    <!-- Registrar (hoja rápida) -->
+    <string name="quick_title">¿Qué querés registrar?</string>
+
+    <!-- Atajos -->
+    <string name="shortcut_income">Ingreso</string>
+    <string name="shortcut_expense">Gasto</string>
+    <string name="shortcut_pay">Pagar</string>
+    <string name="shortcut_loan">Préstamo</string>
+    <string name="shortcut_save">Ahorro</string>
+
+    <!-- Modo demostración -->
+    <string name="demo_title">Modo demostración</string>
+    <string name="demo_body">Los importes son de ejemplo. Todavía no se guarda ningún dato real.</string>
+    <string name="coming_soon_snackbar">Esta función llega en la Fase %1$d</string>
+    <string name="coming_soon_features_title">Lo que va a incluir</string>
+
+    <!-- Inicio -->
+    <string name="home_notifications">Recordatorios</string>
+    <string name="home_balance_label">Saldo disponible</string>
+    <string name="home_show_balance">Mostrar saldo</string>
+    <string name="home_hide_balance">Ocultar saldo</string>
+    <string name="home_committed">Comprometido</string>
+    <string name="home_free">Libre estimado</string>
+    <string name="home_go_movements">Ver movimientos</string>
+    <string name="home_saved">Ahorrado</string>
+    <string name="home_net_worth">Patrimonio</string>
+    <string name="home_shortcuts">Atajos</string>
+    <string name="home_next_income">Próximo cobro</string>
+    <string name="home_planned">Previsto</string>
+    <string name="home_view_incomes">Ver cobros</string>
+    <string name="home_month_title">Este mes</string>
+    <string name="home_income_real">Ingresos reales</string>
+    <string name="home_expense_real">Gastos reales</string>
+    <string name="home_month_ratio">Gastaste el %1$d%% de tus ingresos reales</string>
+    <string name="home_month_difference">Diferencia del mes</string>
+    <string name="home_bills_title">Próximos vencimientos</string>
+    <string name="home_bills_note">Las facturas pendientes no descuentan tu saldo hasta que las marcás como pagadas.</string>
+    <string name="home_bill_pending">Pendiente</string>
+    <string name="home_recent_title">Movimientos recientes</string>
+    <string name="home_see_all">Ver todo</string>
+    <string name="home_internal_transfer">Transferencia interna · no es un gasto</string>
+
+    <!-- Menú -->
+    <string name="menu_title">Menú</string>
+    <string name="menu_incomes">Cobros e ingresos</string>
+    <string name="menu_incomes_desc">Salarios, fechas de cobro y confirmaciones</string>
+    <string name="menu_obligations">Obligaciones</string>
+    <string name="menu_obligations_desc">Facturas, vencimientos y préstamos</string>
+    <string name="menu_stats">Estadísticas</string>
+    <string name="menu_stats_desc">Gastos por categoría y comparación mensual</string>
+    <string name="menu_settings">Ajustes</string>
+    <string name="menu_settings_desc">Moneda, tema, copias de seguridad y más</string>
+    <string name="menu_footer">YuzuFin · Fase 1: base del proyecto</string>
+
+    <!-- Fases del plan -->
+    <string name="phase_2">Fase 2 · Saldo y movimientos</string>
+    <string name="phase_3">Fase 3 · Salarios e ingresos</string>
+    <string name="phase_4">Fase 4 · Ahorros</string>
+    <string name="phase_5">Fase 5 · Obligaciones y préstamos</string>
+    <string name="phase_6">Fase 6 · Presupuestos y estadísticas</string>
+    <string name="phase_settings">Fases 2 a 7 · Se completa de a poco</string>
+
+    <!-- Secciones en construcción -->
+    <string name="movements_intro">Historial de ingresos, gastos y operaciones financieras.</string>
+    <string-array name="movements_features">
+        <item>Registrar, editar y eliminar movimientos con confirmación</item>
+        <item>Filtrar por fecha, tipo y categoría, y buscar por descripción</item>
+        <item>Distinguir lo confirmado de lo previsto</item>
+    </string-array>
+
+    <string name="savings_intro">Separá dinero para ahorrar. Es una transferencia interna, no un gasto.</string>
+    <string-array name="savings_features">
+        <item>Aportes y retiros manuales con fecha y descripción</item>
+        <item>Total ahorrado e historial</item>
+        <item>Evolución de tus ahorros por mes</item>
+    </string-array>
+
+    <string name="incomes_intro">Configurá tus salarios y otras fuentes de ingreso.</string>
+    <string-array name="incomes_features">
+        <item>Salarios mensuales, quincenales o con fechas personalizadas</item>
+        <item>Confirmación manual con “Ya cobré” o contabilización automática</item>
+        <item>Control para no contabilizar un cobro dos veces</item>
+    </string-array>
+
+    <string name="obligations_intro">Facturas, vencimientos y dinero prestado o recibido en préstamo.</string>
+    <string-array name="obligations_features">
+        <item>Facturas pendientes que no descuentan saldo hasta que las pagás</item>
+        <item>Préstamos realizados y recibidos, con devoluciones parciales</item>
+        <item>Dinero libre estimado y patrimonio</item>
+    </string-array>
+
+    <string name="stats_intro">Entendé en qué se va tu dinero con reglas claras, sin inteligencia artificial.</string>
+    <string-array name="stats_features">
+        <item>Ingresos y gastos reales del mes</item>
+        <item>Gastos por categoría y comparación con meses anteriores</item>
+        <item>Presupuestos por categoría y escenarios de ahorro</item>
+    </string-array>
+
+    <string name="settings_intro">Personalizá YuzuFin a tu manera.</string>
+    <string-array name="settings_features">
+        <item>Moneda e idioma, con guaraníes y otras monedas</item>
+        <item>Tema claro u oscuro</item>
+        <item>Copias de seguridad, exportación y reinicio protegido</item>
+    </string-array>
+</resources>

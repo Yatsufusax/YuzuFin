@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Tema base (claro). La interfaz real se pinta con Compose / Material 3. -->
+    <style name="Theme.YuzuFin" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!--
+        Splash del sistema: solo el fondo verde oscuro, sin icono.
+        Así el paso a la splash animada de Compose (billetera que se abre) es continuo.
+    -->
+    <style name="Theme.YuzuFin.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_empty</item>
+        <item name="postSplashScreenTheme">@style/Theme.YuzuFin</item>
+    </style>
+
+</resources>
