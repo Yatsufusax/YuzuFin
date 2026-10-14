@@ -2,12 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-        Sin permisos: la app es local-first y en esta fase no los necesita.
-        El permiso de notificaciones (POST_NOTIFICATIONS) se añadirá en la Fase 3,
-        cuando existan los recordatorios de cobros y vencimientos.
+        Permisos, solo los necesarios:
+        - INTERNET: únicamente para buscar y descargar actualizaciones desde GitHub.
+          Tus movimientos nunca salen del teléfono.
+        - REQUEST_INSTALL_PACKAGES: para poder instalar la actualización descargada.
+        El permiso de notificaciones se añadirá en la Fase 3 (recordatorios).
     -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
+        android:name=".YuzuFinApplication"
         android:allowBackup="false"
         android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
@@ -25,6 +30,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Comparte el APK descargado con el instalador del sistema. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

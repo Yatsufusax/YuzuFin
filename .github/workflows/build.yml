@@ -6,9 +6,15 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # "true" si cargaste los secretos de firma en el repo (ver README).
+      HAS_KEYSTORE: ${{ secrets.KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -22,15 +28,43 @@ jobs:
       - name: Permiso de ejecución para gradlew
         run: chmod +x ./gradlew
 
+      - name: Preparar la firma
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KS_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/yuzufin.jks"
+          echo "KEYSTORE_PATH=$RUNNER_TEMP/yuzufin.jks" >> "$GITHUB_ENV"
+          echo "KEYSTORE_PASSWORD=$KS_PASSWORD" >> "$GITHUB_ENV"
+          echo "KEY_ALIAS=$KS_ALIAS" >> "$GITHUB_ENV"
+          echo "KEY_PASSWORD=$KS_KEY_PASSWORD" >> "$GITHUB_ENV"
+
       - name: Tests unitarios
         run: ./gradlew testDebugUnitTest --stacktrace
 
-      - name: Compilar APK debug
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Compilar APK
+        run: ./gradlew assembleRelease --stacktrace
 
-      - name: Subir APK
+      - name: Nombrar el APK
+        run: cp app/build/outputs/apk/release/app-release.apk "YuzuFin-0.2.${{ github.run_number }}.apk"
+
+      - name: Guardar APK como artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: YuzuFin-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: YuzuFin-apk
+          path: YuzuFin-0.2.${{ github.run_number }}.apk
           if-no-files-found: error
+
+      # Solo con la clave fija: publica una Release que la app detecta como actualización.
+      - name: Publicar Release
+        if: env.HAS_KEYSTORE == 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: YuzuFin 0.2.${{ github.run_number }}
+          body: ${{ github.event.head_commit.message }}
+          files: YuzuFin-0.2.${{ github.run_number }}.apk
+          make_latest: true
