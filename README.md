@@ -3,7 +3,7 @@
 App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Room). Local-first, sin cuentas ni IA.
 *Tu dinero. Tus decisiones.*
 
-## Estado: Fase 2 + extracto en PDF (listo para probar)
+## Estado: Fase 3, ingresos fijos y recordatorios (listo para probar)
 
 **Hecho (escrito; pendiente de compilar en GitHub Actions)**
 - Configuración inicial: moneda (Gs. por defecto) y saldo inicial, desde hoy o con fecha anterior.
@@ -13,9 +13,11 @@ App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Ro
 - Actualizador dentro de la app (Ajustes y aviso en Inicio): consulta las Releases de GitHub, descarga el APK e inicia la instalación.
 - Nombre de usuario (opcional) en la configuración inicial y en Ajustes.
 - Extracto en PDF (botón PDF en Movimientos): período a elección (este mes, mes pasado, todo el historial o fechas propias), encabezado con tu nombre, resumen, detalle con saldo corrido y pie. Se genera en el teléfono con la API `PdfDocument` y se comparte con el menú de Android (no pide permisos de almacenamiento). Solo se guarda el último extracto en la caché de la app.
-- Tests: `StatementBuilderTest`, `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`.
+- **Fase 3, ingresos fijos:** varias fuentes (sueldo, alquiler cobrado, etc.), con frecuencia mensual, quincenal o fechas propias. Día 31 significa "último día del mes". Cada cobro vencido queda *pendiente* hasta que tocás **Ya cobré** (podés ajustar el monto) o **Omitir**; opcionalmente se registra solo. Previstos, pendientes y omitidos no tocan el saldo: solo cuenta lo confirmado.
+- **Recordatorios:** aviso local diario (9:00 por defecto, configurable en Ajustes) cuando hay cobros por confirmar. Una sola notificación por cobro; los montos no se muestran salvo que lo actives.
+- Tests: `StatementBuilderTest`, `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`, `IncomeSchedulerTest` (fechas, meses cortos, años bisiestos, quincenas), `ReminderSchedulerTest`.
 
-**No hecho todavía:** cobros pendientes, obligaciones, ahorros, estadísticas, notificaciones (Fases 3 a 6).
+**No hecho todavía:** ahorros y metas (Fase 4), vencimientos, deudas y préstamos con sus recordatorios (Fase 5), estadísticas (Fase 6). El sistema de recordatorios de la Fase 3 se reutiliza para esas fases.
 
 **Sin verificar:** no se pudo compilar ni ejecutar donde se escribió (sin acceso al SDK de Android). Solo se revisaron recursos y XML con scripts. La compilación y los tests corren en GitHub Actions; si falla, pegá el error.
 
@@ -24,6 +26,11 @@ App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Ro
 - `transactions(id, type, amountMinor, categoryId, description, epochDay, createdAt, updatedAt)`: el importe es siempre positivo y el tipo da el signo. La categoría no se puede borrar si tiene movimientos (FK RESTRICT).
 - `initial_balance(id = 1, amountMinor, startEpochDay)`: un solo registro.
 - **Saldo = saldo inicial + ingresos − gastos**, contando solo movimientos desde la fecha inicial (inclusive). Se recalcula siempre desde los movimientos, así que editar o borrar uno corrige el saldo. Puede ser negativo (el formulario avisa, no bloquea).
+- `income_sources(id, name, amountMinor, categoryId, schedule, daysOfMonth, customDates, startEpochDay, requiresConfirmation, active, remind, createdAt)`: una fila por fuente de ingreso.
+- `income_occurrences(id, sourceId, dueEpochDay, amountMinor, status, transactionId, notified, createdAt)`: un cobro concreto. Estado: `PENDING`, `CONFIRMED` o `SKIPPED`. **Índice único (sourceId, dueEpochDay)**: no puede haber dos cobros de la misma fuente el mismo día.
+- **Conciliación (`reconcile`)**: corre al abrir la app y en el revisor diario. En una sola transacción crea los cobros vencidos que faltan (desde la fecha de inicio de la fuente hasta hoy) y registra los automáticos. Es idempotente: correrla dos veces no duplica nada.
+- Confirmar un cobro crea el movimiento de ingreso (con la fecha del cobro) y marca el cobro como confirmado en la misma transacción. Si borrás ese movimiento, el cobro pasa a *omitido* para que no se vuelva a generar. Al reactivar una fuente pausada se parte de hoy, sin atrasos.
+- La base pasó a la versión 2 con una migración (`MIGRATION_1_2`) que agrega las dos tablas y conserva tus datos.
 - Todo el dinero es `Long` en unidad mínima (Gs. sin decimales, USD en centavos).
 
 ## Actualizaciones desde GitHub
@@ -53,6 +60,9 @@ Por terminal (con el SDK instalado y `local.properties` con `sdk.dir=...`):
 ./gradlew assembleDebug          # APK en app/build/outputs/apk/debug/
 ```
 
+## Recordatorios (Fase 3)
+WorkManager con una tarea periódica diaria a la hora elegida; todo local, sin servicios externos. Necesita el permiso de notificaciones (Android 13+), que se pide al activar los recordatorios. Con ahorro de batería agresivo Android puede retrasar la hora. Las notificaciones son de visibilidad privada y no incluyen montos por defecto.
+
 ## Estructura
 ```
 app/src/main/java/com/yuzufin/app/
@@ -61,8 +71,9 @@ app/src/main/java/com/yuzufin/app/
   domain/          Modelos y reglas del saldo (funciones puras)
   data/            Room (db/), repositorios, ajustes (DataStore), actualizador (update/)
   ui/theme|splash|components|navigation   Base visual y navegación
-  ui/onboarding|home|movements|transaction|settings|update   Pantallas y ViewModels
+  reminders/       Recordatorios (WorkManager + notificaciones)
+  ui/onboarding|home|movements|transaction|incomes|settings|update   Pantallas y ViewModels
 ```
 
 ## Siguiente paso
-Revisar la Fase 2. Después, Fase 3: cobros pendientes.
+Revisar la Fase 3. Después, Fase 4: ahorros y metas.

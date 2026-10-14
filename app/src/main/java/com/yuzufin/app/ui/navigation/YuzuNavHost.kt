@@ -18,7 +18,9 @@ import com.yuzufin.app.ui.home.HomeScreen
 import com.yuzufin.app.ui.home.HomeViewModel
 import com.yuzufin.app.ui.menu.MenuScreen
 import com.yuzufin.app.ui.movements.MovementsScreen
-import com.yuzufin.app.ui.sections.IncomesScreen
+import com.yuzufin.app.ui.incomes.IncomeFormScreen
+import com.yuzufin.app.ui.incomes.IncomeFormViewModel
+import com.yuzufin.app.ui.incomes.IncomesScreen
 import com.yuzufin.app.ui.sections.ObligationsScreen
 import com.yuzufin.app.ui.sections.SavingsScreen
 import com.yuzufin.app.ui.sections.StatsScreen
@@ -57,6 +59,8 @@ fun YuzuNavHost(
                 onQuickAction = onQuickAction,
                 onNotificationsClick = onNotificationsClick,
                 onEditMovement = { id -> openForm(id, TransactionType.EXPENSE) },
+                onConfirmIncome = homeViewModel::confirmIncome,
+                onSkipIncome = homeViewModel::skipIncome,
             )
         }
         composable(Destination.Movements.route) {
@@ -70,7 +74,14 @@ fun YuzuNavHost(
         composable(Destination.Menu.route) {
             MenuScreen(contentPadding = contentPadding, onNavigate = navController::navigateTo)
         }
-        composable(Destination.Incomes.route) { IncomesScreen(contentPadding, goBack) }
+        composable(Destination.Incomes.route) {
+            IncomesScreen(
+                contentPadding = contentPadding,
+                onBack = goBack,
+                onAddSource = { navController.navigate(IncomeFormRoute.create()) { launchSingleTop = true } },
+                onEditSource = { id -> navController.navigate(IncomeFormRoute.create(id)) { launchSingleTop = true } },
+            )
+        }
         composable(Destination.Obligations.route) { ObligationsScreen(contentPadding, goBack) }
         composable(Destination.Stats.route) { StatsScreen(contentPadding, goBack) }
         composable(Destination.Settings.route) {
@@ -79,6 +90,19 @@ fun YuzuNavHost(
                 onBack = goBack,
                 updateViewModel = updateViewModel,
             )
+        }
+        composable(
+            route = IncomeFormRoute.PATTERN,
+            arguments = listOf(
+                navArgument(IncomeFormRoute.ARG_ID) { type = NavType.LongType; defaultValue = 0L },
+            ),
+        ) { entry ->
+            val id = entry.arguments?.getLong(IncomeFormRoute.ARG_ID) ?: 0L
+            val formViewModel: IncomeFormViewModel = viewModel(
+                key = "income-form-$id",
+                factory = IncomeFormViewModel.factory(container, id),
+            )
+            IncomeFormScreen(viewModel = formViewModel, onClose = goBack)
         }
         composable(
             route = TransactionRoute.PATTERN,

@@ -1,6 +1,8 @@
 package com.yuzufin.app.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,6 +17,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +34,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import com.yuzufin.app.data.SettingsRepository
+import com.yuzufin.app.domain.AppSettings
+import com.yuzufin.app.ui.common.rememberNotificationPermission
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,6 +81,18 @@ fun SettingsScreen(
             onSave = { name -> scope.launch { container.settingsRepository.setUserName(name) } },
             modifier = Modifier.padding(horizontal = 16.dp),
         )
+
+        settings?.let { current ->
+            RemindersCard(
+                settings = current,
+                onEnabledChange = { value -> scope.launch { container.settingsRepository.setRemindersEnabled(value) } },
+                onHourChange = { hour -> scope.launch { container.settingsRepository.setReminderHour(hour) } },
+                onShowAmountsChange = { value ->
+                    scope.launch { container.settingsRepository.setShowAmountsInNotifications(value) }
+                },
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+        }
 
         YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text(stringResource(R.string.settings_currency_title), style = MaterialTheme.typography.titleMedium)
@@ -239,3 +258,91 @@ private fun NameCard(
         ) { Text(stringResource(R.string.settings_name_save)) }
     }
 }
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun RemindersCard(
+    settings: AppSettings,
+    onEnabledChange: (Boolean) -> Unit,
+    onHourChange: (Int) -> Unit,
+    onShowAmountsChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val permission = rememberNotificationPermission()
+
+    YuzuCard(modifier = modifier) {
+        Text(stringResource(R.string.settings_reminders_title), style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.settings_reminders_switch), style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    stringResource(R.string.settings_reminders_switch_body),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = settings.remindersEnabled,
+                onCheckedChange = { value ->
+                    onEnabledChange(value)
+                    if (value && !permission.granted) permission.request()
+                },
+            )
+        }
+
+        if (settings.remindersEnabled) {
+            Spacer(Modifier.height(16.dp))
+            Text(stringResource(R.string.settings_reminders_hour), style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(8.dp))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                REMINDER_HOURS.forEach { hour ->
+                    FilterChip(
+                        selected = settings.reminderHour == hour,
+                        onClick = { onHourChange(hour) },
+                        label = { Text(String.format(java.util.Locale.ROOT, "%d:00", hour)) },
+                    )
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+            Text(
+                stringResource(R.string.settings_reminders_hour_note),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            Spacer(Modifier.height(16.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.settings_reminders_amounts), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(R.string.settings_reminders_amounts_body),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(checked = settings.showAmountsInNotifications, onCheckedChange = onShowAmountsChange)
+            }
+
+            if (!permission.granted) {
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    stringResource(R.string.reminders_permission_body),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Spacer(Modifier.height(8.dp))
+                if (permission.needsSettings) {
+                    OutlinedButton(onClick = permission.openSettings) {
+                        Text(stringResource(R.string.reminders_open_settings))
+                    }
+                } else {
+                    Button(onClick = permission.request) { Text(stringResource(R.string.reminders_enable)) }
+                }
+            }
+        }
+    }
+}
+
+private val REMINDER_HOURS = listOf(8, 9, 12, 18, 20)

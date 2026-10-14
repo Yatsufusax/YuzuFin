@@ -20,23 +20,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.yuzufin.app.R
 import com.yuzufin.app.domain.TransactionType
+import com.yuzufin.app.reminders.ReminderScheduler
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.components.QuickAction
 import com.yuzufin.app.ui.components.QuickActionsSheetContent
 import com.yuzufin.app.ui.navigation.FloatingNavBar
 import com.yuzufin.app.ui.navigation.TransactionRoute
 import com.yuzufin.app.ui.navigation.YuzuNavHost
+import com.yuzufin.app.ui.navigation.isFullScreenRoute
 import com.yuzufin.app.ui.navigation.navigateTo
 import com.yuzufin.app.ui.update.UpdateEffects
 import com.yuzufin.app.ui.update.UpdateViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 /** Estructura principal: barra flotante, navegación, avisos y hoja de registro rápido. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,6 +63,23 @@ fun MainShell() {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { updateViewModel.pollLoop() }
     }
     UpdateEffects(updateViewModel)
+
+    // Ajustes de recordatorios: programa (o cancela) el revisor diario de cobros.
+    val appSettings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
+    LaunchedEffect(appSettings?.remindersEnabled, appSettings?.reminderHour) {
+        appSettings?.let { ReminderScheduler.apply(context, it.remindersEnabled, it.reminderHour) }
+    }
+
+    // Cada vez que se abre la app: crea los cobros vencidos (y registra los automáticos).
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        scope.launch {
+            try {
+                container.incomeRepository.reconcile(LocalDate.now())
+            } catch (e: Exception) {
+                // Se reintenta la próxima vez; no se escribe ningún dato en el log.
+            }
+        }
+    }
 
     // Pagar, préstamos y ahorro todavía no existen: se avisa con honestidad en qué fase llegan.
     val showComingSoon: (Int) -> Unit = { phase ->
@@ -81,7 +103,7 @@ fun MainShell() {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             // El formulario ocupa toda la pantalla: sin barra flotante.
-            if (!TransactionRoute.isFormRoute(currentRoute)) {
+            if (!isFullScreenRoute(currentRoute)) {
                 FloatingNavBar(
                     currentRoute = currentRoute,
                     onNavigate = navController::navigateTo,

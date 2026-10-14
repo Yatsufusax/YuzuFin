@@ -1,8 +1,8 @@
 ## Nuevo
-- Extracto en PDF de tus movimientos, con tu nombre, resumen y saldo corrido. Lo encontrás en Movimientos, con el botón PDF.
-- Podés poner tu nombre al empezar y cambiarlo en Ajustes. Aparece en Inicio y en el extracto.
-- Las actualizaciones ahora son obligatorias y la app las busca sola cada minuto, con esta ventana de novedades.
+- Ingresos fijos: cargá tu sueldo u otras fuentes con frecuencia mensual, quincenal o fechas propias.
+- Botón "Ya cobré" para confirmar cada cobro (podés ajustar el monto) o descartarlo.
+- Recordatorios diarios de cobros por confirmar, a la hora que elijas en Ajustes.
+- Inicio muestra los cobros pendientes y el próximo ingreso previsto.
 
 ## Mejorado
-- Inicio muestra tu nombre en lugar del nombre de la app.
-- Menú y Ajustes con textos más limpios.
+- Tus datos se conservan al actualizar.

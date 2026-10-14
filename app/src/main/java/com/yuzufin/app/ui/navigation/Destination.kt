@@ -31,6 +31,19 @@ object TransactionRoute {
     fun isFormRoute(route: String?): Boolean = route?.startsWith("transaction") == true
 }
 
+/** Formulario para crear o editar una fuente de ingreso programado. Oculta la barra inferior. */
+object IncomeFormRoute {
+    const val ARG_ID = "id"
+    const val PATTERN = "income_form?$ARG_ID={$ARG_ID}"
+
+    /** [id] = 0 crea una fuente nueva; otro valor edita esa fuente. */
+    fun create(id: Long = 0L): String = "income_form?$ARG_ID=$id"
+}
+
+/** Pantallas de formulario que ocupan todo el alto: no muestran la barra inferior. */
+fun isFullScreenRoute(route: String?): Boolean =
+    route?.startsWith("transaction") == true || route?.startsWith("income_form") == true
+
 /** Las secciones que cuelgan de “Menú” marcan esa pestaña como activa. */
 fun isMenuGroupRoute(route: String?): Boolean = when (route) {
     Destination.Menu.route,

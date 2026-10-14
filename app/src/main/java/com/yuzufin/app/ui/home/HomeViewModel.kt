@@ -7,14 +7,21 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.yuzufin.app.AppContainer
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.data.FinanceRepository
+import com.yuzufin.app.data.IncomeRepository
 import com.yuzufin.app.data.SettingsRepository
 import com.yuzufin.app.domain.BalanceCalculator
 import com.yuzufin.app.ui.common.MovementItem
 import com.yuzufin.app.ui.common.buildMovementItems
+import com.yuzufin.app.ui.incomes.PendingIncome
+import com.yuzufin.app.ui.incomes.UpcomingIncome
+import com.yuzufin.app.ui.incomes.buildPending
+import com.yuzufin.app.ui.incomes.buildUpcoming
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.YearMonth
 
 data class HomeUiState(
@@ -33,10 +40,15 @@ data class HomeUiState(
     val hasMovements: Boolean = false,
     /** Nombre elegido por la persona; vacío si no puso ninguno. */
     val userName: String = "",
+    /** Cobros que ya llegaron y esperan “Ya cobré”. No están en el saldo. */
+    val pendingIncomes: List<PendingIncome> = emptyList(),
+    /** Próximo cobro previsto (no es dinero real todavía). */
+    val nextIncome: UpcomingIncome? = null,
 )
 
 class HomeViewModel(
     finance: FinanceRepository,
+    private val income: IncomeRepository,
     settings: SettingsRepository,
 ) : ViewModel() {
 
@@ -45,7 +57,9 @@ class HomeViewModel(
         finance.transactions,
         finance.categories,
         settings.settings,
-    ) { initial, transactions, categories, appSettings ->
+        combine(income.sources, income.occurrences) { sources, occurrences -> sources to occurrences },
+    ) { initial, transactions, categories, appSettings, incomeData ->
+        val (sources, occurrences) = incomeData
         if (initial == null) {
             HomeUiState(userName = appSettings.userName)
         } else {
@@ -66,13 +80,25 @@ class HomeViewModel(
                 recent = buildMovementItems(transactions.take(4), categories),
                 hasMovements = transactions.isNotEmpty(),
                 userName = appSettings.userName,
+                pendingIncomes = buildPending(sources, occurrences),
+                nextIncome = buildUpcoming(sources, LocalDate.now()).firstOrNull(),
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
+    fun confirmIncome(occurrenceId: Long, amountMinor: Long) {
+        viewModelScope.launch { runCatching { income.confirm(occurrenceId, amountMinor) } }
+    }
+
+    fun skipIncome(occurrenceId: Long) {
+        viewModelScope.launch { runCatching { income.skip(occurrenceId) } }
+    }
+
     companion object {
         fun factory(container: AppContainer) = viewModelFactory {
-            initializer { HomeViewModel(container.financeRepository, container.settingsRepository) }
+            initializer {
+                HomeViewModel(container.financeRepository, container.incomeRepository, container.settingsRepository)
+            }
         }
     }
 }

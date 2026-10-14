@@ -40,4 +40,10 @@ data class AppSettings(
     val currencyCode: String,
     /** Nombre que aparece en el extracto. Vacío si la persona no quiso ponerlo. */
     val userName: String = "",
+    /** Recordatorios de cobro (notificaciones locales). */
+    val remindersEnabled: Boolean = true,
+    /** Hora aproximada del aviso diario (0 a 23). */
+    val reminderHour: Int = 9,
+    /** Si el texto de la notificación incluye el importe. Apagado por defecto: se ve en la pantalla bloqueada. */
+    val showAmountsInNotifications: Boolean = false,
 )

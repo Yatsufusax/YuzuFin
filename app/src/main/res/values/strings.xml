@@ -65,7 +65,6 @@
     <string name="menu_settings_desc">Moneda, tema, copias de seguridad y más</string>
 
     <!-- Fases del plan -->
-    <string name="phase_3">Fase 3 · Salarios e ingresos</string>
     <string name="phase_4">Fase 4 · Ahorros</string>
     <string name="phase_5">Fase 5 · Obligaciones y préstamos</string>
     <string name="phase_6">Fase 6 · Presupuestos y estadísticas</string>
@@ -77,13 +76,6 @@
         <item>Aportes y retiros manuales con fecha y descripción</item>
         <item>Total ahorrado e historial</item>
         <item>Evolución de tus ahorros por mes</item>
-    </string-array>
-
-    <string name="incomes_intro">Configurá tus salarios y otras fuentes de ingreso.</string>
-    <string-array name="incomes_features">
-        <item>Salarios mensuales, quincenales o con fechas personalizadas</item>
-        <item>Confirmación manual con “Ya cobré” o contabilización automática</item>
-        <item>Control para no contabilizar un cobro dos veces</item>
     </string-array>
 
     <string name="obligations_intro">Facturas, vencimientos y dinero prestado o recibido en préstamo.</string>

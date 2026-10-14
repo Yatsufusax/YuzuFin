@@ -19,6 +19,7 @@ class FinanceRepository(private val db: AppDatabase) {
     private val categoryDao = db.categoryDao()
     private val transactionDao = db.transactionDao()
     private val initialBalanceDao = db.initialBalanceDao()
+    private val incomeDao = db.incomeDao()
 
     val categories: Flow<List<Category>> =
         categoryDao.observeAll().map { list -> list.map { it.toDomain() } }
@@ -56,8 +57,17 @@ class FinanceRepository(private val db: AppDatabase) {
         }
     }
 
+    /**
+     * Elimina un movimiento. Si era el ingreso de un cobro programado, ese cobro pasa a "omitido"
+     * (no vuelve a pendiente solo, para no registrar de nuevo algo que la persona borró a propósito).
+     */
     suspend fun deleteTransaction(id: Long) {
-        transactionDao.deleteById(id)
+        db.withTransaction {
+            incomeDao.getOccurrenceByTransaction(id)?.let { occurrence ->
+                incomeDao.updateOccurrence(occurrence.copy(status = "SKIPPED", transactionId = null))
+            }
+            transactionDao.deleteById(id)
+        }
     }
 
     private companion object {

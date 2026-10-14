@@ -48,3 +48,54 @@ data class InitialBalanceEntity(
     val amountMinor: Long,
     val startEpochDay: Long,
 )
+
+/**
+ * Fuente de ingreso programado (Fase 3). Las listas se guardan como texto separado por comas
+ * (días del mes, o días-época de las fechas sueltas) para no necesitar conversores.
+ */
+@Entity(tableName = "income_sources")
+data class IncomeSourceEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val amountMinor: Long,
+    val categoryId: Long,
+    /** Nombre de [com.yuzufin.app.domain.IncomeSchedule]. */
+    val schedule: String,
+    val daysOfMonth: String,
+    val customDates: String,
+    val startEpochDay: Long,
+    val requiresConfirmation: Boolean,
+    val active: Boolean,
+    val remind: Boolean,
+    val createdAt: Long,
+)
+
+/**
+ * Un cobro concreto. El índice único (fuente, fecha) impide registrar dos veces el mismo cobro
+ * aunque la reconciliación corra varias veces o a la vez.
+ */
+@Entity(
+    tableName = "income_occurrences",
+    foreignKeys = [
+        ForeignKey(
+            entity = IncomeSourceEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["sourceId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index(value = ["sourceId", "dueEpochDay"], unique = true)],
+)
+data class IncomeOccurrenceEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val sourceId: Long,
+    val dueEpochDay: Long,
+    val amountMinor: Long,
+    /** Nombre de [com.yuzufin.app.domain.OccurrenceStatus]. */
+    val status: String,
+    /** Movimiento de ingreso creado al confirmar; null si está pendiente u omitido. */
+    val transactionId: Long?,
+    /** Si ya se mostró el aviso de este cobro. */
+    val notified: Boolean,
+    val createdAt: Long,
+)

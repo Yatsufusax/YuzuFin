@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Pantalla de ingresos fijos -->
+    <string name="income_add">Agregar ingreso fijo</string>
+    <string name="incomes_empty_title">Todavía no configuraste ingresos fijos</string>
+    <string name="incomes_empty_body">Cargá tu sueldo u otras entradas que se repiten. Cuando llegue la fecha te pedimos confirmar el cobro y recién ahí se suma a tu saldo.</string>
+    <string name="incomes_pending_title">Cobros por confirmar</string>
+    <string name="incomes_upcoming_title">Próximos cobros</string>
+    <string name="incomes_upcoming_note">Son previsiones: no suman a tu saldo hasta que confirmes el cobro.</string>
+    <string name="incomes_sources_title">Mis ingresos fijos</string>
+    <string name="incomes_history_title">Historial de cobros</string>
+    <string name="income_already_paid">Ya cobré</string>
+    <string name="income_skip">Omitir</string>
+    <string name="income_reopen">Restaurar</string>
+    <string name="income_paused">Pausado</string>
+    <string name="income_reminder_on">Con recordatorio</string>
+    <string name="income_mode_manual_short">Confirmás vos</string>
+    <string name="income_mode_auto_short">Se registra solo</string>
+    <string name="pill_forecast">Previsto</string>
+    <string name="pill_collected">Cobrado</string>
+    <string name="pill_skipped">Omitido</string>
+    <string name="home_next_income_title">Próximo cobro</string>
+    <string name="home_pending_more">Y %1$d más en Ingresos fijos.</string>
+
+    <!-- Confirmar un cobro -->
+    <string name="income_confirm_title">Confirmar cobro</string>
+    <string name="income_confirm_body">%1$s · %2$s</string>
+    <string name="income_confirm_amount">Importe cobrado</string>
+    <string name="income_confirm_note">Si cobraste otro monto, corregilo. Al confirmar se suma a tu saldo.</string>
+    <string name="income_confirm_action">Confirmar</string>
+
+    <!-- Calendario -->
+    <string name="income_day_last">último día</string>
+    <string name="income_day_number">día %1$d</string>
+    <string name="income_schedule_monthly_summary">Cada mes, el %1$s</string>
+    <string name="income_schedule_twice_summary">El %1$s y el %2$s de cada mes</string>
+    <string name="income_schedule_custom_summary">%1$d fechas elegidas</string>
+
+    <!-- Formulario -->
+    <string name="income_form_new">Nuevo ingreso fijo</string>
+    <string name="income_form_edit">Editar ingreso fijo</string>
+    <string name="income_field_name">Nombre</string>
+    <string name="income_field_name_hint">Sueldo, alquiler que cobrás, trabajo extra…</string>
+    <string name="income_field_amount">Importe previsto</string>
+    <string name="income_field_schedule">¿Cuándo cobrás?</string>
+    <string name="income_schedule_monthly">Mensual</string>
+    <string name="income_schedule_twice">Quincenal</string>
+    <string name="income_schedule_custom">A elección</string>
+    <string name="income_field_day">Día del mes</string>
+    <string name="income_field_day_first">Primer día</string>
+    <string name="income_field_day_second">Segundo día</string>
+    <string name="income_last_day">Último día del mes</string>
+    <string name="income_preset_15_last">15 y fin de mes</string>
+    <string name="income_preset_1_15">1 y 15</string>
+    <string name="income_field_date_add">Fecha de cobro</string>
+    <string name="income_add_date">Agregar fecha</string>
+    <string name="income_day_note">Si el mes no tiene ese día (por ejemplo el 31 en febrero), se usa su último día.</string>
+    <string name="income_custom_note">Tocá una fecha para quitarla. Si elegís una fecha que ya pasó, queda pendiente de confirmar.</string>
+    <string name="income_error_name">Ponele un nombre.</string>
+    <string name="income_error_day">Un día entre 1 y 31.</string>
+    <string name="income_error_same_day">Los dos días tienen que ser distintos.</string>
+    <string name="income_error_dates">Agregá al menos una fecha.</string>
+    <string name="income_switch_confirm">Confirmar cada cobro a mano</string>
+    <string name="income_switch_confirm_on">Cuando llegue la fecha te pedimos confirmar con “Ya cobré”. Hasta entonces no suma a tu saldo.</string>
+    <string name="income_switch_confirm_off">Se suma a tu saldo solo al llegar la fecha. Android puede demorar las tareas en segundo plano: se registra al abrir la app o en la revisión diaria, nunca dos veces.</string>
+    <string name="income_switch_remind">Recordarme el día del cobro</string>
+    <string name="income_switch_remind_body">Te llega un aviso ese día. La hora la elegís en Ajustes.</string>
+    <string name="income_switch_active">Activo</string>
+    <string name="income_switch_active_body">Si lo pausás, no se generan cobros hasta que lo reactives.</string>
+    <string name="income_delete_title">¿Eliminar este ingreso fijo?</string>
+    <string name="income_delete_body">Se borra la configuración y su historial de cobros. Los ingresos que ya sumaste a tu saldo se conservan en Movimientos.</string>
+
+    <!-- Recordatorios y notificaciones -->
+    <string name="reminders_channel_name">Cobros</string>
+    <string name="reminders_channel_description">Avisos de cobros por confirmar o registrados</string>
+    <plurals name="reminders_pending_title">
+        <item quantity="one">Tenés un cobro por confirmar</item>
+        <item quantity="other">Tenés %1$d cobros por confirmar</item>
+    </plurals>
+    <plurals name="reminders_auto_title">
+        <item quantity="one">Se registró un cobro</item>
+        <item quantity="other">Se registraron %1$d cobros</item>
+    </plurals>
+    <string name="reminders_permission_title">Activá los avisos</string>
+    <string name="reminders_permission_body">Android no deja mostrar avisos de YuzuFin. Activalos para que te recordemos los cobros.</string>
+    <string name="reminders_enable">Activar avisos</string>
+    <string name="reminders_open_settings">Abrir ajustes de notificaciones</string>
+
+    <!-- Ajustes: recordatorios -->
+    <string name="settings_reminders_title">Recordatorios</string>
+    <string name="settings_reminders_switch">Avisos de cobros</string>
+    <string name="settings_reminders_switch_body">Una notificación por día, solo si hay algo que ver.</string>
+    <string name="settings_reminders_hour">Hora del aviso</string>
+    <string name="settings_reminders_hour_note">El aviso llega alrededor de esa hora. Android puede demorarlo unos minutos, sobre todo con el ahorro de batería.</string>
+    <string name="settings_reminders_amounts">Mostrar importes en el aviso</string>
+    <string name="settings_reminders_amounts_body">Apagado por defecto, para que no se vea tu plata en la pantalla bloqueada.</string>
+</resources>

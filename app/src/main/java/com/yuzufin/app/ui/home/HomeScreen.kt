@@ -39,6 +39,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -66,6 +67,12 @@ import com.yuzufin.app.domain.TransactionType
 import com.yuzufin.app.ui.common.MovementItem
 import com.yuzufin.app.ui.common.categoryIcon
 import com.yuzufin.app.ui.common.dayLabel
+import com.yuzufin.app.ui.common.formatFullDate
+import com.yuzufin.app.ui.components.PillLabel
+import com.yuzufin.app.ui.incomes.ConfirmIncomeDialog
+import com.yuzufin.app.ui.incomes.PendingIncome
+import com.yuzufin.app.ui.incomes.PendingIncomeRow
+import com.yuzufin.app.ui.incomes.UpcomingIncome
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.QuickAction
 import com.yuzufin.app.ui.components.SectionHeader
@@ -87,8 +94,11 @@ fun HomeScreen(
     onQuickAction: (QuickAction) -> Unit,
     onNotificationsClick: () -> Unit,
     onEditMovement: (Long) -> Unit,
+    onConfirmIncome: (occurrenceId: Long, amountMinor: Long) -> Unit,
+    onSkipIncome: (occurrenceId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var confirming by remember { mutableStateOf<PendingIncome?>(null) }
     var balanceVisible by rememberSaveable { mutableStateOf(true) }
     val headerTop = MaterialTheme.yuzu.headerTop
     val background = MaterialTheme.colorScheme.background
@@ -120,11 +130,20 @@ fun HomeScreen(
                 onToggleVisible = { balanceVisible = !balanceVisible },
                 onGoMovements = { onNavigate(Destination.Movements) },
             )
+            if (state.pendingIncomes.isNotEmpty()) {
+                PendingIncomesCard(
+                    state = state,
+                    onConfirm = { confirming = it },
+                    onSkip = { onSkipIncome(it.occurrenceId) },
+                    onSeeAll = { onNavigate(Destination.Incomes) },
+                )
+            }
             ShortcutsCard(onQuickAction)
             if (!state.hasMovements) {
                 EmptyBanner(onRegister = { onQuickAction(QuickAction.Expense) })
             }
             MonthSummaryCard(state)
+            state.nextIncome?.let { NextIncomeCard(it, state, onClick = { onNavigate(Destination.Incomes) }) }
             if (state.recent.isNotEmpty()) {
                 RecentMovementsCard(
                     state = state,
@@ -134,6 +153,88 @@ fun HomeScreen(
             }
         }
         Spacer(Modifier.height(contentPadding.calculateBottomPadding()))
+    }
+
+    confirming?.let { item ->
+        ConfirmIncomeDialog(
+            item = item,
+            currency = state.currency,
+            onConfirm = { amount ->
+                onConfirmIncome(item.occurrenceId, amount)
+                confirming = null
+            },
+            onDismiss = { confirming = null },
+        )
+    }
+}
+
+/** Cobros que llegaron y esperan confirmación: es lo primero que conviene resolver. */
+@Composable
+private fun PendingIncomesCard(
+    state: HomeUiState,
+    onConfirm: (PendingIncome) -> Unit,
+    onSkip: (PendingIncome) -> Unit,
+    onSeeAll: () -> Unit,
+) {
+    YuzuCard {
+        SectionHeader(
+            title = stringResource(R.string.incomes_pending_title),
+            actionLabel = stringResource(R.string.home_see_all),
+            onAction = onSeeAll,
+        )
+        Spacer(Modifier.height(8.dp))
+        state.pendingIncomes.take(3).forEachIndexed { index, item ->
+            if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+            PendingIncomeRow(
+                item = item,
+                currency = state.currency,
+                onConfirm = { onConfirm(item) },
+                onSkip = { onSkip(item) },
+            )
+        }
+        if (state.pendingIncomes.size > 3) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.home_pending_more, state.pendingIncomes.size - 3),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/** Próximo cobro previsto. Está marcado como previsión: no forma parte del saldo. */
+@Composable
+private fun NextIncomeCard(item: UpcomingIncome, state: HomeUiState, onClick: () -> Unit) {
+    YuzuCard(modifier = Modifier.clickable(onClick = onClick)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                stringResource(R.string.home_next_income_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f),
+            )
+            PillLabel(
+                text = stringResource(R.string.pill_forecast),
+                container = MaterialTheme.colorScheme.tertiaryContainer,
+                content = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(item.sourceName, style = MaterialTheme.typography.titleSmall)
+                Text(
+                    formatFullDate(item.date),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                MoneyFormatter.format(item.amountMinor, state.currency),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
