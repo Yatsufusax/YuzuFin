@@ -58,6 +58,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.unit.sp
 import com.yuzufin.app.R
 import com.yuzufin.app.core.money.MoneyFormatter
@@ -82,7 +83,6 @@ import com.yuzufin.app.ui.theme.yuzu
 fun HomeScreen(
     contentPadding: PaddingValues,
     state: HomeUiState,
-    updateBanner: @Composable () -> Unit,
     onNavigate: (Destination) -> Unit,
     onQuickAction: (QuickAction) -> Unit,
     onNotificationsClick: () -> Unit,
@@ -111,8 +111,7 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Spacer(Modifier.height(4.dp))
-        HomeHeader(onNotificationsClick)
-        updateBanner()
+        HomeHeader(name = state.userName, onNotificationsClick = onNotificationsClick)
 
         if (!state.loading) {
             BalanceCard(
@@ -139,7 +138,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeHeader(onNotificationsClick: () -> Unit) {
+private fun HomeHeader(name: String, onNotificationsClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -165,9 +164,12 @@ private fun HomeHeader(onNotificationsClick: () -> Unit) {
                     )
                 }
                 Text(
-                    text = stringResource(R.string.app_name),
+                    text = name.ifBlank { stringResource(R.string.app_name) },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 220.dp),
                 )
             }
         }

@@ -65,6 +65,7 @@ jobs:
         with:
           tag_name: build-${{ github.run_number }}
           name: YuzuFin 0.2.${{ github.run_number }}
-          body: ${{ github.event.head_commit.message }}
+          # Lo que dice NOVEDADES.md es lo que la app muestra en la ventana de actualización.
+          body_path: NOVEDADES.md
           files: YuzuFin-0.2.${{ github.run_number }}.apk
           make_latest: true

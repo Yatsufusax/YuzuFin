@@ -25,7 +25,6 @@ import com.yuzufin.app.ui.sections.StatsScreen
 import com.yuzufin.app.ui.settings.SettingsScreen
 import com.yuzufin.app.ui.transaction.TransactionFormScreen
 import com.yuzufin.app.ui.transaction.TransactionFormViewModel
-import com.yuzufin.app.ui.update.UpdateBanner
 import com.yuzufin.app.ui.update.UpdateViewModel
 
 @Composable
@@ -54,7 +53,6 @@ fun YuzuNavHost(
             HomeScreen(
                 contentPadding = contentPadding,
                 state = state,
-                updateBanner = { UpdateBanner(updateViewModel) },
                 onNavigate = navController::navigateTo,
                 onQuickAction = onQuickAction,
                 onNotificationsClick = onNotificationsClick,

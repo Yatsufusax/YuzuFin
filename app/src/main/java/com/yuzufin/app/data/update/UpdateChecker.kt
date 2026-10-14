@@ -63,12 +63,68 @@ class UpdateChecker(private val repo: String = UpdateConfig.GITHUB_REPO) {
         }
     }
 
+    /**
+     * Número de la última Release, leído de la redirección de `github.com/<repo>/releases/latest`.
+     * Es una consulta liviana que no cuenta contra el límite de la API (60 por hora), así que
+     * se puede repetir cada minuto. `null` si todavía no hay ninguna Release.
+     */
+    suspend fun latestBuildNumber(): Long? = withContext(Dispatchers.IO) {
+        val connection = URL("https://github.com/$repo/releases/latest")
+            .openConnection() as HttpURLConnection
+        try {
+            connection.instanceFollowRedirects = false
+            connection.requestMethod = "HEAD"
+            connection.connectTimeout = 10_000
+            connection.readTimeout = 15_000
+            connection.setRequestProperty("User-Agent", "YuzuFin-Android")
+            when (val code = connection.responseCode) {
+                301, 302, 303, 307, 308 ->
+                    connection.getHeaderField("Location")?.let(::parseBuildFromLocation)
+                HttpURLConnection.HTTP_OK, HttpURLConnection.HTTP_NOT_FOUND -> null
+                else -> throw IOException("GitHub respondió $code")
+            }
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    /**
+     * Datos completos (novedades y APK) de la Release [build]. Si la API no responde (por ejemplo
+     * por el límite de consultas), arma la dirección del APK con el nombre que publica el workflow.
+     */
+    suspend fun detailsFor(build: Long, currentVersionName: String): UpdateInfo {
+        val fromApi = try {
+            fetchLatest()
+        } catch (e: IOException) {
+            null
+        }
+        return fromApi?.takeIf { it.buildNumber >= build } ?: fallbackInfo(repo, currentVersionName, build)
+    }
+
     companion object {
         private val BUILD_TAG = Regex("^build-(\\d+)$")
 
         /** Las etiquetas de las Releases son `build-<número>`; devuelve ese número. */
         fun parseBuildNumber(tag: String): Long? =
             BUILD_TAG.matchEntire(tag.trim())?.groupValues?.get(1)?.toLongOrNull()
+
+        /** `https://github.com/<repo>/releases/tag/build-12` → 12. */
+        fun parseBuildFromLocation(location: String): Long? {
+            if (!location.contains("/releases/tag/")) return null
+            return parseBuildNumber(location.trimEnd('/').substringAfterLast('/'))
+        }
+
+        /** Versión `0.2.7` a partir de la instalada (`0.2.3`) y el número de compilación. */
+        fun fallbackInfo(repo: String, currentVersionName: String, build: Long): UpdateInfo {
+            val name = currentVersionName.substringBeforeLast('.', "0.2") + ".$build"
+            return UpdateInfo(
+                versionName = name,
+                buildNumber = build,
+                notes = "",
+                downloadUrl = "https://github.com/$repo/releases/download/build-$build/YuzuFin-$name.apk",
+                sizeBytes = 0L,
+            )
+        }
 
         /** Lee el JSON de una Release de GitHub. `null` si no tiene APK o no es una versión de la app. */
         fun parseRelease(json: String): UpdateInfo? {

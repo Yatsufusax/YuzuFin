@@ -30,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.yuzufin.app.R
 import com.yuzufin.app.ui.components.IconBadge
@@ -104,13 +103,6 @@ fun MenuScreen(
         }
 
         Spacer(Modifier.height(24.dp))
-        Text(
-            text = stringResource(R.string.menu_footer),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
-        )
         Spacer(Modifier.height(contentPadding.calculateBottomPadding() + 16.dp))
     }
 }

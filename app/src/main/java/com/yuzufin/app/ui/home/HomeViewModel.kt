@@ -31,6 +31,8 @@ data class HomeUiState(
     val monthExpense: Long = 0L,
     val recent: List<MovementItem> = emptyList(),
     val hasMovements: Boolean = false,
+    /** Nombre elegido por la persona; vacío si no puso ninguno. */
+    val userName: String = "",
 )
 
 class HomeViewModel(
@@ -45,7 +47,7 @@ class HomeViewModel(
         settings.settings,
     ) { initial, transactions, categories, appSettings ->
         if (initial == null) {
-            HomeUiState()
+            HomeUiState(userName = appSettings.userName)
         } else {
             val balance = BalanceCalculator.availableBalance(initial, transactions)
             val month = BalanceCalculator.monthTotals(initial, transactions, YearMonth.now())
@@ -63,6 +65,7 @@ class HomeViewModel(
                 monthExpense = month.expense,
                 recent = buildMovementItems(transactions.take(4), categories),
                 hasMovements = transactions.isNotEmpty(),
+                userName = appSettings.userName,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())

@@ -63,7 +63,6 @@
     <string name="menu_stats_desc">Gastos por categoría y comparación mensual</string>
     <string name="menu_settings">Ajustes</string>
     <string name="menu_settings_desc">Moneda, tema, copias de seguridad y más</string>
-    <string name="menu_footer">YuzuFin · Fase 1: base del proyecto</string>
 
     <!-- Fases del plan -->
     <string name="phase_3">Fase 3 · Salarios e ingresos</string>

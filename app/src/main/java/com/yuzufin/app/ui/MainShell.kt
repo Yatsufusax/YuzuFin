@@ -19,6 +19,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -49,7 +52,11 @@ fun MainShell() {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val updateViewModel: UpdateViewModel = viewModel(factory = UpdateViewModel.factory(container))
-    LaunchedEffect(Unit) { updateViewModel.checkOnStartup() }
+    // Busca actualizaciones cada minuto mientras la app está a la vista.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { updateViewModel.pollLoop() }
+    }
     UpdateEffects(updateViewModel)
 
     // Pagar, préstamos y ahorro todavía no existen: se avisa con honestidad en qué fase llegan.

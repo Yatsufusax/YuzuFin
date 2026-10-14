@@ -95,7 +95,7 @@ fun SettingsScreen(
             Text(stringResource(R.string.settings_app_title), style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
             Text(
-                text = stringResource(R.string.settings_version, version.name, version.code.toInt()),
+                text = stringResource(R.string.settings_version, version.name),
                 style = MaterialTheme.typography.bodyLarge,
             )
             Spacer(Modifier.height(12.dp))
@@ -140,6 +140,11 @@ fun SettingsScreen(
                     stringResource(R.string.update_banner_ready),
                     style = MaterialTheme.typography.bodyMedium,
                 )
+                is UpdateState.DownloadFailed -> Text(
+                    stringResource(R.string.update_forced_failed),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
                 UpdateState.Idle -> Unit
             }
 
@@ -152,6 +157,9 @@ fun SettingsScreen(
                     onClick = { runCatching { ApkInstaller.installOrRequestPermission(context, s.file) } },
                 ) { Text(stringResource(R.string.settings_update_install)) }
                 is UpdateState.Downloading -> Unit
+                is UpdateState.DownloadFailed -> Button(onClick = updateViewModel::download) {
+                    Text(stringResource(R.string.update_retry))
+                }
                 else -> Button(
                     onClick = { updateViewModel.check() },
                     enabled = s != UpdateState.Checking,

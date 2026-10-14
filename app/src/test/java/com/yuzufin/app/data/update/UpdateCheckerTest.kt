@@ -37,4 +37,22 @@ class UpdateCheckerTest {
         assertNull(UpdateChecker.parseRelease("""{"tag_name":"build-3","assets":[]}"""))
         assertNull(UpdateChecker.parseRelease("""{"tag_name":"v9","assets":[{"name":"a.apk","browser_download_url":"u"}]}"""))
     }
+
+    @Test fun lee_la_compilacion_de_la_redireccion() {
+        assertEquals(9L, UpdateChecker.parseBuildFromLocation("https://github.com/Yatsufusax/YuzuFin/releases/tag/build-9"))
+        assertEquals(9L, UpdateChecker.parseBuildFromLocation("https://github.com/Yatsufusax/YuzuFin/releases/tag/build-9/"))
+        assertNull(UpdateChecker.parseBuildFromLocation("https://github.com/Yatsufusax/YuzuFin/releases"))
+        assertNull(UpdateChecker.parseBuildFromLocation("https://github.com/Yatsufusax/YuzuFin/releases/tag/v1.0"))
+    }
+
+    @Test fun datos_de_respaldo_si_falla_la_api() {
+        val info = UpdateChecker.fallbackInfo("Yatsufusax/YuzuFin", "0.2.3", 7L)
+        assertEquals("0.2.7", info.versionName)
+        assertEquals(7L, info.buildNumber)
+        assertEquals(
+            "https://github.com/Yatsufusax/YuzuFin/releases/download/build-7/YuzuFin-0.2.7.apk",
+            info.downloadUrl,
+        )
+        assertEquals("0.2.9", UpdateChecker.fallbackInfo("a/b", "0.2.0-local", 9L).versionName)
+    }
 }

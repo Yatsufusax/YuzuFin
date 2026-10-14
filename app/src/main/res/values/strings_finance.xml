@@ -82,7 +82,7 @@
     <string name="settings_currency_title">Moneda</string>
     <string name="settings_currency_note">Se eligió al empezar. Más adelante vas a poder cambiarla con una confirmación, sin convertir los importes ya registrados.</string>
     <string name="settings_app_title">Aplicación</string>
-    <string name="settings_version">Versión %1$s (compilación %2$d)</string>
+    <string name="settings_version">Versión %1$s</string>
     <string name="settings_check_updates">Buscar actualizaciones</string>
     <string name="settings_update_checking">Buscando actualizaciones…</string>
     <string name="settings_update_uptodate">Tenés la última versión.</string>
@@ -91,10 +91,16 @@
     <string name="settings_update_download">Descargar e instalar</string>
     <string name="settings_update_downloading">Descargando… %1$d%%</string>
     <string name="settings_update_install">Instalar</string>
-    <string name="settings_update_privacy">Solo consulta GitHub para ver si hay una versión nueva. No se envía ningún dato de tus finanzas.</string>
-    <string name="update_dialog_title">Hay una versión nueva</string>
-    <string name="update_dialog_later">Más tarde</string>
-    <string name="update_banner_title">Actualización disponible</string>
+    <string name="settings_update_privacy">Solo consulta para ver si hay una versión nueva. No se envía ningún dato de tus finanzas.</string>
+    <string name="update_forced_title">Hay una versión nueva</string>
+    <string name="update_forced_body">Para seguir usando YuzuFin tenés que actualizar a la versión %1$s. Tus datos se conservan.</string>
+    <string name="update_whats_new">Qué hay de nuevo</string>
+    <string name="update_forced_preparing">Preparando la descarga…</string>
+    <string name="update_forced_ready">Listo. Android te pide confirmar la instalación; la primera vez también te pide permiso. Si no se abrió, tocá el botón.</string>
+    <string name="update_forced_failed">No se pudo descargar. Revisá tu conexión y reintentá.</string>
+    <string name="update_install_now">Instalar ahora</string>
+    <string name="update_retry">Reintentar</string>
+    <string name="update_downloading_button">Descargando…</string>
     <string name="update_banner_ready">Descarga lista. Tocá Instalar para terminar.</string>
 
     <!-- Extracto en PDF -->

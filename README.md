@@ -30,7 +30,9 @@ App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Ro
 Servicio externo (el único): `GET https://api.github.com/repos/Yatsufusax/YuzuFin/releases/latest`. No envía ningún dato tuyo.
 
 - Cada push a `main` compila, corre los tests, publica el APK firmado como Release `build-<n>` (`n` = número de ejecución) y esa `n` es el `versionCode`.
-- La app compara su `versionCode` con `n`. Si hay uno mayor, avisa, descarga e instala. Android pide una vez el permiso "instalar apps desconocidas".
+- La app compara su `versionCode` con `n`. Las actualizaciones son **obligatorias**: mientras la app está abierta busca cada minuto (con espera creciente si no hay conexión), descarga sola la versión nueva y muestra una ventana que no se puede cerrar hasta instalarla. Android pide confirmar cada instalación y, la primera vez, el permiso "instalar apps desconocidas". No puede instalarse en silencio.
+- La búsqueda de cada minuto lee la redirección de `github.com/<repo>/releases/latest`, que no cuenta contra el límite de 60 consultas por hora de la API. La API solo se consulta cuando hay versión nueva, para traer las novedades.
+- **`NOVEDADES.md`**: es el texto de la ventana de actualización. Editalo antes de cada push con secciones `## Nuevo`, `## Mejorado`, `## Corregido` y puntos `- ...`; el workflow lo publica como notas de la Release.
 - **El repositorio tiene que ser público**: la API de Releases responde 404 sin autenticación en repos privados.
 - Para que la actualización se instale sobre la app vieja, el APK debe estar siempre firmado con la misma clave. Por eso la Release solo se publica si existen los secretos de firma.
 

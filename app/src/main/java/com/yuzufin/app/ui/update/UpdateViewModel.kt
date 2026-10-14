@@ -10,6 +10,7 @@ import com.yuzufin.app.data.update.AppVersion
 import com.yuzufin.app.data.update.UpdateChecker
 import com.yuzufin.app.data.update.UpdateInfo
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,12 +25,14 @@ sealed interface UpdateState {
     data class Available(val info: UpdateInfo) : UpdateState
     data class Downloading(val info: UpdateInfo, val progress: Float) : UpdateState
     data class ReadyToInstall(val info: UpdateInfo, val file: File, val installLaunched: Boolean) : UpdateState
+    data class DownloadFailed(val info: UpdateInfo) : UpdateState
     data object Error : UpdateState
 }
 
 /**
- * Busca, descarga e instala actualizaciones publicadas en GitHub. Vive a nivel de la
- * actividad, así que lo comparten el aviso al abrir la app y la pantalla de Ajustes.
+ * Busca, descarga e instala las actualizaciones. Las actualizaciones son obligatorias: al
+ * encontrar una versión nueva empieza a descargarla y la interfaz muestra una ventana que no se
+ * puede cerrar hasta instalarla. Vive a nivel de la actividad.
  */
 class UpdateViewModel(
     private val checker: UpdateChecker,
@@ -40,42 +43,75 @@ class UpdateViewModel(
     private val _state = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val state: StateFlow<UpdateState> = _state.asStateFlow()
 
-    /** Si el aviso emergente está abierto (solo lo abre la búsqueda automática al iniciar). */
-    private val _dialogOpen = MutableStateFlow(false)
-    val dialogOpen: StateFlow<Boolean> = _dialogOpen.asStateFlow()
+    private var busy = false
 
-    private var startupCheckDone = false
-
-    /** Búsqueda silenciosa al abrir la app: no molesta si no hay novedades o falla la red. */
-    fun checkOnStartup() {
-        if (startupCheckDone) return
-        startupCheckDone = true
-        check(silent = true)
+    /**
+     * Busca cada minuto mientras la app está abierta. Si no hay conexión el intento falla en
+     * silencio y se espera más (hasta 5 minutos) antes de volver a probar. Se detiene mientras
+     * hay una actualización pendiente.
+     */
+    suspend fun pollLoop() {
+        var wait = POLL_MS
+        while (true) {
+            if (!busy && !updatePending(_state.value)) {
+                wait = try {
+                    busy = true
+                    applyResult(fetchAvailable())
+                    POLL_MS
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    minOf(wait * 2, MAX_POLL_MS)
+                } finally {
+                    busy = false
+                }
+            }
+            delay(wait)
+        }
     }
 
-    fun check(silent: Boolean = false) {
-        val current = _state.value
-        if (current is UpdateState.Checking || current is UpdateState.Downloading) return
+    /** Búsqueda manual desde Ajustes: sí muestra el progreso y los errores. */
+    fun check() {
+        if (busy || updatePending(_state.value)) return
+        busy = true
         _state.value = UpdateState.Checking
         viewModelScope.launch {
             try {
-                val latest = checker.fetchLatest()
-                if (latest != null && latest.buildNumber > currentVersion.code) {
-                    _state.value = UpdateState.Available(latest)
-                    if (silent) _dialogOpen.value = true
-                } else {
-                    _state.value = UpdateState.UpToDate
-                }
+                applyResult(fetchAvailable())
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _state.value = if (silent) UpdateState.Idle else UpdateState.Error
+                _state.value = UpdateState.Error
+            } finally {
+                busy = false
             }
         }
     }
 
+    private suspend fun fetchAvailable(): UpdateInfo? {
+        val build = checker.latestBuildNumber() ?: return null
+        if (build <= currentVersion.code) return null
+        return checker.detailsFor(build, currentVersion.name)
+    }
+
+    private fun applyResult(info: UpdateInfo?) {
+        if (info == null) {
+            _state.update { s ->
+                if (s is UpdateState.Idle || s is UpdateState.Checking || s is UpdateState.Error) UpdateState.UpToDate else s
+            }
+        } else {
+            _state.value = UpdateState.Available(info)
+            download()
+        }
+    }
+
+    /** Descarga la versión nueva. También sirve para reintentar si falló. */
     fun download() {
-        val info = (_state.value as? UpdateState.Available)?.info ?: return
+        val info = when (val s = _state.value) {
+            is UpdateState.Available -> s.info
+            is UpdateState.DownloadFailed -> s.info
+            else -> return
+        }
         _state.value = UpdateState.Downloading(info, 0f)
         viewModelScope.launch {
             try {
@@ -86,7 +122,7 @@ class UpdateViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _state.value = UpdateState.Error
+                _state.value = UpdateState.DownloadFailed(info)
             }
         }
     }
@@ -96,14 +132,16 @@ class UpdateViewModel(
         _state.update { s ->
             if (s is UpdateState.ReadyToInstall) s.copy(installLaunched = true) else s
         }
-        _dialogOpen.value = false
     }
 
-    fun dismissDialog() {
-        _dialogOpen.value = false
-    }
+    private fun updatePending(s: UpdateState) =
+        s is UpdateState.Available || s is UpdateState.Downloading ||
+            s is UpdateState.ReadyToInstall || s is UpdateState.DownloadFailed
 
     companion object {
+        private const val POLL_MS = 60_000L
+        private const val MAX_POLL_MS = 300_000L
+
         fun factory(container: AppContainer) = viewModelFactory {
             initializer {
                 UpdateViewModel(container.updateChecker, container.apkDownloader, container.appVersion)
