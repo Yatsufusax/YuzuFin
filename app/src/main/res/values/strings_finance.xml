@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Acciones comunes -->
+    <string name="action_accept">Aceptar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_clear">Borrar búsqueda</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_save">Guardar</string>
+
+    <string name="date_today">Hoy</string>
+    <string name="date_yesterday">Ayer</string>
+
+    <!-- Monedas -->
+    <string name="currency_pyg">Guaraní paraguayo</string>
+    <string name="currency_usd">Dólar estadounidense</string>
+    <string name="currency_ars">Peso argentino</string>
+    <string name="currency_brl">Real brasileño</string>
+    <string name="currency_eur">Euro</string>
+
+    <!-- Configuración inicial -->
+    <string name="onboarding_step">Paso %1$d de %2$d</string>
+    <string name="onboarding_continue">Continuar</string>
+    <string name="onboarding_start">Empezar</string>
+    <string name="onboarding_currency_title">¿Qué moneda usás?</string>
+    <string name="onboarding_currency_body">Elegí la moneda con la que llevás tus cuentas.</string>
+    <string name="onboarding_currency_note">Los importes se guardan en esta moneda. YuzuFin no convierte entre monedas.</string>
+    <string name="onboarding_start_title">¿Desde dónde empezamos?</string>
+    <string name="onboarding_mode_today">Empezar desde hoy</string>
+    <string name="onboarding_mode_today_body">Contanos cuánto dinero tenés ahora. Lo anotamos como tu saldo inicial.</string>
+    <string name="onboarding_mode_history">Cargar mi historial</string>
+    <string name="onboarding_mode_history_body">Empezá desde una fecha anterior y registrá los movimientos desde ese día. Lo que pasó antes ya está dentro de tu saldo.</string>
+    <string name="onboarding_start_date">Fecha del saldo</string>
+    <string name="onboarding_amount_today">Saldo actual</string>
+    <string name="onboarding_amount_history">Saldo en esa fecha</string>
+    <string name="onboarding_amount_required">Escribí tu saldo. Si empezás sin dinero, poné 0.</string>
+    <string name="onboarding_optional_later">Los ingresos fijos, las facturas y los ahorros los vas a poder configurar más adelante.</string>
+
+    <!-- Movimientos -->
+    <string name="filter_all">Todos</string>
+    <string name="filter_income">Ingresos</string>
+    <string name="filter_expense">Gastos</string>
+    <string name="movements_search_hint">Buscar por descripción o categoría</string>
+    <string name="movements_all_history">Todo el historial</string>
+    <string name="movements_all_history_chip">Todo</string>
+    <string name="movements_previous_month">Mes anterior</string>
+    <string name="movements_next_month">Mes siguiente</string>
+    <string name="movements_total_income">Ingresos %1$s</string>
+    <string name="movements_total_expense">Gastos %1$s</string>
+    <string name="movements_empty">Todavía no registraste movimientos.</string>
+    <string name="movements_empty_filtered">No hay movimientos con estos filtros.</string>
+    <string name="movements_register_first">Registrar el primero</string>
+
+    <!-- Formulario de movimiento -->
+    <string name="form_title_new">Nuevo movimiento</string>
+    <string name="form_title_edit">Editar movimiento</string>
+    <string name="form_amount">Importe</string>
+    <string name="form_amount_error">Ingresá un importe mayor que cero.</string>
+    <string name="form_overdraw_warning">Este gasto supera tu saldo disponible (%1$s). Podés guardarlo igual, pero el saldo va a quedar en negativo.</string>
+    <string name="form_category">Categoría</string>
+    <string name="form_description">Descripción (opcional)</string>
+    <string name="form_description_hint">Ej.: Supermercado</string>
+    <string name="form_date">Fecha</string>
+    <string name="form_date_note">No se pueden cargar movimientos futuros ni anteriores a la fecha de tu saldo inicial.</string>
+    <string name="delete_title">¿Eliminar este movimiento?</string>
+    <string name="delete_body">Se borra de tu historial y tu saldo se recalcula. No se puede deshacer.</string>
+
+    <!-- Inicio (datos reales) -->
+    <string name="home_negative_warning">Tu saldo está en negativo. Revisá tus gastos.</string>
+    <string name="home_empty_title">Registrá tu primer movimiento</string>
+    <string name="home_empty_body">Anotá un gasto o un ingreso y tu saldo se actualiza al instante.</string>
+    <string name="home_empty_action">Registrar gasto</string>
+    <string name="home_no_income_month">Todavía no registraste ingresos este mes.</string>
+
+    <!-- Ajustes y actualizaciones -->
+    <string name="settings_currency_title">Moneda</string>
+    <string name="settings_currency_note">Se eligió al empezar. Más adelante vas a poder cambiarla con una confirmación, sin convertir los importes ya registrados.</string>
+    <string name="settings_app_title">Aplicación</string>
+    <string name="settings_version">Versión %1$s (compilación %2$d)</string>
+    <string name="settings_check_updates">Buscar actualizaciones</string>
+    <string name="settings_update_checking">Buscando actualizaciones…</string>
+    <string name="settings_update_uptodate">Tenés la última versión.</string>
+    <string name="settings_update_available">Hay una versión nueva: %1$s</string>
+    <string name="settings_update_error">No se pudo completar. Revisá tu conexión e intentá de nuevo.</string>
+    <string name="settings_update_download">Descargar e instalar</string>
+    <string name="settings_update_downloading">Descargando… %1$d%%</string>
+    <string name="settings_update_install">Instalar</string>
+    <string name="settings_update_privacy">Solo consulta GitHub para ver si hay una versión nueva. No se envía ningún dato de tus finanzas.</string>
+    <string name="update_dialog_title">Hay una versión nueva</string>
+    <string name="update_dialog_later">Más tarde</string>
+    <string name="update_banner_title">Actualización disponible</string>
+    <string name="update_banner_ready">Descarga lista. Tocá Instalar para terminar.</string>
+</resources>

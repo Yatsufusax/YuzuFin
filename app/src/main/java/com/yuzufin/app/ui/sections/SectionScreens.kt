@@ -6,8 +6,6 @@ import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Savings
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.yuzufin.app.R
@@ -15,19 +13,6 @@ import com.yuzufin.app.ui.components.ComingSoonScreen
 
 // Secciones que se implementan en fases posteriores. Cada una explica qué incluirá
 // y no muestra datos inventados.
-
-@Composable
-fun MovementsScreen(contentPadding: PaddingValues, modifier: Modifier = Modifier) {
-    ComingSoonScreen(
-        titleRes = R.string.nav_movements,
-        introRes = R.string.movements_intro,
-        featuresRes = R.array.movements_features,
-        phaseRes = R.string.phase_2,
-        icon = Icons.Rounded.SwapVert,
-        contentPadding = contentPadding,
-        modifier = modifier,
-    )
-}
 
 @Composable
 fun SavingsScreen(contentPadding: PaddingValues, modifier: Modifier = Modifier) {
@@ -78,20 +63,6 @@ fun StatsScreen(contentPadding: PaddingValues, onBack: () -> Unit, modifier: Mod
         featuresRes = R.array.stats_features,
         phaseRes = R.string.phase_6,
         icon = Icons.Rounded.BarChart,
-        contentPadding = contentPadding,
-        modifier = modifier,
-        onBack = onBack,
-    )
-}
-
-@Composable
-fun SettingsScreen(contentPadding: PaddingValues, onBack: () -> Unit, modifier: Modifier = Modifier) {
-    ComingSoonScreen(
-        titleRes = R.string.menu_settings,
-        introRes = R.string.settings_intro,
-        featuresRes = R.array.settings_features,
-        phaseRes = R.string.phase_settings,
-        icon = Icons.Rounded.Settings,
         contentPadding = contentPadding,
         modifier = modifier,
         onBack = onBack,

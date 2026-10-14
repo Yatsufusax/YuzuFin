@@ -66,20 +66,12 @@
     <string name="menu_footer">YuzuFin · Fase 1: base del proyecto</string>
 
     <!-- Fases del plan -->
-    <string name="phase_2">Fase 2 · Saldo y movimientos</string>
     <string name="phase_3">Fase 3 · Salarios e ingresos</string>
     <string name="phase_4">Fase 4 · Ahorros</string>
     <string name="phase_5">Fase 5 · Obligaciones y préstamos</string>
     <string name="phase_6">Fase 6 · Presupuestos y estadísticas</string>
-    <string name="phase_settings">Fases 2 a 7 · Se completa de a poco</string>
 
     <!-- Secciones en construcción -->
-    <string name="movements_intro">Historial de ingresos, gastos y operaciones financieras.</string>
-    <string-array name="movements_features">
-        <item>Registrar, editar y eliminar movimientos con confirmación</item>
-        <item>Filtrar por fecha, tipo y categoría, y buscar por descripción</item>
-        <item>Distinguir lo confirmado de lo previsto</item>
-    </string-array>
 
     <string name="savings_intro">Separá dinero para ahorrar. Es una transferencia interna, no un gasto.</string>
     <string-array name="savings_features">
@@ -108,8 +100,6 @@
         <item>Gastos por categoría y comparación con meses anteriores</item>
         <item>Presupuestos por categoría y escenarios de ahorro</item>
     </string-array>
-
-    <string name="settings_intro">Personalizá YuzuFin a tu manera.</string>
     <string-array name="settings_features">
         <item>Moneda e idioma, con guaraníes y otras monedas</item>
         <item>Tema claro u oscuro</item>

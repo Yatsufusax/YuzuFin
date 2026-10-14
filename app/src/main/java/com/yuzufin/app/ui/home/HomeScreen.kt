@@ -20,22 +20,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccountBalance
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
-import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material.icons.rounded.CalendarMonth
-import androidx.compose.material.icons.rounded.DirectionsBus
-import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Payments
-import androidx.compose.material.icons.rounded.Restaurant
-import androidx.compose.material.icons.rounded.Savings
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
-import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -69,12 +61,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yuzufin.app.R
 import com.yuzufin.app.core.money.MoneyFormatter
-import com.yuzufin.app.data.demo.DemoData
-import com.yuzufin.app.data.demo.DemoData.Category
-import com.yuzufin.app.data.demo.DemoData.MovementKind
-import com.yuzufin.app.ui.components.DemoBanner
+import com.yuzufin.app.domain.TransactionType
+import com.yuzufin.app.ui.common.MovementItem
+import com.yuzufin.app.ui.common.categoryIcon
+import com.yuzufin.app.ui.common.dayLabel
 import com.yuzufin.app.ui.components.IconBadge
-import com.yuzufin.app.ui.components.PillLabel
 import com.yuzufin.app.ui.components.QuickAction
 import com.yuzufin.app.ui.components.SectionHeader
 import com.yuzufin.app.ui.components.YuzuCard
@@ -84,16 +75,18 @@ import com.yuzufin.app.ui.theme.MintTile
 import com.yuzufin.app.ui.theme.yuzu
 
 /**
- * Pantalla de Inicio. En la Fase 1 todos los importes salen de [DemoData] y la pantalla
- * lo avisa con un banner. Orden: saldo → patrimonio → atajos → próximo cobro →
- * resumen del mes → vencimientos → movimientos recientes.
+ * Pantalla de Inicio con datos reales: saldo disponible, atajos, resumen del mes y últimos
+ * movimientos. Las tarjetas de ahorros, obligaciones y patrimonio llegan en las Fases 4 y 5.
  */
 @Composable
 fun HomeScreen(
     contentPadding: PaddingValues,
+    state: HomeUiState,
+    updateBanner: @Composable () -> Unit,
     onNavigate: (Destination) -> Unit,
     onQuickAction: (QuickAction) -> Unit,
     onNotificationsClick: () -> Unit,
+    onEditMovement: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var balanceVisible by rememberSaveable { mutableStateOf(true) }
@@ -119,31 +112,28 @@ fun HomeScreen(
     ) {
         Spacer(Modifier.height(4.dp))
         HomeHeader(onNotificationsClick)
-        DemoBanner()
-        BalanceCard(
-            visible = balanceVisible,
-            onToggleVisible = { balanceVisible = !balanceVisible },
-            onGoMovements = { onNavigate(Destination.Movements) },
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            StatCard(
-                icon = Icons.Rounded.Savings,
-                label = stringResource(R.string.home_saved),
-                value = MoneyFormatter.format(DemoData.savedTotal, DemoData.currency),
-                modifier = Modifier.weight(1f),
+        updateBanner()
+
+        if (!state.loading) {
+            BalanceCard(
+                state = state,
+                visible = balanceVisible,
+                onToggleVisible = { balanceVisible = !balanceVisible },
+                onGoMovements = { onNavigate(Destination.Movements) },
             )
-            StatCard(
-                icon = Icons.Rounded.AccountBalance,
-                label = stringResource(R.string.home_net_worth),
-                value = MoneyFormatter.format(DemoData.netWorth, DemoData.currency),
-                modifier = Modifier.weight(1f),
-            )
+            ShortcutsCard(onQuickAction)
+            if (!state.hasMovements) {
+                EmptyBanner(onRegister = { onQuickAction(QuickAction.Expense) })
+            }
+            MonthSummaryCard(state)
+            if (state.recent.isNotEmpty()) {
+                RecentMovementsCard(
+                    state = state,
+                    onSeeAll = { onNavigate(Destination.Movements) },
+                    onEdit = onEditMovement,
+                )
+            }
         }
-        ShortcutsCard(onQuickAction)
-        NextIncomeBanner(onViewIncomes = { onNavigate(Destination.Incomes) })
-        MonthSummaryCard()
-        UpcomingBillsCard()
-        RecentMovementsCard(onSeeAll = { onNavigate(Destination.Movements) })
         Spacer(Modifier.height(contentPadding.calculateBottomPadding()))
     }
 }
@@ -200,12 +190,16 @@ private fun HomeHeader(onNotificationsClick: () -> Unit) {
 
 @Composable
 private fun BalanceCard(
+    state: HomeUiState,
     visible: Boolean,
     onToggleVisible: () -> Unit,
     onGoMovements: () -> Unit,
 ) {
-    val currency = DemoData.currency
+    val currency = state.currency
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    val negative = state.balance < 0
+    val amountColor = if (negative) MaterialTheme.yuzu.expense else MaterialTheme.colorScheme.onSurface
+
     YuzuCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -228,35 +222,20 @@ private fun BalanceCard(
         Text(
             text = buildAnnotatedString {
                 withStyle(SpanStyle(fontSize = 22.sp, color = muted)) { append("${currency.symbol} ") }
-                append(
-                    if (visible) {
-                        MoneyFormatter.formatNumber(DemoData.availableBalance, currency)
-                    } else {
-                        "••••••"
-                    },
-                )
+                append(if (visible) MoneyFormatter.formatNumber(state.balance, currency) else "••••••")
             },
             style = MaterialTheme.typography.displaySmall,
+            color = amountColor,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
 
-        Spacer(Modifier.height(16.dp))
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        Spacer(Modifier.height(16.dp))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            LabeledAmount(
-                label = stringResource(R.string.home_committed),
-                value = if (visible) MoneyFormatter.format(DemoData.committed, currency) else "${currency.symbol} ••••",
+        if (negative) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.home_negative_warning),
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.yuzu.expense,
-                modifier = Modifier.weight(1f),
-            )
-            LabeledAmount(
-                label = stringResource(R.string.home_free),
-                value = if (visible) MoneyFormatter.format(DemoData.freeEstimate, currency) else "${currency.symbol} ••••",
-                color = MaterialTheme.yuzu.income,
-                modifier = Modifier.weight(1f),
             )
         }
 
@@ -270,43 +249,6 @@ private fun BalanceCard(
         ) {
             Text(stringResource(R.string.home_go_movements))
         }
-    }
-}
-
-@Composable
-private fun LabeledAmount(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
-    Column(modifier) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            color = color,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-@Composable
-private fun StatCard(icon: ImageVector, label: String, value: String, modifier: Modifier = Modifier) {
-    YuzuCard(modifier = modifier, contentPadding = PaddingValues(16.dp)) {
-        IconBadge(icon = icon, size = 40.dp)
-        Spacer(Modifier.height(12.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleSmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }
 
@@ -354,10 +296,10 @@ private fun ShortcutsCard(onQuickAction: (QuickAction) -> Unit) {
     }
 }
 
+/** Invitación a registrar el primer movimiento, con el estilo del banner verde de la referencia. */
 @Composable
-private fun NextIncomeBanner(onViewIncomes: () -> Unit) {
+private fun EmptyBanner(onRegister: () -> Unit) {
     val colors = MaterialTheme.yuzu
-    val income = DemoData.nextIncome
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -369,40 +311,29 @@ private fun NextIncomeBanner(onViewIncomes: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                PillLabel(
-                    text = stringResource(R.string.home_planned),
-                    container = colors.onBanner.copy(alpha = 0.14f),
-                    content = colors.onBanner,
-                )
-                Spacer(Modifier.height(10.dp))
                 Text(
-                    text = stringResource(R.string.home_next_income),
+                    text = stringResource(R.string.home_empty_title),
                     style = MaterialTheme.typography.titleLarge,
-                    color = colors.onBanner,
-                )
-                Text(
-                    text = "${income.name} · ${income.whenLabel}",
-                    style = MaterialTheme.typography.bodyMedium,
                     color = colors.onBanner,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = MoneyFormatter.format(income.amount, DemoData.currency),
-                    style = MaterialTheme.typography.headlineSmall,
+                    text = stringResource(R.string.home_empty_body),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = colors.onBanner,
                 )
                 Spacer(Modifier.height(16.dp))
                 Button(
-                    onClick = onViewIncomes,
+                    onClick = onRegister,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colors.strongButton,
                         contentColor = colors.onStrongButton,
                     ),
                 ) {
-                    Text(stringResource(R.string.home_view_incomes))
+                    Text(stringResource(R.string.home_empty_action))
                 }
             }
-            Box(modifier = Modifier.size(104.dp), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.size(96.dp), contentAlignment = Alignment.Center) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val r = size.minDimension / 2f
                     drawCircle(color = colors.onBanner.copy(alpha = 0.08f), radius = r)
@@ -413,7 +344,7 @@ private fun NextIncomeBanner(onViewIncomes: () -> Unit) {
                     Icons.Rounded.Payments,
                     contentDescription = null,
                     tint = colors.onBanner,
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(34.dp),
                 )
             }
         }
@@ -421,12 +352,12 @@ private fun NextIncomeBanner(onViewIncomes: () -> Unit) {
 }
 
 @Composable
-private fun MonthSummaryCard() {
+private fun MonthSummaryCard(state: HomeUiState) {
     val colors = MaterialTheme.yuzu
-    val currency = DemoData.currency
-    val income = DemoData.incomeThisMonth
-    val expense = DemoData.expenseThisMonth
-    // Proporción solo para dibujar la barra y el porcentaje; los importes siguen siendo enteros.
+    val currency = state.currency
+    val income = state.monthIncome
+    val expense = state.monthExpense
+    // La proporción solo sirve para dibujar la barra y el porcentaje; los importes son enteros.
     val percent = if (income > 0) ((expense * 100) / income).toInt().coerceIn(0, 100) else 0
 
     YuzuCard {
@@ -452,27 +383,35 @@ private fun MonthSummaryCard() {
             )
         }
         Spacer(Modifier.height(16.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(10.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-        ) {
+        if (income > 0) {
             Box(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(percent / 100f)
+                    .fillMaxWidth()
+                    .height(10.dp)
                     .clip(CircleShape)
-                    .background(colors.expense),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(percent / 100f)
+                        .clip(CircleShape)
+                        .background(colors.expense),
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.home_month_ratio, percent),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            Text(
+                text = stringResource(R.string.home_no_income_month),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.home_month_ratio, percent),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
         Spacer(Modifier.height(12.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -522,113 +461,67 @@ private fun MonthFigure(
 }
 
 @Composable
-private fun UpcomingBillsCard() {
-    YuzuCard {
-        Text(
-            text = stringResource(R.string.home_bills_title),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Spacer(Modifier.height(8.dp))
-        DemoData.upcomingBills.forEachIndexed { index, bill ->
-            if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            MovementRow(
-                icon = iconFor(bill.category),
-                title = bill.name,
-                subtitle = "${stringResource(R.string.home_bill_pending)} · ${bill.dueLabel}",
-                amount = MoneyFormatter.format(bill.amount, DemoData.currency),
-                amountColor = MaterialTheme.colorScheme.onSurface,
-                badgeContainer = MaterialTheme.colorScheme.tertiaryContainer,
-                badgeTint = MaterialTheme.colorScheme.tertiary,
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.home_bills_note),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun RecentMovementsCard(onSeeAll: () -> Unit) {
-    val colors = MaterialTheme.yuzu
-    val neutral = MaterialTheme.colorScheme.onSurfaceVariant
+private fun RecentMovementsCard(
+    state: HomeUiState,
+    onSeeAll: () -> Unit,
+    onEdit: (Long) -> Unit,
+) {
     YuzuCard {
         SectionHeader(
             title = stringResource(R.string.home_recent_title),
             actionLabel = stringResource(R.string.home_see_all),
             onAction = onSeeAll,
         )
-        DemoData.recentMovements.forEachIndexed { index, movement ->
+        state.recent.forEachIndexed { index, item ->
             if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            val isTransfer = movement.kind == MovementKind.InternalTransfer
-            MovementRow(
-                icon = iconFor(movement.category),
-                title = movement.title,
-                // El ahorro es una transferencia interna: se muestra neutro y sin signo.
-                subtitle = if (isTransfer) {
-                    "${movement.detail} · ${stringResource(R.string.home_internal_transfer)}"
-                } else {
-                    movement.detail
-                },
-                amount = when (movement.kind) {
-                    MovementKind.Income -> MoneyFormatter.format(movement.amount, DemoData.currency, showPlus = true)
-                    MovementKind.Expense -> MoneyFormatter.format(-movement.amount, DemoData.currency)
-                    MovementKind.InternalTransfer -> MoneyFormatter.format(movement.amount, DemoData.currency)
-                },
-                amountColor = when (movement.kind) {
-                    MovementKind.Income -> colors.income
-                    MovementKind.Expense -> colors.expense
-                    MovementKind.InternalTransfer -> neutral
-                },
-            )
+            RecentRow(item = item, state = state, onClick = { onEdit(item.id) })
         }
     }
 }
 
 @Composable
-private fun MovementRow(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    amount: String,
-    amountColor: Color,
-    modifier: Modifier = Modifier,
-    badgeContainer: Color = MaterialTheme.colorScheme.primaryContainer,
-    badgeTint: Color = MaterialTheme.colorScheme.secondary,
-) {
+private fun RecentRow(item: MovementItem, state: HomeUiState, onClick: () -> Unit) {
+    val colors = MaterialTheme.yuzu
+    val isIncome = item.type == TransactionType.INCOME
+    val subtitle = if (item.description.isBlank()) {
+        dayLabel(item.date)
+    } else {
+        "${item.categoryName} · ${dayLabel(item.date)}"
+    }
     Row(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .clickable(role = Role.Button, onClick = onClick)
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        IconBadge(icon = icon, size = 44.dp, container = badgeContainer, tint = badgeTint)
+        IconBadge(icon = categoryIcon(item.iconKey), size = 44.dp)
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         Text(
-            text = amount,
+            text = if (isIncome) {
+                MoneyFormatter.format(item.amountMinor, state.currency, showPlus = true)
+            } else {
+                MoneyFormatter.format(-item.amountMinor, state.currency)
+            },
             style = MaterialTheme.typography.titleSmall,
-            color = amountColor,
+            color = if (isIncome) colors.income else colors.expense,
             maxLines = 1,
         )
     }
-}
-
-private fun iconFor(category: Category): ImageVector = when (category) {
-    Category.Food -> Icons.Rounded.Restaurant
-    Category.Salary -> Icons.Rounded.Payments
-    Category.Savings -> Icons.Rounded.Savings
-    Category.Transport -> Icons.Rounded.DirectionsBus
-    Category.Internet -> Icons.Rounded.Wifi
-    Category.Rent -> Icons.Rounded.Home
-    Category.Electricity -> Icons.Rounded.Bolt
 }

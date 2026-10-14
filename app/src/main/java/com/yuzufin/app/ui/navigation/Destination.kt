@@ -1,6 +1,7 @@
 package com.yuzufin.app.ui.navigation
 
 import androidx.navigation.NavHostController
+import com.yuzufin.app.domain.TransactionType
 
 /**
  * Pantallas de la app. Las de primer nivel viven en la barra inferior; las demás se
@@ -15,6 +16,19 @@ sealed class Destination(val route: String, val isTopLevel: Boolean) {
     data object Obligations : Destination("obligations", false)
     data object Stats : Destination("stats", false)
     data object Settings : Destination("settings", false)
+}
+
+/** Formulario para crear o editar un movimiento. Oculta la barra inferior. */
+object TransactionRoute {
+    const val ARG_ID = "id"
+    const val ARG_TYPE = "type"
+    const val PATTERN = "transaction?$ARG_ID={$ARG_ID}&$ARG_TYPE={$ARG_TYPE}"
+
+    /** [id] = 0 crea un movimiento nuevo; otro valor edita ese movimiento. */
+    fun create(id: Long = 0L, type: TransactionType = TransactionType.EXPENSE): String =
+        "transaction?$ARG_ID=$id&$ARG_TYPE=${type.name}"
+
+    fun isFormRoute(route: String?): Boolean = route?.startsWith("transaction") == true
 }
 
 /** Las secciones que cuelgan de “Menú” marcan esa pestaña como activa. */

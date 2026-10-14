@@ -12,29 +12,47 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.yuzufin.app.rememberAppContainer
+import com.yuzufin.app.ui.onboarding.OnboardingScreen
 import com.yuzufin.app.ui.splash.AnimatedSplash
 import com.yuzufin.app.ui.theme.YuzuFinTheme
 
-/** Raíz de la app: splash animada y, al terminar, la estructura principal. */
+private enum class Stage { Splash, Onboarding, Main }
+
+/**
+ * Raíz de la app: splash animada → configuración inicial (solo la primera vez) →
+ * estructura principal.
+ */
 @Composable
 fun YuzuFinApp() {
     // rememberSaveable: al rotar la pantalla no se repite la splash.
     var showSplash by rememberSaveable { mutableStateOf(true) }
     val darkTheme = isSystemInDarkTheme()
+    val container = rememberAppContainer()
+    val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
+
+    // Mientras las preferencias no se leyeron se sigue mostrando la splash (dura milisegundos).
+    val loadedSettings = settings
+    val stage = when {
+        showSplash || loadedSettings == null -> Stage.Splash
+        !loadedSettings.onboardingDone -> Stage.Onboarding
+        else -> Stage.Main
+    }
 
     YuzuFinTheme(darkTheme = darkTheme) {
-        // La splash es oscura: iconos claros. Luego, iconos oscuros solo en tema claro.
-        SystemBarIcons(darkIcons = !showSplash && !darkTheme)
+        // La splash es oscura: iconos claros. En las demás pantallas, oscuros solo con tema claro.
+        SystemBarIcons(darkIcons = stage != Stage.Splash && !darkTheme)
 
         Crossfade(
-            targetState = showSplash,
+            targetState = stage,
             animationSpec = tween(450),
-            label = "splash",
-        ) { splashVisible ->
-            if (splashVisible) {
-                AnimatedSplash(onFinished = { showSplash = false })
-            } else {
-                MainShell()
+            label = "stage",
+        ) { current ->
+            when (current) {
+                Stage.Splash -> AnimatedSplash(onFinished = { showSplash = false })
+                Stage.Onboarding -> OnboardingScreen()
+                Stage.Main -> MainShell()
             }
         }
     }
