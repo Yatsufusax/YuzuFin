@@ -21,6 +21,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import com.yuzufin.app.data.SettingsRepository
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringArrayResource
@@ -49,6 +58,7 @@ fun SettingsScreen(
     val updateState by updateViewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val version = updateViewModel.currentVersion
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = modifier
@@ -57,6 +67,13 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         ScreenHeader(title = stringResource(R.string.menu_settings), onBack = onBack)
+
+        NameCard(
+            savedName = settings?.userName.orEmpty(),
+            loaded = settings != null,
+            onSave = { name -> scope.launch { container.settingsRepository.setUserName(name) } },
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
 
         YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text(stringResource(R.string.settings_currency_title), style = MaterialTheme.typography.titleMedium)
@@ -170,5 +187,47 @@ fun SettingsScreen(
         }
 
         Spacer(Modifier.height(contentPadding.calculateBottomPadding() + 16.dp))
+    }
+}
+
+@Composable
+private fun NameCard(
+    savedName: String,
+    loaded: Boolean,
+    onSave: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // Se vuelve a leer del guardado solo cuando cambia el valor guardado.
+    var text by remember(savedName, loaded) { mutableStateOf(savedName) }
+    var justSaved by remember { mutableStateOf(false) }
+
+    YuzuCard(modifier = modifier) {
+        Text(stringResource(R.string.settings_name_title), style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = text,
+            onValueChange = {
+                text = it.take(SettingsRepository.MAX_NAME_LENGTH)
+                justSaved = false
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+            supportingText = {
+                Text(
+                    stringResource(
+                        if (justSaved) R.string.settings_name_saved else R.string.settings_name_hint,
+                    ),
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(8.dp))
+        Button(
+            onClick = {
+                onSave(text)
+                justSaved = true
+            },
+            enabled = loaded && text.trim() != savedName,
+        ) { Text(stringResource(R.string.settings_name_save)) }
     }
 }

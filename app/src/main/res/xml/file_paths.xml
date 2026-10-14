@@ -4,4 +4,8 @@
     <cache-path
         name="updates"
         path="updates/" />
+    <!-- Extractos en PDF generados para compartir; se borran al generar uno nuevo. -->
+    <cache-path
+        name="exports"
+        path="exports/" />
 </paths>

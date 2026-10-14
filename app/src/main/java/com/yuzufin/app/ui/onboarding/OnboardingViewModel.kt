@@ -21,6 +21,7 @@ enum class StartMode { FROM_TODAY, WITH_HISTORY }
 data class OnboardingState(
     /** 0 = moneda, 1 = punto de partida. */
     val step: Int = 0,
+    val userName: String = "",
     val currency: CurrencyInfo = CurrencyInfo.PYG,
     val mode: StartMode = StartMode.FROM_TODAY,
     val amountText: String = "",
@@ -44,6 +45,8 @@ class OnboardingViewModel(
         // Al cambiar de moneda el texto del importe puede dejar de ser válido: se limpia.
         it.copy(currency = currency, amountText = "")
     }
+
+    fun onNameChange(name: String) = _state.update { it.copy(userName = name.take(SettingsRepository.MAX_NAME_LENGTH)) }
 
     fun onModeChange(mode: StartMode) = _state.update {
         it.copy(mode = mode, startDate = if (mode == StartMode.FROM_TODAY) LocalDate.now() else it.startDate)
@@ -73,7 +76,7 @@ class OnboardingViewModel(
         viewModelScope.launch {
             try {
                 finance.completeSetup(amountMinor = amount, startDate = startDate)
-                settings.completeOnboarding(s.currency)
+                settings.completeOnboarding(s.currency, s.userName)
             } catch (e: Exception) {
                 // Sin detalles en el log: no se escribe ningún dato financiero.
                 _state.update { it.copy(saving = false) }

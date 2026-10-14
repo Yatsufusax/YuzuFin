@@ -38,4 +38,6 @@ data class InitialBalance(
 data class AppSettings(
     val onboardingDone: Boolean,
     val currencyCode: String,
+    /** Nombre que aparece en el extracto. Vacío si la persona no quiso ponerlo. */
+    val userName: String = "",
 )

@@ -3,7 +3,7 @@
 App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Room). Local-first, sin cuentas ni IA.
 *Tu dinero. Tus decisiones.*
 
-## Estado: Fase 2 (movimientos reales + actualizaciones desde GitHub)
+## Estado: Fase 2 + extracto en PDF (listo para probar)
 
 **Hecho (escrito; pendiente de compilar en GitHub Actions)**
 - Configuración inicial: moneda (Gs. por defecto) y saldo inicial, desde hoy o con fecha anterior.
@@ -11,7 +11,9 @@ App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Ro
 - Registrar ingresos y gastos, historial con filtros (búsqueda, tipo, categoría, mes), editar y eliminar con confirmación.
 - Inicio con datos reales: saldo, resumen del mes y últimos movimientos. Sin datos de demostración.
 - Actualizador dentro de la app (Ajustes y aviso en Inicio): consulta las Releases de GitHub, descarga el APK e inicia la instalación.
-- Tests: `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`.
+- Nombre de usuario (opcional) en la configuración inicial y en Ajustes.
+- Extracto en PDF (botón PDF en Movimientos): período a elección (este mes, mes pasado, todo el historial o fechas propias), encabezado con tu nombre, resumen, detalle con saldo corrido y pie. Se genera en el teléfono con la API `PdfDocument` y se comparte con el menú de Android (no pide permisos de almacenamiento). Solo se guarda el último extracto en la caché de la app.
+- Tests: `StatementBuilderTest`, `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`.
 
 **No hecho todavía:** cobros pendientes, obligaciones, ahorros, estadísticas, notificaciones (Fases 3 a 6).
 

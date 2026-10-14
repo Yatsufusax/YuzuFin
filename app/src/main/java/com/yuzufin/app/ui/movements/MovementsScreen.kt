@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.PictureAsPdf
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material3.FilterChip
@@ -29,6 +30,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +53,7 @@ import com.yuzufin.app.ui.common.formatMonthYear
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.ScreenHeader
 import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.statement.StatementExportDialog
 import com.yuzufin.app.ui.theme.yuzu
 
 @Composable
@@ -62,13 +67,27 @@ fun MovementsScreen(
     val viewModel: MovementsViewModel = viewModel(factory = MovementsViewModel.factory(container))
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val filters = state.filters
+    var showExport by rememberSaveable { mutableStateOf(false) }
+    if (showExport) StatementExportDialog(onDismiss = { showExport = false })
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding() + 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { ScreenHeader(title = stringResource(R.string.nav_movements)) }
+        item {
+            ScreenHeader(
+                title = stringResource(R.string.nav_movements),
+                actions = {
+                    IconButton(onClick = { showExport = true }) {
+                        Icon(
+                            Icons.Rounded.PictureAsPdf,
+                            contentDescription = stringResource(R.string.export_open),
+                        )
+                    }
+                },
+            )
+        }
 
         item {
             OutlinedTextField(

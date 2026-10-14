@@ -21,6 +21,9 @@
     <string name="onboarding_step">Paso %1$d de %2$d</string>
     <string name="onboarding_continue">Continuar</string>
     <string name="onboarding_start">Empezar</string>
+    <string name="onboarding_name_title">¿Cómo te llamamos?</string>
+    <string name="onboarding_name_label">Tu nombre</string>
+    <string name="onboarding_name_note">Es opcional. Aparece en el encabezado de tus extractos en PDF y no sale del teléfono.</string>
     <string name="onboarding_currency_title">¿Qué moneda usás?</string>
     <string name="onboarding_currency_body">Elegí la moneda con la que llevás tus cuentas.</string>
     <string name="onboarding_currency_note">Los importes se guardan en esta moneda. YuzuFin no convierte entre monedas.</string>
@@ -72,6 +75,10 @@
     <string name="home_no_income_month">Todavía no registraste ingresos este mes.</string>
 
     <!-- Ajustes y actualizaciones -->
+    <string name="settings_name_title">Tu nombre</string>
+    <string name="settings_name_hint">Aparece en tus extractos en PDF.</string>
+    <string name="settings_name_save">Guardar nombre</string>
+    <string name="settings_name_saved">Nombre guardado</string>
     <string name="settings_currency_title">Moneda</string>
     <string name="settings_currency_note">Se eligió al empezar. Más adelante vas a poder cambiarla con una confirmación, sin convertir los importes ya registrados.</string>
     <string name="settings_app_title">Aplicación</string>
@@ -89,4 +96,53 @@
     <string name="update_dialog_later">Más tarde</string>
     <string name="update_banner_title">Actualización disponible</string>
     <string name="update_banner_ready">Descarga lista. Tocá Instalar para terminar.</string>
+
+    <!-- Extracto en PDF -->
+    <string name="statement_title">Extracto financiero</string>
+    <string name="statement_subtitle">Resumen de movimientos</string>
+    <string name="statement_generated">Generado el %1$s</string>
+    <string name="statement_tagline">Tu dinero, en equilibrio</string>
+    <string name="statement_user_default">Usuario</string>
+    <string name="statement_account">Cuenta: Personal</string>
+    <string name="statement_motto_1">Pequeños hábitos,</string>
+    <string name="statement_motto_2">grandes resultados.</string>
+    <string name="statement_summary">Resumen del período</string>
+    <string name="statement_opening">Saldo inicial</string>
+    <string name="statement_income">Ingresos</string>
+    <string name="statement_expense">Gastos</string>
+    <string name="statement_closing">Saldo final</string>
+    <string name="statement_detail">Detalle de movimientos</string>
+    <string name="statement_col_date">Fecha</string>
+    <string name="statement_col_desc">Descripción</string>
+    <string name="statement_col_cat">Categoría</string>
+    <string name="statement_col_type">Tipo</string>
+    <string name="statement_col_amount">Monto</string>
+    <string name="statement_col_balance">Saldo</string>
+    <string name="statement_kind_initial">Inicial</string>
+    <string name="statement_kind_income">Ingreso</string>
+    <string name="statement_kind_expense">Gasto</string>
+    <string name="statement_initial_row">Saldo inicial</string>
+    <string name="statement_empty">Sin movimientos en este período.</string>
+    <string name="statement_footer_quote_1">“El control de tus finanzas</string>
+    <string name="statement_footer_quote_2">hoy, es la tranquilidad de mañana.”</string>
+    <string name="statement_secure_title">Tu información está segura</string>
+    <string name="statement_secure_body">Este extracto se genera localmente\nen tu dispositivo. No se comparte\ncon terceros.</string>
+    <string name="statement_page">Página %1$d de %2$d</string>
+
+    <!-- Exportar -->
+    <string name="export_open">Descargar extracto</string>
+    <string name="export_title">Extracto en PDF</string>
+    <string name="export_body">Elegí el período. Se genera en tu teléfono y vos decidís dónde guardarlo o a quién enviarlo.</string>
+    <string name="export_this_month">Este mes</string>
+    <string name="export_last_month">Mes pasado</string>
+    <string name="export_all">Todo el historial</string>
+    <string name="export_custom">Fechas a elección</string>
+    <string name="export_from">Desde</string>
+    <string name="export_to">Hasta</string>
+    <string name="export_generate">Generar PDF</string>
+    <string name="export_generating">Generando…</string>
+    <string name="export_error">No se pudo generar el PDF. Probá de nuevo.</string>
+    <string name="export_no_setup">Primero completá la configuración inicial.</string>
+    <string name="export_share_title">Compartir extracto</string>
+    <string name="export_privacy">El archivo contiene tus movimientos. Cuidá con quién lo compartís.</string>
 </resources>

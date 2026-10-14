@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -147,6 +148,16 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
 
 @Composable
 private fun CurrencyStep(state: OnboardingState, viewModel: OnboardingViewModel) {
+    Text(stringResource(R.string.onboarding_name_title), style = MaterialTheme.typography.headlineSmall)
+    OutlinedTextField(
+        value = state.userName,
+        onValueChange = viewModel::onNameChange,
+        label = { Text(stringResource(R.string.onboarding_name_label)) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+        supportingText = { Text(stringResource(R.string.onboarding_name_note)) },
+        modifier = Modifier.fillMaxWidth(),
+    )
     Text(stringResource(R.string.onboarding_currency_title), style = MaterialTheme.typography.headlineSmall)
     Text(
         stringResource(R.string.onboarding_currency_body),
