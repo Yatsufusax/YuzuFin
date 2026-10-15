@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import com.yuzufin.app.data.FinanceRepository
 import com.yuzufin.app.data.IncomeRepository
+import com.yuzufin.app.data.SavingsRepository
 import com.yuzufin.app.data.SettingsRepository
 import com.yuzufin.app.data.db.AppDatabase
 import com.yuzufin.app.data.update.ApkDownloader
@@ -20,6 +21,7 @@ class AppContainer(context: Context) {
 
     val financeRepository: FinanceRepository by lazy { FinanceRepository(database) }
     val incomeRepository: IncomeRepository by lazy { IncomeRepository(database) }
+    val savingsRepository: SavingsRepository by lazy { SavingsRepository(database, financeRepository) }
     val settingsRepository: SettingsRepository by lazy { SettingsRepository(appContext) }
     val updateChecker: UpdateChecker by lazy { UpdateChecker() }
     val apkDownloader: ApkDownloader by lazy { ApkDownloader(appContext) }

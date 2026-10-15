@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ahorros (Fase 4) -->
+    <string name="savings_available">Disponible</string>
+    <string name="savings_saved_total">Ahorrado</string>
+    <string name="savings_summary_note">Lo que apartás sigue siendo tuyo, pero no cuenta como disponible. No es un gasto.</string>
+    <string name="savings_add_goal">Nueva meta</string>
+    <string name="savings_empty_title">Creá tu primera meta</string>
+    <string name="savings_empty_body">Poné un objetivo, como un viaje o un fondo de emergencia, y andá apartando de a poco. Lo apartado se descuenta de tu dinero disponible, sin ser un gasto.</string>
+    <string name="savings_goals_title">Metas</string>
+    <string name="savings_progress">%1$s de %2$s</string>
+    <string name="savings_percent">%1$d%%</string>
+    <string name="savings_complete">¡Meta cumplida!</string>
+    <string name="savings_overdue">Venció el %1$s · te faltan %2$s</string>
+    <string name="savings_deadline">Hasta el %1$s · te faltan %2$s</string>
+    <string name="savings_monthly_needed">Aportando %1$s por mes llegás a tiempo</string>
+    <string name="savings_remaining">Te faltan %1$s</string>
+    <string name="savings_contribute">Aportar</string>
+    <string name="savings_withdraw">Retirar</string>
+    <string name="savings_auto_label">Aporte automático: %1$d%% de cada cobro</string>
+    <string name="savings_contribute_title">Aportar a %1$s</string>
+    <string name="savings_withdraw_title">Retirar de %1$s</string>
+    <string name="savings_entry_amount">Importe</string>
+    <string name="savings_entry_note">Nota (opcional)</string>
+    <string name="savings_entry_date">Fecha</string>
+    <string name="savings_entry_available">Disponible: %1$s</string>
+    <string name="savings_entry_saved">Ahorrado en la meta: %1$s</string>
+    <string name="savings_error_available">No tenés tanto disponible.</string>
+    <string name="savings_error_saved">La meta no tiene tanto ahorrado.</string>
+    <string name="savings_error_generic">No se pudo guardar. Probá de nuevo.</string>
+    <string name="savings_history_title">Historial de ahorro</string>
+    <string name="savings_entry_contribution">Aporte</string>
+    <string name="savings_entry_withdrawal">Retiro</string>
+    <string name="savings_entry_auto">Aporte automático</string>
+    <string name="savings_entry_delete_title">¿Eliminar este movimiento de ahorro?</string>
+    <string name="savings_entry_delete_body">Se deshace: un aporte vuelve a estar disponible y un retiro vuelve a quedar apartado.</string>
+
+    <string name="savings_form_new">Nueva meta</string>
+    <string name="savings_form_edit">Editar meta</string>
+    <string name="savings_field_name">Nombre</string>
+    <string name="savings_field_name_hint">Viaje, fondo de emergencia…</string>
+    <string name="savings_error_name">Poné un nombre.</string>
+    <string name="savings_field_target">Monto objetivo</string>
+    <string name="savings_switch_deadline">Fecha límite</string>
+    <string name="savings_switch_deadline_body">Te mostramos cuánto aportar por mes para llegar a tiempo.</string>
+    <string name="savings_field_deadline">Fecha límite</string>
+    <string name="savings_switch_auto">Apartar un porcentaje de cada cobro</string>
+    <string name="savings_switch_auto_body">Cuando confirmás “Ya cobré” (o se registra un cobro automático), se aparta esa parte para la meta.</string>
+    <string name="savings_field_percent">Porcentaje</string>
+    <string name="savings_error_percent">Un número entre 1 y 100.</string>
+    <string name="savings_error_percent_total">Entre todas tus metas no pueden pasar del 100%%. Las otras ya usan %1$d%%.</string>
+    <string name="savings_switch_remind">Recordarme aportar</string>
+    <string name="savings_switch_remind_body">Un aviso al mes, solo si todavía no aportaste. Todos los avisos se apagan en Ajustes.</string>
+    <string name="savings_delete_title">¿Eliminar esta meta?</string>
+    <string name="savings_delete_body">Se borra la meta y sus aportes: ese dinero vuelve a estar disponible. No se modifica ningún movimiento.</string>
+</resources>

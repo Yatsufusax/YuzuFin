@@ -36,6 +36,7 @@
     <string name="home_free">Libre estimado</string>
     <string name="home_go_movements">Ver movimientos</string>
     <string name="home_saved">Ahorrado</string>
+    <string name="home_reserved_warning">Gastaste dinero que tenías apartado para tus metas.</string>
     <string name="home_net_worth">Patrimonio</string>
     <string name="home_shortcuts">Atajos</string>
     <string name="home_next_income">Próximo cobro</string>
@@ -65,18 +66,10 @@
     <string name="menu_settings_desc">Moneda, tema, copias de seguridad y más</string>
 
     <!-- Fases del plan -->
-    <string name="phase_4">Fase 4 · Ahorros</string>
     <string name="phase_5">Fase 5 · Obligaciones y préstamos</string>
     <string name="phase_6">Fase 6 · Presupuestos y estadísticas</string>
 
     <!-- Secciones en construcción -->
-
-    <string name="savings_intro">Separá dinero para ahorrar. Es una transferencia interna, no un gasto.</string>
-    <string-array name="savings_features">
-        <item>Aportes y retiros manuales con fecha y descripción</item>
-        <item>Total ahorrado e historial</item>
-        <item>Evolución de tus ahorros por mes</item>
-    </string-array>
 
     <string name="obligations_intro">Facturas, vencimientos y dinero prestado o recibido en préstamo.</string>
     <string-array name="obligations_features">

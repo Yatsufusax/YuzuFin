@@ -8,8 +8,10 @@ import com.yuzufin.app.AppContainer
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.data.FinanceRepository
 import com.yuzufin.app.data.IncomeRepository
+import com.yuzufin.app.data.SavingsRepository
 import com.yuzufin.app.data.SettingsRepository
 import com.yuzufin.app.domain.BalanceCalculator
+import com.yuzufin.app.domain.SavingsMath
 import com.yuzufin.app.ui.common.MovementItem
 import com.yuzufin.app.ui.common.buildMovementItems
 import com.yuzufin.app.ui.incomes.PendingIncome
@@ -27,11 +29,12 @@ import java.time.YearMonth
 data class HomeUiState(
     val loading: Boolean = true,
     val currency: CurrencyInfo = CurrencyInfo.PYG,
+    /** Disponible: saldo total menos lo apartado en metas (puede ser negativo). */
     val balance: Long = 0L,
     /** Obligaciones pendientes: llegan en la Fase 5, por ahora 0. */
     val committed: Long = 0L,
     val freeEstimate: Long = 0L,
-    /** Ahorros: llegan en la Fase 4, por ahora 0. */
+    /** Total apartado en metas de ahorro. */
     val saved: Long = 0L,
     val netWorth: Long = 0L,
     val monthIncome: Long = 0L,
@@ -49,6 +52,7 @@ data class HomeUiState(
 class HomeViewModel(
     finance: FinanceRepository,
     private val income: IncomeRepository,
+    savings: SavingsRepository,
     settings: SettingsRepository,
 ) : ViewModel() {
 
@@ -57,16 +61,19 @@ class HomeViewModel(
         finance.transactions,
         finance.categories,
         settings.settings,
-        combine(income.sources, income.occurrences) { sources, occurrences -> sources to occurrences },
+        combine(income.sources, income.occurrences, savings.entries) { sources, occurrences, entries ->
+            Triple(sources, occurrences, entries)
+        },
     ) { initial, transactions, categories, appSettings, incomeData ->
-        val (sources, occurrences) = incomeData
+        val (sources, occurrences, savingEntries) = incomeData
         if (initial == null) {
             HomeUiState(userName = appSettings.userName)
         } else {
-            val balance = BalanceCalculator.availableBalance(initial, transactions)
+            val saved = savingEntries.sumOf { it.amountMinor }
+            // Lo apartado sigue siendo tuyo, pero no está disponible para gastar.
+            val balance = SavingsMath.spendable(BalanceCalculator.availableBalance(initial, transactions), saved)
             val month = BalanceCalculator.monthTotals(initial, transactions, YearMonth.now())
             val committed = 0L
-            val saved = 0L
             HomeUiState(
                 loading = false,
                 currency = CurrencyInfo.fromCode(appSettings.currencyCode),
@@ -97,7 +104,12 @@ class HomeViewModel(
     companion object {
         fun factory(container: AppContainer) = viewModelFactory {
             initializer {
-                HomeViewModel(container.financeRepository, container.incomeRepository, container.settingsRepository)
+                HomeViewModel(
+                    container.financeRepository,
+                    container.incomeRepository,
+                    container.savingsRepository,
+                    container.settingsRepository,
+                )
             }
         }
     }

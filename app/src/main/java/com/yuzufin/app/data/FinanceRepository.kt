@@ -20,6 +20,7 @@ class FinanceRepository(private val db: AppDatabase) {
     private val transactionDao = db.transactionDao()
     private val initialBalanceDao = db.initialBalanceDao()
     private val incomeDao = db.incomeDao()
+    private val savingsDao = db.savingsDao()
 
     val categories: Flow<List<Category>> =
         categoryDao.observeAll().map { list -> list.map { it.toDomain() } }
@@ -66,6 +67,8 @@ class FinanceRepository(private val db: AppDatabase) {
             incomeDao.getOccurrenceByTransaction(id)?.let { occurrence ->
                 incomeDao.updateOccurrence(occurrence.copy(status = "SKIPPED", transactionId = null))
             }
+            // Lo que se apartó solo a partir de este ingreso se deshace con él.
+            savingsDao.deleteBySourceTransaction(id)
             transactionDao.deleteById(id)
         }
     }

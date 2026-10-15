@@ -40,9 +40,20 @@ object IncomeFormRoute {
     fun create(id: Long = 0L): String = "income_form?$ARG_ID=$id"
 }
 
+/** Formulario para crear o editar una meta de ahorro. Oculta la barra inferior. */
+object SavingsGoalFormRoute {
+    const val ARG_ID = "id"
+    const val PATTERN = "savings_goal_form?$ARG_ID={$ARG_ID}"
+
+    /** [id] = 0 crea una meta nueva; otro valor edita esa meta. */
+    fun create(id: Long = 0L): String = "savings_goal_form?$ARG_ID=$id"
+}
+
 /** Pantallas de formulario que ocupan todo el alto: no muestran la barra inferior. */
 fun isFullScreenRoute(route: String?): Boolean =
-    route?.startsWith("transaction") == true || route?.startsWith("income_form") == true
+    route?.startsWith("transaction") == true ||
+        route?.startsWith("income_form") == true ||
+        route?.startsWith("savings_goal_form") == true
 
 /** Las secciones que cuelgan de “Menú” marcan esa pestaña como activa. */
 fun isMenuGroupRoute(route: String?): Boolean = when (route) {

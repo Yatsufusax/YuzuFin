@@ -33,6 +33,7 @@ import com.yuzufin.app.reminders.ReminderScheduler
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.components.QuickAction
 import com.yuzufin.app.ui.components.QuickActionsSheetContent
+import com.yuzufin.app.ui.navigation.Destination
 import com.yuzufin.app.ui.navigation.FloatingNavBar
 import com.yuzufin.app.ui.navigation.TransactionRoute
 import com.yuzufin.app.ui.navigation.YuzuNavHost
@@ -93,6 +94,7 @@ fun MainShell() {
         when (action) {
             QuickAction.Income -> navController.navigate(TransactionRoute.create(type = TransactionType.INCOME))
             QuickAction.Expense -> navController.navigate(TransactionRoute.create(type = TransactionType.EXPENSE))
+            QuickAction.Save -> navController.navigateTo(Destination.Savings)
             else -> showComingSoon(action.phase)
         }
     }

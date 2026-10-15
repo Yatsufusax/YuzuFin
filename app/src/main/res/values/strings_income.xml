@@ -71,8 +71,8 @@
     <string name="income_delete_body">Se borra la configuración y su historial de cobros. Los ingresos que ya sumaste a tu saldo se conservan en Movimientos.</string>
 
     <!-- Recordatorios y notificaciones -->
-    <string name="reminders_channel_name">Cobros</string>
-    <string name="reminders_channel_description">Avisos de cobros por confirmar o registrados</string>
+    <string name="reminders_channel_name">Recordatorios</string>
+    <string name="reminders_channel_description">Avisos de cobros y de aportes a tus metas</string>
     <plurals name="reminders_pending_title">
         <item quantity="one">Tenés un cobro por confirmar</item>
         <item quantity="other">Tenés %1$d cobros por confirmar</item>
@@ -81,14 +81,19 @@
         <item quantity="one">Se registró un cobro</item>
         <item quantity="other">Se registraron %1$d cobros</item>
     </plurals>
+    <plurals name="reminders_savings_title">
+        <item quantity="one">Es momento de aportar a tu meta</item>
+        <item quantity="other">Es momento de aportar a tus %1$d metas</item>
+    </plurals>
+    <string name="reminders_savings_item_amount">%1$s · faltan %2$s</string>
     <string name="reminders_permission_title">Activá los avisos</string>
-    <string name="reminders_permission_body">Android no deja mostrar avisos de YuzuFin. Activalos para que te recordemos los cobros.</string>
+    <string name="reminders_permission_body">Android no deja mostrar avisos de YuzuFin. Activalos para que te recordemos cobros y aportes.</string>
     <string name="reminders_enable">Activar avisos</string>
     <string name="reminders_open_settings">Abrir ajustes de notificaciones</string>
 
     <!-- Ajustes: recordatorios -->
     <string name="settings_reminders_title">Recordatorios</string>
-    <string name="settings_reminders_switch">Avisos de cobros</string>
+    <string name="settings_reminders_switch">Avisos de cobros y ahorro</string>
     <string name="settings_reminders_switch_body">Una notificación por día, solo si hay algo que ver.</string>
     <string name="settings_reminders_hour">Hora del aviso</string>
     <string name="settings_reminders_hour_note">El aviso llega alrededor de esa hora. Android puede demorarlo unos minutos, sobre todo con el ahorro de batería.</string>

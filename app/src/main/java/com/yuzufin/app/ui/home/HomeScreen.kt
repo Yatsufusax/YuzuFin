@@ -26,6 +26,7 @@ import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Payments
+import androidx.compose.material.icons.rounded.Savings
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
@@ -129,6 +130,7 @@ fun HomeScreen(
                 visible = balanceVisible,
                 onToggleVisible = { balanceVisible = !balanceVisible },
                 onGoMovements = { onNavigate(Destination.Movements) },
+                onGoSavings = { onNavigate(Destination.Savings) },
             )
             if (state.pendingIncomes.isNotEmpty()) {
                 PendingIncomesCard(
@@ -297,6 +299,7 @@ private fun BalanceCard(
     visible: Boolean,
     onToggleVisible: () -> Unit,
     onGoMovements: () -> Unit,
+    onGoSavings: () -> Unit,
 ) {
     val currency = state.currency
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
@@ -336,10 +339,37 @@ private fun BalanceCard(
         if (negative) {
             Spacer(Modifier.height(8.dp))
             Text(
-                text = stringResource(R.string.home_negative_warning),
+                text = stringResource(
+                    if (state.saved > 0L) R.string.home_reserved_warning else R.string.home_negative_warning,
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.yuzu.expense,
             )
+        }
+
+        if (state.saved > 0L) {
+            Spacer(Modifier.height(12.dp))
+            Row(
+                modifier = Modifier
+                    .clip(MaterialTheme.shapes.small)
+                    .clickable(role = Role.Button, onClick = onGoSavings)
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    Icons.Rounded.Savings,
+                    contentDescription = null,
+                    tint = MaterialTheme.yuzu.income,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    text = stringResource(R.string.home_saved) + ": " +
+                        if (visible) MoneyFormatter.format(state.saved, currency) else "••••••",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = muted,
+                )
+            }
         }
 
         Spacer(Modifier.height(20.dp))

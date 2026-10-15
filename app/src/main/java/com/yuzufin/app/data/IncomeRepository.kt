@@ -4,12 +4,14 @@ import androidx.room.withTransaction
 import com.yuzufin.app.data.db.AppDatabase
 import com.yuzufin.app.data.db.IncomeOccurrenceEntity
 import com.yuzufin.app.data.db.IncomeSourceEntity
+import com.yuzufin.app.data.db.SavingsEntryEntity
 import com.yuzufin.app.data.db.TransactionEntity
 import com.yuzufin.app.domain.IncomeOccurrence
 import com.yuzufin.app.domain.IncomeScheduler
 import com.yuzufin.app.domain.IncomeSchedule
 import com.yuzufin.app.domain.IncomeSource
 import com.yuzufin.app.domain.OccurrenceStatus
+import com.yuzufin.app.domain.SavingsMath
 import com.yuzufin.app.domain.TransactionType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -29,6 +31,7 @@ class IncomeRepository(private val db: AppDatabase) {
     private val dao = db.incomeDao()
     private val transactionDao = db.transactionDao()
     private val initialBalanceDao = db.initialBalanceDao()
+    private val savingsDao = db.savingsDao()
 
     val sources: Flow<List<IncomeSource>> =
         dao.observeSources().map { list -> list.map { it.toDomain() } }
@@ -163,6 +166,7 @@ class IncomeRepository(private val db: AppDatabase) {
                 updatedAt = now,
             ),
         )
+        setAsideForGoals(transactionId, amountMinor, occurrence.dueEpochDay, now)
         dao.updateOccurrence(
             occurrence.copy(
                 status = OccurrenceStatus.CONFIRMED.name,
@@ -172,6 +176,32 @@ class IncomeRepository(private val db: AppDatabase) {
             ),
         )
         return true
+    }
+
+    /**
+     * Aporte automático a metas: cada meta con porcentaje recibe esa parte del cobro (sin pasar de lo
+     * que le falta ni de lo que queda del cobro). Va en la misma transacción que el ingreso, enlazado
+     * a él: si el ingreso se borra, el aporte se deshace.
+     */
+    private suspend fun setAsideForGoals(transactionId: Long, incomeMinor: Long, dueEpochDay: Long, now: Long) {
+        var left = incomeMinor
+        for (goal in savingsDao.allGoals()) {
+            if (goal.autoPercent <= 0) continue
+            val remaining = SavingsMath.remaining(goal.targetMinor, savingsDao.savedFor(goal.id))
+            val part = SavingsMath.autoContribution(incomeMinor, goal.autoPercent, remaining, left)
+            if (part <= 0L) continue
+            savingsDao.insertEntry(
+                SavingsEntryEntity(
+                    goalId = goal.id,
+                    amountMinor = part,
+                    dateEpochDay = dueEpochDay,
+                    note = "",
+                    sourceTransactionId = transactionId,
+                    createdAt = now,
+                ),
+            )
+            left -= part
+        }
     }
 }
 

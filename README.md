@@ -3,7 +3,7 @@
 App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Room). Local-first, sin cuentas ni IA.
 *Tu dinero. Tus decisiones.*
 
-## Estado: Fase 3, ingresos fijos y recordatorios (listo para probar)
+## Estado: Fase 4, ahorros y metas (listo para probar)
 
 **Hecho (escrito; pendiente de compilar en GitHub Actions)**
 - Configuración inicial: moneda (Gs. por defecto) y saldo inicial, desde hoy o con fecha anterior.
@@ -15,9 +15,11 @@ App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Ro
 - Extracto en PDF (botón PDF en Movimientos): período a elección (este mes, mes pasado, todo el historial o fechas propias), encabezado con tu nombre, resumen, detalle con saldo corrido y pie. Se genera en el teléfono con la API `PdfDocument` y se comparte con el menú de Android (no pide permisos de almacenamiento). Solo se guarda el último extracto en la caché de la app.
 - **Fase 3, ingresos fijos:** varias fuentes (sueldo, alquiler cobrado, etc.), con frecuencia mensual, quincenal o fechas propias. Día 31 significa "último día del mes". Cada cobro vencido queda *pendiente* hasta que tocás **Ya cobré** (podés ajustar el monto) o **Omitir**; opcionalmente se registra solo. Previstos, pendientes y omitidos no tocan el saldo: solo cuenta lo confirmado.
 - **Recordatorios:** aviso local diario (9:00 por defecto, configurable en Ajustes) cuando hay cobros por confirmar. Una sola notificación por cobro; los montos no se muestran salvo que lo actives.
-- Tests: `StatementBuilderTest`, `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`, `IncomeSchedulerTest` (fechas, meses cortos, años bisiestos, quincenas), `ReminderSchedulerTest`.
+- **Fase 4, ahorros y metas:** metas con monto objetivo y fecha límite opcional; aportes y retiros manuales (con fecha y nota) y aporte automático opcional (un % de cada cobro que confirmás). Con fecha límite se muestra cuánto aportar por mes. Recordatorio opcional: un aviso al mes, solo si todavía no aportaste a esa meta.
+- **Disponible vs. ahorrado:** Inicio muestra el **disponible** (saldo total − apartado) y debajo lo **ahorrado**. Apartar no es un gasto ni un ingreso: no aparece en Movimientos ni cambia el extracto PDF.
+- Tests: `SavingsMathTest` (disponible, avance, meses que quedan, aporte mensual, aporte automático), `StatementBuilderTest`, `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`, `IncomeSchedulerTest` (fechas, meses cortos, años bisiestos, quincenas), `ReminderSchedulerTest`.
 
-**No hecho todavía:** ahorros y metas (Fase 4), vencimientos, deudas y préstamos con sus recordatorios (Fase 5), estadísticas (Fase 6). El sistema de recordatorios de la Fase 3 se reutiliza para esas fases.
+**No hecho todavía:** vencimientos, deudas y préstamos con sus recordatorios (Fase 5), estadísticas (Fase 6). El sistema de recordatorios de la Fase 3 se reutiliza para esas fases.
 
 **Sin verificar:** no se pudo compilar ni ejecutar donde se escribió (sin acceso al SDK de Android). Solo se revisaron recursos y XML con scripts. La compilación y los tests corren en GitHub Actions; si falla, pegá el error.
 
@@ -31,6 +33,12 @@ App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Ro
 - **Conciliación (`reconcile`)**: corre al abrir la app y en el revisor diario. En una sola transacción crea los cobros vencidos que faltan (desde la fecha de inicio de la fuente hasta hoy) y registra los automáticos. Es idempotente: correrla dos veces no duplica nada.
 - Confirmar un cobro crea el movimiento de ingreso (con la fecha del cobro) y marca el cobro como confirmado en la misma transacción. Si borrás ese movimiento, el cobro pasa a *omitido* para que no se vuelva a generar. Al reactivar una fuente pausada se parte de hoy, sin atrasos.
 - La base pasó a la versión 2 con una migración (`MIGRATION_1_2`) que agrega las dos tablas y conserva tus datos.
+- `savings_goals(id, name, targetMinor, deadlineEpochDay?, autoPercent, remind, lastRemindedMonth, createdAt)`: una fila por meta.
+- `savings_entries(id, goalId, amountMinor, dateEpochDay, note, sourceTransactionId?, createdAt)`: aporte (+) o retiro (−). FK a la meta con borrado en cascada. **No son movimientos**: no tocan el saldo total.
+- **Disponible = saldo total − suma de `savings_entries`**. Se recalcula siempre; puede quedar negativo si gastás lo que tenías apartado (Inicio lo avisa). Aportar no puede superar lo disponible y retirar no puede superar lo ahorrado en esa meta.
+- Aporte automático: al confirmar un cobro, en la misma transacción, cada meta con porcentaje recibe esa parte (sin pasar de lo que le falta ni del cobro). El aporte guarda el id del ingreso: si borrás ese ingreso, el aporte se deshace. Si lo editás, el aporte no se recalcula. Entre todas las metas el porcentaje no puede pasar de 100.
+- Borrar una meta borra sus aportes: ese dinero vuelve a estar disponible. Los movimientos no se tocan.
+- La base pasó a la versión 3 (`MIGRATION_2_3`) y conserva tus datos.
 - Todo el dinero es `Long` en unidad mínima (Gs. sin decimales, USD en centavos).
 
 ## Actualizaciones desde GitHub
@@ -61,7 +69,7 @@ Por terminal (con el SDK instalado y `local.properties` con `sdk.dir=...`):
 ```
 
 ## Recordatorios (Fase 3)
-WorkManager con una tarea periódica diaria a la hora elegida; todo local, sin servicios externos. Necesita el permiso de notificaciones (Android 13+), que se pide al activar los recordatorios. Con ahorro de batería agresivo Android puede retrasar la hora. Las notificaciones son de visibilidad privada y no incluyen montos por defecto.
+WorkManager con una tarea periódica diaria a la hora elegida (revisa cobros y, una vez al mes por meta, el aporte a ahorros); todo local, sin servicios externos. Necesita el permiso de notificaciones (Android 13+), que se pide al activar los recordatorios. Con ahorro de batería agresivo Android puede retrasar la hora. Las notificaciones son de visibilidad privada y no incluyen montos por defecto.
 
 ## Estructura
 ```
@@ -76,4 +84,4 @@ app/src/main/java/com/yuzufin/app/
 ```
 
 ## Siguiente paso
-Revisar la Fase 3. Después, Fase 4: ahorros y metas.
+Revisar la Fase 4. Después, Fase 5: vencimientos, deudas y préstamos (con sus recordatorios).

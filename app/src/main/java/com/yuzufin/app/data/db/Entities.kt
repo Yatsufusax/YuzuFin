@@ -99,3 +99,43 @@ data class IncomeOccurrenceEntity(
     val notified: Boolean,
     val createdAt: Long,
 )
+
+/** Meta de ahorro (Fase 4). La fecha límite es un día-época o null. */
+@Entity(tableName = "savings_goals")
+data class SavingsGoalEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val targetMinor: Long,
+    val deadlineEpochDay: Long?,
+    val autoPercent: Int,
+    val remind: Boolean,
+    /** Último mes (aaaamm) en el que se evaluó el recordatorio de esta meta. */
+    val lastRemindedMonth: Int,
+    val createdAt: Long,
+)
+
+/**
+ * Aporte (+) o retiro (-) de una meta. No es un movimiento: no entra en el saldo ni en el extracto.
+ * [sourceTransactionId] enlaza los aportes automáticos con el ingreso que los originó.
+ */
+@Entity(
+    tableName = "savings_entries",
+    foreignKeys = [
+        ForeignKey(
+            entity = SavingsGoalEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["goalId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index("goalId"), Index("sourceTransactionId")],
+)
+data class SavingsEntryEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val goalId: Long,
+    val amountMinor: Long,
+    val dateEpochDay: Long,
+    val note: String,
+    val sourceTransactionId: Long?,
+    val createdAt: Long,
+)

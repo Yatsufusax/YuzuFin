@@ -22,7 +22,9 @@ import com.yuzufin.app.ui.incomes.IncomeFormScreen
 import com.yuzufin.app.ui.incomes.IncomeFormViewModel
 import com.yuzufin.app.ui.incomes.IncomesScreen
 import com.yuzufin.app.ui.sections.ObligationsScreen
-import com.yuzufin.app.ui.sections.SavingsScreen
+import com.yuzufin.app.ui.savings.SavingsGoalFormScreen
+import com.yuzufin.app.ui.savings.SavingsGoalFormViewModel
+import com.yuzufin.app.ui.savings.SavingsScreen
 import com.yuzufin.app.ui.sections.StatsScreen
 import com.yuzufin.app.ui.settings.SettingsScreen
 import com.yuzufin.app.ui.transaction.TransactionFormScreen
@@ -70,7 +72,13 @@ fun YuzuNavHost(
                 onNewMovement = { openForm(0L, TransactionType.EXPENSE) },
             )
         }
-        composable(Destination.Savings.route) { SavingsScreen(contentPadding) }
+        composable(Destination.Savings.route) {
+            SavingsScreen(
+                contentPadding = contentPadding,
+                onAddGoal = { navController.navigate(SavingsGoalFormRoute.create()) { launchSingleTop = true } },
+                onEditGoal = { id -> navController.navigate(SavingsGoalFormRoute.create(id)) { launchSingleTop = true } },
+            )
+        }
         composable(Destination.Menu.route) {
             MenuScreen(contentPadding = contentPadding, onNavigate = navController::navigateTo)
         }
@@ -103,6 +111,19 @@ fun YuzuNavHost(
                 factory = IncomeFormViewModel.factory(container, id),
             )
             IncomeFormScreen(viewModel = formViewModel, onClose = goBack)
+        }
+        composable(
+            route = SavingsGoalFormRoute.PATTERN,
+            arguments = listOf(
+                navArgument(SavingsGoalFormRoute.ARG_ID) { type = NavType.LongType; defaultValue = 0L },
+            ),
+        ) { entry ->
+            val id = entry.arguments?.getLong(SavingsGoalFormRoute.ARG_ID) ?: 0L
+            val formViewModel: SavingsGoalFormViewModel = viewModel(
+                key = "savings-goal-form-$id",
+                factory = SavingsGoalFormViewModel.factory(container, id),
+            )
+            SavingsGoalFormScreen(viewModel = formViewModel, onClose = goBack)
         }
         composable(
             route = TransactionRoute.PATTERN,

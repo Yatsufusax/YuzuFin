@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material.icons.rounded.CalendarMonth
-import androidx.compose.material.icons.rounded.Savings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.yuzufin.app.R
@@ -12,19 +11,6 @@ import com.yuzufin.app.ui.components.ComingSoonScreen
 
 // Secciones que se implementan en fases posteriores. Cada una explica qué incluirá
 // y no muestra datos inventados.
-
-@Composable
-fun SavingsScreen(contentPadding: PaddingValues, modifier: Modifier = Modifier) {
-    ComingSoonScreen(
-        titleRes = R.string.nav_savings,
-        introRes = R.string.savings_intro,
-        featuresRes = R.array.savings_features,
-        phaseRes = R.string.phase_4,
-        icon = Icons.Rounded.Savings,
-        contentPadding = contentPadding,
-        modifier = modifier,
-    )
-}
 
 @Composable
 fun ObligationsScreen(contentPadding: PaddingValues, onBack: () -> Unit, modifier: Modifier = Modifier) {

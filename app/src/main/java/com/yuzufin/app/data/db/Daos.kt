@@ -94,3 +94,50 @@ interface IncomeDao {
     @Query("UPDATE income_occurrences SET notified = 1 WHERE id IN (:ids)")
     suspend fun markNotified(ids: List<Long>)
 }
+
+@Dao
+interface SavingsDao {
+    @Query("SELECT * FROM savings_goals ORDER BY createdAt, id")
+    fun observeGoals(): Flow<List<SavingsGoalEntity>>
+
+    @Query("SELECT * FROM savings_goals ORDER BY id")
+    suspend fun allGoals(): List<SavingsGoalEntity>
+
+    @Query("SELECT * FROM savings_goals WHERE id = :id")
+    suspend fun getGoal(id: Long): SavingsGoalEntity?
+
+    @Insert
+    suspend fun insertGoal(entity: SavingsGoalEntity): Long
+
+    @Update
+    suspend fun updateGoal(entity: SavingsGoalEntity)
+
+    /** Los aportes de la meta se borran con ella (FK en cascada): ese dinero vuelve a estar disponible. */
+    @Query("DELETE FROM savings_goals WHERE id = :id")
+    suspend fun deleteGoal(id: Long)
+
+    @Query("SELECT * FROM savings_entries ORDER BY dateEpochDay DESC, createdAt DESC, id DESC")
+    fun observeEntries(): Flow<List<SavingsEntryEntity>>
+
+    @Query("SELECT COALESCE(SUM(amountMinor), 0) FROM savings_entries")
+    suspend fun totalSaved(): Long
+
+    @Query("SELECT COALESCE(SUM(amountMinor), 0) FROM savings_entries WHERE goalId = :goalId")
+    suspend fun savedFor(goalId: Long): Long
+
+    @Query(
+        "SELECT COUNT(*) FROM savings_entries " +
+            "WHERE goalId = :goalId AND amountMinor > 0 AND dateEpochDay BETWEEN :fromEpochDay AND :toEpochDay",
+    )
+    suspend fun contributionsBetween(goalId: Long, fromEpochDay: Long, toEpochDay: Long): Int
+
+    @Insert
+    suspend fun insertEntry(entity: SavingsEntryEntity): Long
+
+    @Query("DELETE FROM savings_entries WHERE id = :id")
+    suspend fun deleteEntry(id: Long)
+
+    /** Si se borra un ingreso, también se deshace lo que se apartó solo a partir de él. */
+    @Query("DELETE FROM savings_entries WHERE sourceTransactionId = :transactionId")
+    suspend fun deleteBySourceTransaction(transactionId: Long)
+}

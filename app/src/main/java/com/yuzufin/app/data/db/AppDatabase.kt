@@ -18,8 +18,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         InitialBalanceEntity::class,
         IncomeSourceEntity::class,
         IncomeOccurrenceEntity::class,
+        SavingsGoalEntity::class,
+        SavingsEntryEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -27,6 +29,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun initialBalanceDao(): InitialBalanceDao
     abstract fun incomeDao(): IncomeDao
+    abstract fun savingsDao(): SavingsDao
 
     companion object {
         /** Fase 3: agrega las fuentes de ingreso y sus cobros. No toca las tablas existentes. */
@@ -68,9 +71,43 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Fase 4: agrega las metas de ahorro y sus aportes. No toca las tablas existentes. */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `savings_goals` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`name` TEXT NOT NULL, " +
+                        "`targetMinor` INTEGER NOT NULL, " +
+                        "`deadlineEpochDay` INTEGER, " +
+                        "`autoPercent` INTEGER NOT NULL, " +
+                        "`remind` INTEGER NOT NULL, " +
+                        "`lastRemindedMonth` INTEGER NOT NULL, " +
+                        "`createdAt` INTEGER NOT NULL)",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `savings_entries` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`goalId` INTEGER NOT NULL, " +
+                        "`amountMinor` INTEGER NOT NULL, " +
+                        "`dateEpochDay` INTEGER NOT NULL, " +
+                        "`note` TEXT NOT NULL, " +
+                        "`sourceTransactionId` INTEGER, " +
+                        "`createdAt` INTEGER NOT NULL, " +
+                        "FOREIGN KEY(`goalId`) REFERENCES `savings_goals`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE)",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_savings_entries_goalId` ON `savings_entries` (`goalId`)")
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_savings_entries_sourceTransactionId` " +
+                        "ON `savings_entries` (`sourceTransactionId`)",
+                )
+            }
+        }
+
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "yuzufin.db")
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
     }
 }

@@ -9,9 +9,10 @@ data class MonthTotals(val income: Long, val expense: Long) {
 /**
  * Reglas contables de la app, en funciones puras y con enteros.
  *
- *  - Saldo disponible = saldo inicial + ingresos - gastos (solo desde la fecha inicial).
- *  - Dinero libre estimado = saldo disponible - obligaciones pendientes.
- *  - Patrimonio = saldo disponible + ahorros + por cobrar - deudas.
+ *  - Saldo total = saldo inicial + ingresos - gastos (solo desde la fecha inicial). Incluye lo apartado.
+ *  - Disponible = saldo total - ahorros apartados (ver [SavingsMath.spendable]).
+ *  - Dinero libre estimado = disponible - obligaciones pendientes.
+ *  - Patrimonio = disponible + ahorros + por cobrar - deudas (el ahorro no se cuenta dos veces).
  *
  * Como el saldo se recalcula siempre desde los movimientos guardados, editar o eliminar
  * un movimiento lo corrige de forma consistente.

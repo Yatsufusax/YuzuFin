@@ -53,6 +53,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 // no llega una avalancha de cobros viejos.
                 income.markNotified(due.map { it.occurrenceId })
             }
+            remindSavings(container, today)
             Result.success()
         } catch (e: CancellationException) {
             throw e
@@ -60,6 +61,36 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             // Sin detalles en el log: no se escribe ningún dato financiero.
             Result.retry()
         }
+    }
+
+    /** Una vez al mes, por meta: recuerda aportar si todavía no hubo un aporte ese mes. */
+    private suspend fun remindSavings(container: com.yuzufin.app.AppContainer, today: LocalDate) {
+        val savings = container.savingsRepository
+        val due = savings.dueReminders(today)
+        if (due.isEmpty()) return
+        val settings = container.settingsRepository.settings.first()
+        if (settings.remindersEnabled) {
+            val currency = CurrencyInfo.fromCode(settings.currencyCode)
+            val text = due.joinToString(", ") { goal ->
+                if (settings.showAmountsInNotifications) {
+                    applicationContext.getString(
+                        R.string.reminders_savings_item_amount,
+                        goal.name,
+                        MoneyFormatter.format(goal.remainingMinor, currency),
+                    )
+                } else {
+                    goal.name
+                }
+            }
+            NotificationHelper.show(
+                applicationContext,
+                NotificationHelper.ID_SAVINGS,
+                applicationContext.resources.getQuantityString(R.plurals.reminders_savings_title, due.size, due.size),
+                text,
+            )
+        }
+        // Se marcan aunque los avisos estén apagados, para no acumular avisos viejos.
+        savings.markReminded(due.map { it.goalId }, today)
     }
 
     private fun describe(items: List<DueNotice>, showAmounts: Boolean, currency: CurrencyInfo): String =
