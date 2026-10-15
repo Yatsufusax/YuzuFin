@@ -11,6 +11,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.yuzufin.app.domain.LoanDirection
 import com.yuzufin.app.domain.TransactionType
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.components.QuickAction
@@ -21,7 +22,11 @@ import com.yuzufin.app.ui.movements.MovementsScreen
 import com.yuzufin.app.ui.incomes.IncomeFormScreen
 import com.yuzufin.app.ui.incomes.IncomeFormViewModel
 import com.yuzufin.app.ui.incomes.IncomesScreen
-import com.yuzufin.app.ui.sections.ObligationsScreen
+import com.yuzufin.app.ui.obligations.BillFormScreen
+import com.yuzufin.app.ui.obligations.BillFormViewModel
+import com.yuzufin.app.ui.obligations.LoanFormScreen
+import com.yuzufin.app.ui.obligations.LoanFormViewModel
+import com.yuzufin.app.ui.obligations.ObligationsScreen
 import com.yuzufin.app.ui.savings.SavingsGoalFormScreen
 import com.yuzufin.app.ui.savings.SavingsGoalFormViewModel
 import com.yuzufin.app.ui.savings.SavingsScreen
@@ -90,7 +95,16 @@ fun YuzuNavHost(
                 onEditSource = { id -> navController.navigate(IncomeFormRoute.create(id)) { launchSingleTop = true } },
             )
         }
-        composable(Destination.Obligations.route) { ObligationsScreen(contentPadding, goBack) }
+        composable(Destination.Obligations.route) {
+            ObligationsScreen(
+                contentPadding = contentPadding,
+                onBack = goBack,
+                onAddBill = { navController.navigate(BillFormRoute.create()) { launchSingleTop = true } },
+                onEditBill = { id -> navController.navigate(BillFormRoute.create(id)) { launchSingleTop = true } },
+                onAddLoan = { direction -> navController.navigate(LoanFormRoute.create(direction = direction)) { launchSingleTop = true } },
+                onEditLoan = { id -> navController.navigate(LoanFormRoute.create(id)) { launchSingleTop = true } },
+            )
+        }
         composable(Destination.Stats.route) { StatsScreen(contentPadding, goBack) }
         composable(Destination.Settings.route) {
             SettingsScreen(
@@ -124,6 +138,36 @@ fun YuzuNavHost(
                 factory = SavingsGoalFormViewModel.factory(container, id),
             )
             SavingsGoalFormScreen(viewModel = formViewModel, onClose = goBack)
+        }
+        composable(
+            route = BillFormRoute.PATTERN,
+            arguments = listOf(
+                navArgument(BillFormRoute.ARG_ID) { type = NavType.LongType; defaultValue = 0L },
+            ),
+        ) { entry ->
+            val id = entry.arguments?.getLong(BillFormRoute.ARG_ID) ?: 0L
+            val formViewModel: BillFormViewModel = viewModel(
+                key = "bill-form-$id",
+                factory = BillFormViewModel.factory(container, id),
+            )
+            BillFormScreen(viewModel = formViewModel, onClose = goBack)
+        }
+        composable(
+            route = LoanFormRoute.PATTERN,
+            arguments = listOf(
+                navArgument(LoanFormRoute.ARG_ID) { type = NavType.LongType; defaultValue = 0L },
+                navArgument(LoanFormRoute.ARG_DIRECTION) { type = NavType.StringType; defaultValue = LoanDirection.LENT.name },
+            ),
+        ) { entry ->
+            val id = entry.arguments?.getLong(LoanFormRoute.ARG_ID) ?: 0L
+            val direction = runCatching {
+                LoanDirection.valueOf(entry.arguments?.getString(LoanFormRoute.ARG_DIRECTION).orEmpty())
+            }.getOrDefault(LoanDirection.LENT)
+            val formViewModel: LoanFormViewModel = viewModel(
+                key = "loan-form-$id-${direction.name}",
+                factory = LoanFormViewModel.factory(container, id, direction),
+            )
+            LoanFormScreen(viewModel = formViewModel, onClose = goBack)
         }
         composable(
             route = TransactionRoute.PATTERN,

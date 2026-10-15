@@ -91,4 +91,21 @@ class StatementBuilderTest {
         val s = StatementBuilder.build(initial, list, names, start, d)
         assertEquals(listOf("A", "B"), s.rows.filter { it.kind != StatementKind.INITIAL }.map { it.description })
     }
+
+    @Test fun prestamos_mueven_el_saldo_pero_no_son_ingreso_ni_gasto() {
+        val d = LocalDate.of(2026, 9, 12)
+        val list = listOf(
+            tx(1, TransactionType.INCOME, 1_000_000L, d, "Sueldo", 2),
+            FinanceTransaction(2, TransactionType.EXPENSE, 300_000L, 1L, "Préstamo a Ana", d, internalTransfer = true),
+            FinanceTransaction(3, TransactionType.INCOME, 100_000L, 1L, "Devolución de Ana", d.plusDays(1), internalTransfer = true),
+        )
+        val s = StatementBuilder.build(initial, list, names, start, d.plusDays(1))
+        assertEquals(1_000_000L, s.incomeTotal)
+        assertEquals(0L, s.expenseTotal)
+        assertEquals(-200_000L, s.internalNet)
+        // El saldo final coincide con el de la app: inicial + ingresos − gastos + préstamos (neto).
+        assertEquals(2_800_000L, s.closingBalance)
+        assertEquals(s.openingBalance + s.incomeTotal - s.expenseTotal + s.internalNet, s.closingBalance)
+        assertEquals(listOf(false, true, true), s.rows.filter { it.kind != StatementKind.INITIAL }.map { it.internal })
+    }
 }

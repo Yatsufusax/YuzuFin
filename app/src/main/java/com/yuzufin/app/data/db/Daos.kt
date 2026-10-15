@@ -17,6 +17,12 @@ interface CategoryDao {
 
     @Insert
     suspend fun insertAll(items: List<CategoryEntity>)
+
+    @Insert
+    suspend fun insert(entity: CategoryEntity): Long
+
+    @Query("SELECT * FROM categories WHERE iconKey = :iconKey AND type = :type LIMIT 1")
+    suspend fun findByIcon(iconKey: String, type: String): CategoryEntity?
 }
 
 @Dao
@@ -140,4 +146,71 @@ interface SavingsDao {
     /** Si se borra un ingreso, también se deshace lo que se apartó solo a partir de él. */
     @Query("DELETE FROM savings_entries WHERE sourceTransactionId = :transactionId")
     suspend fun deleteBySourceTransaction(transactionId: Long)
+}
+
+@Dao
+interface BillDao {
+    @Query("SELECT * FROM bills ORDER BY paid, dueEpochDay, id")
+    fun observeAll(): Flow<List<BillEntity>>
+
+    @Query("SELECT * FROM bills WHERE id = :id")
+    suspend fun getById(id: Long): BillEntity?
+
+    @Query("SELECT * FROM bills WHERE paid = 0")
+    suspend fun allUnpaid(): List<BillEntity>
+
+    @Insert
+    suspend fun insert(entity: BillEntity): Long
+
+    @Update
+    suspend fun update(entity: BillEntity)
+
+    @Query("DELETE FROM bills WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
+    /** Si se borra el gasto de un pago, la factura sigue pagada pero sin enlace. */
+    @Query("UPDATE bills SET paidTransactionId = NULL WHERE paidTransactionId = :transactionId")
+    suspend fun unlinkTransaction(transactionId: Long)
+
+    @Query("UPDATE bills SET notified = 1 WHERE id IN (:ids)")
+    suspend fun markNotified(ids: List<Long>)
+}
+
+@Dao
+interface LoanDao {
+    @Query("SELECT * FROM loans ORDER BY startEpochDay DESC, id DESC")
+    fun observeLoans(): Flow<List<LoanEntity>>
+
+    @Query("SELECT * FROM loan_payments ORDER BY dateEpochDay DESC, id DESC")
+    fun observePayments(): Flow<List<LoanPaymentEntity>>
+
+    @Query("SELECT * FROM loans WHERE id = :id")
+    suspend fun getLoan(id: Long): LoanEntity?
+
+    @Query("SELECT * FROM loans")
+    suspend fun allLoans(): List<LoanEntity>
+
+    @Insert
+    suspend fun insertLoan(entity: LoanEntity): Long
+
+    @Update
+    suspend fun updateLoan(entity: LoanEntity)
+
+    @Query("DELETE FROM loans WHERE id = :id")
+    suspend fun deleteLoan(id: Long)
+
+    @Query("SELECT * FROM loan_payments WHERE loanId = :loanId")
+    suspend fun paymentsFor(loanId: Long): List<LoanPaymentEntity>
+
+    @Query("SELECT COALESCE(SUM(amountMinor), 0) FROM loan_payments WHERE loanId = :loanId")
+    suspend fun paidFor(loanId: Long): Long
+
+    @Query("SELECT * FROM loan_payments WHERE id = :id")
+    suspend fun getPayment(id: Long): LoanPaymentEntity?
+
+    @Insert
+    suspend fun insertPayment(entity: LoanPaymentEntity): Long
+
+    @Query("DELETE FROM loan_payments WHERE id = :id")
+    suspend fun deletePayment(id: Long)
 }

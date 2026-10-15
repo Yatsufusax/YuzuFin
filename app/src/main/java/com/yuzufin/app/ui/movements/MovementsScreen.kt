@@ -209,7 +209,7 @@ fun MovementsScreen(
                 YuzuCard(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
                     group.items.forEachIndexed { index, item ->
                         if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        MovementListRow(item = item, state = state, onClick = { onEdit(item.id) })
+                        MovementListRow(item = item, state = state, onClick = { if (!item.isInternal) onEdit(item.id) })
                     }
                 }
             }
@@ -281,7 +281,7 @@ private fun MovementListRow(item: MovementItem, state: MovementsUiState, onClick
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = item.categoryName,
+                text = if (item.isInternal) stringResource(R.string.home_internal_transfer) else item.categoryName,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,

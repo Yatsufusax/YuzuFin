@@ -64,6 +64,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.unit.sp
 import com.yuzufin.app.R
 import com.yuzufin.app.core.money.MoneyFormatter
+import com.yuzufin.app.domain.BillStatus
 import com.yuzufin.app.domain.TransactionType
 import com.yuzufin.app.ui.common.MovementItem
 import com.yuzufin.app.ui.common.categoryIcon
@@ -146,6 +147,9 @@ fun HomeScreen(
             }
             MonthSummaryCard(state)
             state.nextIncome?.let { NextIncomeCard(it, state, onClick = { onNavigate(Destination.Incomes) }) }
+            if (state.upcomingBills.isNotEmpty()) {
+                UpcomingBillsCard(state, onClick = { onNavigate(Destination.Obligations) })
+            }
             if (state.recent.isNotEmpty()) {
                 RecentMovementsCard(
                     state = state,
@@ -237,6 +241,39 @@ private fun NextIncomeCard(item: UpcomingIncome, state: HomeUiState, onClick: ()
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+}
+
+/** Próximos vencimientos: pendientes que todavía no descuentan el saldo. */
+@Composable
+private fun UpcomingBillsCard(state: HomeUiState, onClick: () -> Unit) {
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    YuzuCard(modifier = Modifier.clickable(onClick = onClick)) {
+        Text(stringResource(R.string.home_bills_title), style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        state.upcomingBills.forEachIndexed { index, item ->
+            if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(item.bill.name, style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        formatFullDate(item.bill.dueDate),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (item.status == BillStatus.OVERDUE) MaterialTheme.yuzu.expense else muted,
+                    )
+                }
+                if (item.status == BillStatus.OVERDUE) {
+                    PillLabel(
+                        text = stringResource(R.string.obl_pill_overdue),
+                        container = MaterialTheme.colorScheme.errorContainer,
+                        content = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                }
+                Text(MoneyFormatter.format(item.bill.amountMinor, state.currency), style = MaterialTheme.typography.titleSmall)
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(stringResource(R.string.home_bills_note), style = MaterialTheme.typography.bodySmall, color = muted)
     }
 }
 
@@ -370,6 +407,16 @@ private fun BalanceCard(
                     color = muted,
                 )
             }
+        }
+
+        if (state.committed > 0L) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.home_free) + ": " +
+                    if (visible) MoneyFormatter.format(state.freeEstimate, currency) else "••••••",
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (state.freeEstimate < 0) MaterialTheme.yuzu.expense else muted,
+            )
         }
 
         Spacer(Modifier.height(20.dp))
@@ -607,7 +654,7 @@ private fun RecentMovementsCard(
         )
         state.recent.forEachIndexed { index, item ->
             if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            RecentRow(item = item, state = state, onClick = { onEdit(item.id) })
+            RecentRow(item = item, state = state, onClick = { if (!item.isInternal) onEdit(item.id) })
         }
     }
 }
@@ -616,7 +663,9 @@ private fun RecentMovementsCard(
 private fun RecentRow(item: MovementItem, state: HomeUiState, onClick: () -> Unit) {
     val colors = MaterialTheme.yuzu
     val isIncome = item.type == TransactionType.INCOME
-    val subtitle = if (item.description.isBlank()) {
+    val subtitle = if (item.isInternal) {
+        "${stringResource(R.string.home_internal_transfer)} · ${dayLabel(item.date)}"
+    } else if (item.description.isBlank()) {
         dayLabel(item.date)
     } else {
         "${item.categoryName} · ${dayLabel(item.date)}"

@@ -11,6 +11,7 @@ import com.yuzufin.app.data.FinanceRepository
 import com.yuzufin.app.data.SettingsRepository
 import com.yuzufin.app.domain.BalanceCalculator
 import com.yuzufin.app.domain.Category
+import com.yuzufin.app.domain.LOAN_ICON_KEY
 import com.yuzufin.app.domain.FinanceTransaction
 import com.yuzufin.app.domain.TransactionType
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,10 +71,11 @@ class TransactionFormViewModel(
         val currency = CurrencyInfo.fromCode(settings.settings.first().currencyCode)
         val initial = finance.initialBalance.first()
         val transactions = finance.transactions.first()
-        allCategories = finance.categories.first()
+        // La categoría "Préstamos" es interna: la usan los préstamos, no el registro manual.
+        allCategories = finance.categories.first().filter { it.iconKey != LOAN_ICON_KEY }
         val existing = if (editingId != 0L) finance.getTransaction(editingId) else null
 
-        if (editingId != 0L && existing == null) {
+        if (editingId != 0L && (existing == null || existing.internalTransfer)) {
             _state.update { it.copy(loading = false, notFound = true) }
             return
         }

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.rounded.Payments
 import androidx.compose.material.icons.rounded.Restaurant
 import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material.icons.rounded.Work
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -33,6 +34,8 @@ data class MovementItem(
     val iconKey: String,
     val description: String,
     val date: LocalDate,
+    /** Movimiento interno de un préstamo: se gestiona desde Obligaciones. */
+    val isInternal: Boolean = false,
 ) {
     val title: String get() = description.ifBlank { categoryName }
 }
@@ -52,6 +55,7 @@ fun buildMovementItems(
             iconKey = category?.iconKey ?: "other",
             description = t.description,
             date = t.date,
+            isInternal = t.internalTransfer,
         )
     }
 }
@@ -67,6 +71,7 @@ fun categoryIcon(key: String): ImageVector = when (key) {
     "shopping" -> Icons.Rounded.ShoppingCart
     "salary" -> Icons.Rounded.Payments
     "extra" -> Icons.Rounded.Work
+    "loan" -> Icons.Rounded.SwapHoriz
     "other" -> Icons.Rounded.MoreHoriz
     else -> Icons.Rounded.Category
 }

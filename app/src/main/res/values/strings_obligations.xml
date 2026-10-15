@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Obligaciones (Fase 5) -->
+    <string name="obl_available">Disponible</string>
+    <string name="obl_committed">Facturas pendientes</string>
+    <string name="obl_free">Libre estimado</string>
+    <string name="obl_receivable">Te deben</string>
+    <string name="obl_debts">Debés</string>
+    <string name="obl_net_worth">Patrimonio</string>
+    <string name="obl_summary_note">El libre estimado descuenta las facturas pendientes, pero tu saldo no baja hasta que las pagás. Los préstamos mueven tu saldo sin ser ingresos ni gastos.</string>
+    <string name="obl_tab_bills">Facturas</string>
+    <string name="obl_tab_loans">Préstamos</string>
+
+    <string name="obl_add_bill">Nueva factura</string>
+    <string name="obl_bills_pending">Pendientes</string>
+    <string name="obl_bills_paid">Pagadas</string>
+    <string name="obl_bills_empty_title">Sin facturas pendientes</string>
+    <string name="obl_bills_empty_body">Cargá tus vencimientos (luz, agua, alquiler…) y te avisamos antes de que venzan. No descuentan tu saldo hasta que las pagás.</string>
+    <string name="obl_bill_due">Vence el %1$s</string>
+    <string name="obl_bill_due_today">Vence hoy</string>
+    <string name="obl_bill_overdue">Venció el %1$s</string>
+    <string name="obl_bill_paid_on">Pagada el %1$s</string>
+    <string name="obl_bill_repeats">Se repite cada mes</string>
+    <string name="obl_pill_overdue">Vencida</string>
+    <string name="obl_pay">Pagar</string>
+    <string name="obl_pay_title">Pagar %1$s</string>
+    <string name="obl_pay_amount">Importe pagado</string>
+    <string name="obl_pay_date">Fecha de pago</string>
+    <string name="obl_pay_note">Se registra como un gasto con esa fecha y la factura queda pagada.</string>
+
+    <string name="obl_add_loan">Nuevo préstamo</string>
+    <string name="obl_lent_title">Me deben</string>
+    <string name="obl_borrowed_title">Debo</string>
+    <string name="obl_loans_empty_title">Sin préstamos</string>
+    <string name="obl_loans_empty_body">Anotá la plata que prestaste o que te prestaron y registrá las devoluciones de a poco.</string>
+    <string name="obl_loan_progress">Faltan %1$s de %2$s</string>
+    <string name="obl_loan_settled">Saldado</string>
+    <string name="obl_repay_lent">Registrar devolución</string>
+    <string name="obl_repay_borrowed">Registrar pago</string>
+    <string name="obl_repay_title_lent">Devolución de %1$s</string>
+    <string name="obl_repay_title_borrowed">Pago a %1$s</string>
+    <string name="obl_repay_amount">Importe</string>
+    <string name="obl_repay_date">Fecha</string>
+    <string name="obl_repay_note">Nota (opcional)</string>
+    <string name="obl_repay_outstanding">Falta: %1$s</string>
+    <string name="obl_repay_error">No puede superar lo que falta.</string>
+    <string name="obl_repay_error_generic">No se pudo guardar. Probá de nuevo.</string>
+    <string name="obl_payments_show">Ver devoluciones (%1$d)</string>
+    <string name="obl_payments_hide">Ocultar devoluciones</string>
+    <string name="obl_payment_delete_title">¿Eliminar esta devolución?</string>
+    <string name="obl_payment_delete_body">El saldo del préstamo y tu dinero vuelven a como estaban antes de registrarla.</string>
+
+    <string name="obl_bill_form_new">Nueva factura</string>
+    <string name="obl_bill_form_edit">Editar factura</string>
+    <string name="obl_field_bill_name">Nombre</string>
+    <string name="obl_field_bill_name_hint">Luz, alquiler, internet…</string>
+    <string name="obl_error_name">Poné un nombre.</string>
+    <string name="obl_field_bill_amount">Importe</string>
+    <string name="obl_field_due">Vencimiento</string>
+    <string name="obl_switch_repeat">Se repite cada mes</string>
+    <string name="obl_switch_repeat_body">Al pagarla, queda lista la del mes siguiente.</string>
+    <string name="obl_switch_remind">Avisarme del vencimiento</string>
+    <string name="obl_switch_remind_body">Te avisamos el día anterior (o hoy, si ya venció). La hora se elige en Ajustes.</string>
+    <string name="obl_bill_delete_title">¿Eliminar esta factura?</string>
+    <string name="obl_bill_delete_body">Se borra la factura. Si ya registraste un pago, ese gasto se conserva en Movimientos.</string>
+
+    <string name="obl_loan_form_new">Nuevo préstamo</string>
+    <string name="obl_loan_form_edit">Editar préstamo</string>
+    <string name="obl_direction_lent">Presté</string>
+    <string name="obl_direction_borrowed">Me prestaron</string>
+    <string name="obl_field_person">Persona</string>
+    <string name="obl_error_person">Poné un nombre.</string>
+    <string name="obl_field_loan_amount">Monto</string>
+    <string name="obl_field_loan_date">Fecha</string>
+    <string name="obl_field_note">Nota (opcional)</string>
+    <string name="obl_loan_hint_lent">Este monto sale de tu saldo en esa fecha y vuelve a medida que te lo devuelvan. No cuenta como gasto.</string>
+    <string name="obl_loan_hint_borrowed">Este monto entra a tu saldo en esa fecha y sale a medida que lo devuelvas. No cuenta como ingreso.</string>
+    <string name="obl_loan_locked">El tipo, el monto y la fecha mueven tu saldo y no se pueden cambiar. Si te equivocaste, eliminá el préstamo y cargalo de nuevo.</string>
+    <string name="obl_switch_loan_remind">Recordarme el saldo a fin de mes</string>
+    <string name="obl_switch_loan_remind_body">Los últimos días del mes te avisamos quién te debe (o a quién le debés) mientras quede saldo.</string>
+    <string name="obl_loan_delete_title">¿Eliminar este préstamo?</string>
+    <string name="obl_loan_delete_body">Se borran el préstamo, sus devoluciones y los movimientos que generaron. Tu saldo vuelve a como estaba antes.</string>
+
+    <!-- Avisos -->
+    <plurals name="reminders_bills_title">
+        <item quantity="one">Tenés una factura por vencer</item>
+        <item quantity="other">Tenés %1$d facturas por vencer</item>
+    </plurals>
+    <string name="reminders_bill_item">%1$s · %2$s</string>
+    <string name="reminders_bill_item_amount">%1$s · %2$s · %3$s</string>
+    <plurals name="reminders_owed_title">
+        <item quantity="one">Fin de mes: te debe plata una persona</item>
+        <item quantity="other">Fin de mes: te deben plata %1$d personas</item>
+    </plurals>
+    <plurals name="reminders_owe_title">
+        <item quantity="one">Fin de mes: tenés un saldo por pagar</item>
+        <item quantity="other">Fin de mes: tenés %1$d saldos por pagar</item>
+    </plurals>
+    <string name="reminders_loan_item_amount">%1$s · %2$s</string>
+</resources>

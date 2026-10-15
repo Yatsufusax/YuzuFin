@@ -1,8 +1,10 @@
 ## Nuevo
-- Ahorros y metas: creá metas con monto objetivo y fecha límite opcional, y seguí tu avance con una barra.
-- Aportá y retirá cuando quieras. También podés apartar un porcentaje de cada cobro automáticamente.
-- Inicio ahora muestra tu dinero disponible y, debajo, lo que tenés ahorrado.
-- Recordatorio mensual opcional para aportar a cada meta.
+- Obligaciones: cargá tus facturas con vencimiento (únicas o mensuales) y pagalas con un toque. No descuentan tu saldo hasta que las pagás.
+- Préstamos: anotá lo que prestaste o te prestaron y registrá las devoluciones de a poco.
+- Inicio muestra tus próximos vencimientos y tu libre estimado.
+- Avisos de facturas por vencer y, a fin de mes, de quién te debe y a quién le debés.
+- Patrimonio: tu disponible más tus ahorros y lo que te deben, menos lo que debés.
 
 ## Mejorado
-- Lo que apartás no cuenta como gasto ni cambia tu extracto.
+- Los atajos Pagar y Préstamo de la hoja "+" ya funcionan.
+- La campana de Inicio abre los recordatorios en Ajustes.

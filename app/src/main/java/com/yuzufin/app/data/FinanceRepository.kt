@@ -21,6 +21,7 @@ class FinanceRepository(private val db: AppDatabase) {
     private val initialBalanceDao = db.initialBalanceDao()
     private val incomeDao = db.incomeDao()
     private val savingsDao = db.savingsDao()
+    private val billDao = db.billDao()
 
     val categories: Flow<List<Category>> =
         categoryDao.observeAll().map { list -> list.map { it.toDomain() } }
@@ -69,6 +70,7 @@ class FinanceRepository(private val db: AppDatabase) {
             }
             // Lo que se apartó solo a partir de este ingreso se deshace con él.
             savingsDao.deleteBySourceTransaction(id)
+            billDao.unlinkTransaction(id)
             transactionDao.deleteById(id)
         }
     }
@@ -87,6 +89,8 @@ class FinanceRepository(private val db: AppDatabase) {
             CategoryEntity(name = "Salario", type = TransactionType.INCOME, iconKey = "salary"),
             CategoryEntity(name = "Ingreso extra", type = TransactionType.INCOME, iconKey = "extra"),
             CategoryEntity(name = "Otros ingresos", type = TransactionType.INCOME, iconKey = "other"),
+            CategoryEntity(name = "Préstamos", type = TransactionType.EXPENSE, iconKey = "loan"),
+            CategoryEntity(name = "Préstamos", type = TransactionType.INCOME, iconKey = "loan"),
         )
     }
 }
@@ -100,6 +104,7 @@ private fun TransactionEntity.toDomain() = FinanceTransaction(
     categoryId = categoryId,
     description = description,
     date = LocalDate.ofEpochDay(dateEpochDay),
+    internalTransfer = internalTransfer,
 )
 
 private fun FinanceTransaction.toEntity(createdAt: Long, updatedAt: Long) = TransactionEntity(
@@ -111,6 +116,7 @@ private fun FinanceTransaction.toEntity(createdAt: Long, updatedAt: Long) = Tran
     dateEpochDay = date.toEpochDay(),
     createdAt = createdAt,
     updatedAt = updatedAt,
+    internalTransfer = internalTransfer,
 )
 
 private fun InitialBalanceEntity.toDomain() = InitialBalance(

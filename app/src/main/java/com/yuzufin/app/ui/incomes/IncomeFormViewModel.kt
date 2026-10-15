@@ -11,6 +11,7 @@ import com.yuzufin.app.data.FinanceRepository
 import com.yuzufin.app.data.IncomeRepository
 import com.yuzufin.app.data.SettingsRepository
 import com.yuzufin.app.domain.Category
+import com.yuzufin.app.domain.LOAN_ICON_KEY
 import com.yuzufin.app.domain.IncomeSchedule
 import com.yuzufin.app.domain.IncomeSource
 import com.yuzufin.app.domain.TransactionType
@@ -76,7 +77,7 @@ class IncomeFormViewModel(
     init {
         viewModelScope.launch {
             val currency = CurrencyInfo.fromCode(settings.settings.first().currencyCode)
-            val categories = finance.categories.first().filter { it.type == TransactionType.INCOME }
+            val categories = finance.categories.first().filter { it.type == TransactionType.INCOME && it.iconKey != LOAN_ICON_KEY }
             val defaultCategory = (categories.firstOrNull { it.iconKey == "salary" } ?: categories.firstOrNull())?.id ?: 0L
 
             if (editingId == 0L) {

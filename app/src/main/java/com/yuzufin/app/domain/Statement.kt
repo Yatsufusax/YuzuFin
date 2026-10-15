@@ -15,6 +15,8 @@ data class StatementRow(
     val kind: StatementKind,
     val signedAmountMinor: Long,
     val balanceAfter: Long,
+    /** Movimiento interno de un préstamo: mueve el saldo pero no es ingreso ni gasto. */
+    val internal: Boolean = false,
 )
 
 data class Statement(
@@ -25,13 +27,16 @@ data class Statement(
     val expenseTotal: Long,
     val closingBalance: Long,
     val rows: List<StatementRow>,
+    /** Efecto neto de los préstamos en el período (entra +, sale −). No está en ingresos ni gastos. */
+    val internalNet: Long = 0L,
 )
 
 /**
  * Arma el extracto de un período con las mismas reglas del saldo: solo cuentan los movimientos
  * desde la fecha inicial. Es una función pura: no toca la base de datos ni el reloj.
  *
- * Siempre se cumple: saldo final = saldo inicial del período + ingresos − gastos.
+ * Siempre se cumple: saldo final = saldo inicial del período + ingresos − gastos + préstamos (neto).
+ * Los movimientos internos de préstamos mueven el saldo pero no cuentan como ingreso ni gasto.
  */
 object StatementBuilder {
 
@@ -75,13 +80,18 @@ object StatementBuilder {
         var running = opening
         var income = 0L
         var expense = 0L
+        var internalNet = 0L
         for (transaction in counted) {
             if (transaction.date.isBefore(periodStart) || transaction.date.isAfter(to)) continue
             running += signed(transaction)
             val categoryName = categoryNames[transaction.categoryId].orEmpty()
-            when (transaction.type) {
-                TransactionType.INCOME -> income += transaction.amountMinor
-                TransactionType.EXPENSE -> expense += transaction.amountMinor
+            if (transaction.internalTransfer) {
+                internalNet += signed(transaction)
+            } else {
+                when (transaction.type) {
+                    TransactionType.INCOME -> income += transaction.amountMinor
+                    TransactionType.EXPENSE -> expense += transaction.amountMinor
+                }
             }
             rows += StatementRow(
                 date = transaction.date,
@@ -90,6 +100,7 @@ object StatementBuilder {
                 kind = if (transaction.type == TransactionType.INCOME) StatementKind.INCOME else StatementKind.EXPENSE,
                 signedAmountMinor = signed(transaction),
                 balanceAfter = running,
+                internal = transaction.internalTransfer,
             )
         }
 
@@ -101,6 +112,7 @@ object StatementBuilder {
             expenseTotal = expense,
             closingBalance = running,
             rows = rows,
+            internalNet = internalNet,
         )
     }
 

@@ -1,5 +1,6 @@
 package com.yuzufin.app.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -39,6 +40,8 @@ data class TransactionEntity(
     val dateEpochDay: Long,
     val createdAt: Long,
     val updatedAt: Long,
+    /** Movimiento interno de un préstamo: mueve el saldo pero no cuenta como ingreso ni gasto. */
+    @ColumnInfo(defaultValue = "0") val internalTransfer: Boolean = false,
 )
 
 /** Una sola fila (id = 1) con el punto de partida financiero. */
@@ -137,5 +140,63 @@ data class SavingsEntryEntity(
     val dateEpochDay: Long,
     val note: String,
     val sourceTransactionId: Long?,
+    val createdAt: Long,
+)
+
+/** Factura o vencimiento (Fase 5). Pendiente: no toca el saldo. Pagada: enlaza el gasto creado. */
+@Entity(tableName = "bills", indices = [Index("paidTransactionId")])
+data class BillEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val amountMinor: Long,
+    val categoryId: Long,
+    val dueEpochDay: Long,
+    /** Día del mes en que se repite (31 = último día); 0 si no se repite. */
+    val repeatDay: Int,
+    val remind: Boolean,
+    val paid: Boolean,
+    val paidTransactionId: Long?,
+    val paidEpochDay: Long?,
+    /** Si ya se mostró el aviso de este vencimiento. */
+    val notified: Boolean,
+    val createdAt: Long,
+)
+
+/** Préstamo hecho (LENT) o recibido (BORROWED). El dinero se movió con un movimiento interno enlazado. */
+@Entity(tableName = "loans")
+data class LoanEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val person: String,
+    /** Nombre de [com.yuzufin.app.domain.LoanDirection]. */
+    val direction: String,
+    val principalMinor: Long,
+    val startEpochDay: Long,
+    val note: String,
+    val remind: Boolean,
+    /** Último mes (aaaamm) en que se avisó el saldo de este préstamo. */
+    val lastRemindedMonth: Int,
+    val principalTransactionId: Long?,
+    val createdAt: Long,
+)
+
+@Entity(
+    tableName = "loan_payments",
+    foreignKeys = [
+        ForeignKey(
+            entity = LoanEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["loanId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index("loanId")],
+)
+data class LoanPaymentEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val loanId: Long,
+    val amountMinor: Long,
+    val dateEpochDay: Long,
+    val note: String,
+    val transactionId: Long?,
     val createdAt: Long,
 )

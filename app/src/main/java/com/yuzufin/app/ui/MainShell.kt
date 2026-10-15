@@ -27,14 +27,15 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.yuzufin.app.R
 import com.yuzufin.app.domain.TransactionType
 import com.yuzufin.app.reminders.ReminderScheduler
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.components.QuickAction
 import com.yuzufin.app.ui.components.QuickActionsSheetContent
+import com.yuzufin.app.ui.navigation.BillFormRoute
 import com.yuzufin.app.ui.navigation.Destination
 import com.yuzufin.app.ui.navigation.FloatingNavBar
+import com.yuzufin.app.ui.navigation.LoanFormRoute
 import com.yuzufin.app.ui.navigation.TransactionRoute
 import com.yuzufin.app.ui.navigation.YuzuNavHost
 import com.yuzufin.app.ui.navigation.isFullScreenRoute
@@ -82,20 +83,13 @@ fun MainShell() {
         }
     }
 
-    // Pagar, préstamos y ahorro todavía no existen: se avisa con honestidad en qué fase llegan.
-    val showComingSoon: (Int) -> Unit = { phase ->
-        scope.launch {
-            snackbarHostState.currentSnackbarData?.dismiss()
-            snackbarHostState.showSnackbar(context.getString(R.string.coming_soon_snackbar, phase))
-        }
-    }
-
     val onQuickAction: (QuickAction) -> Unit = { action ->
         when (action) {
             QuickAction.Income -> navController.navigate(TransactionRoute.create(type = TransactionType.INCOME))
             QuickAction.Expense -> navController.navigate(TransactionRoute.create(type = TransactionType.EXPENSE))
             QuickAction.Save -> navController.navigateTo(Destination.Savings)
-            else -> showComingSoon(action.phase)
+            QuickAction.Pay -> navController.navigate(BillFormRoute.create())
+            QuickAction.Loan -> navController.navigate(LoanFormRoute.create())
         }
     }
 
@@ -119,7 +113,7 @@ fun MainShell() {
             contentPadding = innerPadding,
             updateViewModel = updateViewModel,
             onQuickAction = onQuickAction,
-            onNotificationsClick = { showComingSoon(3) },
+            onNotificationsClick = { navController.navigateTo(Destination.Settings) },
             modifier = Modifier.fillMaxSize(),
         )
     }

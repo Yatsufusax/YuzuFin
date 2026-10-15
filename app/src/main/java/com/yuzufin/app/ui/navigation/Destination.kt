@@ -1,6 +1,7 @@
 package com.yuzufin.app.ui.navigation
 
 import androidx.navigation.NavHostController
+import com.yuzufin.app.domain.LoanDirection
 import com.yuzufin.app.domain.TransactionType
 
 /**
@@ -49,11 +50,33 @@ object SavingsGoalFormRoute {
     fun create(id: Long = 0L): String = "savings_goal_form?$ARG_ID=$id"
 }
 
+/** Formulario para crear o editar una factura. Oculta la barra inferior. */
+object BillFormRoute {
+    const val ARG_ID = "id"
+    const val PATTERN = "bill_form?$ARG_ID={$ARG_ID}"
+
+    /** [id] = 0 crea una factura nueva; otro valor edita esa factura. */
+    fun create(id: Long = 0L): String = "bill_form?$ARG_ID=$id"
+}
+
+/** Formulario para crear o editar un préstamo. Oculta la barra inferior. */
+object LoanFormRoute {
+    const val ARG_ID = "id"
+    const val ARG_DIRECTION = "direction"
+    const val PATTERN = "loan_form?$ARG_ID={$ARG_ID}&$ARG_DIRECTION={$ARG_DIRECTION}"
+
+    /** [id] = 0 crea un préstamo nuevo; [direction] es el nombre de `LoanDirection`. */
+    fun create(id: Long = 0L, direction: LoanDirection = LoanDirection.LENT): String =
+        "loan_form?$ARG_ID=$id&$ARG_DIRECTION=${direction.name}"
+}
+
 /** Pantallas de formulario que ocupan todo el alto: no muestran la barra inferior. */
 fun isFullScreenRoute(route: String?): Boolean =
     route?.startsWith("transaction") == true ||
         route?.startsWith("income_form") == true ||
-        route?.startsWith("savings_goal_form") == true
+        route?.startsWith("savings_goal_form") == true ||
+        route?.startsWith("bill_form") == true ||
+        route?.startsWith("loan_form") == true
 
 /** Las secciones que cuelgan de “Menú” marcan esa pestaña como activa. */
 fun isMenuGroupRoute(route: String?): Boolean = when (route) {

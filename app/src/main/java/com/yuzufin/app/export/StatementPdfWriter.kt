@@ -176,6 +176,15 @@ class StatementPdfWriter(private val context: Context) {
         canvas.drawRoundRect(box, 14f, 14f, fill(mint))
         drawText(canvas, context.getString(R.string.statement_summary), MARGIN + 16f, top + 26f, paint(14f, ink, bold = true))
 
+        if (s.internalNet != 0L) {
+            // Los préstamos mueven el saldo pero no son ingreso ni gasto: se aclara aparte.
+            val note = context.getString(
+                R.string.statement_internal_note,
+                MoneyFormatter.format(s.internalNet, currency, showPlus = s.internalNet > 0L),
+            )
+            drawText(canvas, note, box.right - 16f, top + 26f, paint(9f, gray, align = Paint.Align.RIGHT))
+        }
+
         val colW = (box.width() - 32f) / 4f
         val columns = listOf(
             Triple(R.string.statement_opening, s.openingBalance, ink),
@@ -239,10 +248,11 @@ class StatementPdfWriter(private val context: Context) {
         drawText(canvas, fit(description, text, colCat - colDesc - 8f), colDesc, base, text)
         drawText(canvas, fit(row.categoryName.ifEmpty { "-" }, gray9, colType - colCat - 8f), colCat, base, gray9)
 
-        val kindRes = when (row.kind) {
-            StatementKind.INITIAL -> R.string.statement_kind_initial
-            StatementKind.INCOME -> R.string.statement_kind_income
-            StatementKind.EXPENSE -> R.string.statement_kind_expense
+        val kindRes = when {
+            row.internal -> R.string.statement_kind_internal
+            row.kind == StatementKind.INITIAL -> R.string.statement_kind_initial
+            row.kind == StatementKind.INCOME -> R.string.statement_kind_income
+            else -> R.string.statement_kind_expense
         }
         drawText(canvas, context.getString(kindRes), colType, base, gray9)
 

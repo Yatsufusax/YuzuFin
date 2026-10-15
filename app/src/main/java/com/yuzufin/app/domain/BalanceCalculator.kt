@@ -35,7 +35,8 @@ object BalanceCalculator {
         var income = 0L
         var expense = 0L
         for (transaction in transactions) {
-            if (!counts(initial, transaction) || YearMonth.from(transaction.date) != month) continue
+            // Los movimientos internos (préstamos) mueven el saldo pero no son ingresos ni gastos del mes.
+            if (transaction.internalTransfer || !counts(initial, transaction) || YearMonth.from(transaction.date) != month) continue
             when (transaction.type) {
                 TransactionType.INCOME -> income += transaction.amountMinor
                 TransactionType.EXPENSE -> expense += transaction.amountMinor

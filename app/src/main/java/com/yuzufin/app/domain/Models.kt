@@ -24,6 +24,11 @@ data class FinanceTransaction(
     val categoryId: Long,
     val description: String,
     val date: LocalDate,
+    /**
+     * Movimiento interno de un préstamo (dinero prestado, recibido o devuelto). Mueve el saldo,
+     * pero no cuenta como ingreso ni gasto del mes. Se gestiona desde Obligaciones, no desde Movimientos.
+     */
+    val internalTransfer: Boolean = false,
 )
 
 /**

@@ -127,6 +127,8 @@
     <string name="statement_kind_initial">Inicial</string>
     <string name="statement_kind_income">Ingreso</string>
     <string name="statement_kind_expense">Gasto</string>
+    <string name="statement_kind_internal">Préstamo</string>
+    <string name="statement_internal_note">Préstamos (neto): %1$s</string>
     <string name="statement_initial_row">Saldo inicial</string>
     <string name="statement_empty">Sin movimientos en este período.</string>
     <string name="statement_footer_quote_1">“El control de tus finanzas</string>

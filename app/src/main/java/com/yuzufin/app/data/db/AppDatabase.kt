@@ -20,8 +20,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         IncomeOccurrenceEntity::class,
         SavingsGoalEntity::class,
         SavingsEntryEntity::class,
+        BillEntity::class,
+        LoanEntity::class,
+        LoanPaymentEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,6 +33,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun initialBalanceDao(): InitialBalanceDao
     abstract fun incomeDao(): IncomeDao
     abstract fun savingsDao(): SavingsDao
+    abstract fun billDao(): BillDao
+    abstract fun loanDao(): LoanDao
 
     companion object {
         /** Fase 3: agrega las fuentes de ingreso y sus cobros. No toca las tablas existentes. */
@@ -105,9 +110,68 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Fase 5: facturas, préstamos y la marca de movimiento interno. Conserva todos los datos. */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `transactions` ADD COLUMN `internalTransfer` INTEGER NOT NULL DEFAULT 0")
+                // La categoría "Préstamos" solo se agrega si ya hay categorías (configuración terminada):
+                // si no, la crea la configuración inicial junto con las demás.
+                db.execSQL(
+                    "INSERT INTO `categories` (`name`, `type`, `iconKey`) " +
+                        "SELECT 'Préstamos', 'EXPENSE', 'loan' WHERE EXISTS (SELECT 1 FROM `categories`)",
+                )
+                db.execSQL(
+                    "INSERT INTO `categories` (`name`, `type`, `iconKey`) " +
+                        "SELECT 'Préstamos', 'INCOME', 'loan' WHERE EXISTS (SELECT 1 FROM `categories`)",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `bills` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`name` TEXT NOT NULL, " +
+                        "`amountMinor` INTEGER NOT NULL, " +
+                        "`categoryId` INTEGER NOT NULL, " +
+                        "`dueEpochDay` INTEGER NOT NULL, " +
+                        "`repeatDay` INTEGER NOT NULL, " +
+                        "`remind` INTEGER NOT NULL, " +
+                        "`paid` INTEGER NOT NULL, " +
+                        "`paidTransactionId` INTEGER, " +
+                        "`paidEpochDay` INTEGER, " +
+                        "`notified` INTEGER NOT NULL, " +
+                        "`createdAt` INTEGER NOT NULL)",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_bills_paidTransactionId` ON `bills` (`paidTransactionId`)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `loans` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`person` TEXT NOT NULL, " +
+                        "`direction` TEXT NOT NULL, " +
+                        "`principalMinor` INTEGER NOT NULL, " +
+                        "`startEpochDay` INTEGER NOT NULL, " +
+                        "`note` TEXT NOT NULL, " +
+                        "`remind` INTEGER NOT NULL, " +
+                        "`lastRemindedMonth` INTEGER NOT NULL, " +
+                        "`principalTransactionId` INTEGER, " +
+                        "`createdAt` INTEGER NOT NULL)",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `loan_payments` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`loanId` INTEGER NOT NULL, " +
+                        "`amountMinor` INTEGER NOT NULL, " +
+                        "`dateEpochDay` INTEGER NOT NULL, " +
+                        "`note` TEXT NOT NULL, " +
+                        "`transactionId` INTEGER, " +
+                        "`createdAt` INTEGER NOT NULL, " +
+                        "FOREIGN KEY(`loanId`) REFERENCES `loans`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE)",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_loan_payments_loanId` ON `loan_payments` (`loanId`)")
+            }
+        }
+
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "yuzufin.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
     }
 }

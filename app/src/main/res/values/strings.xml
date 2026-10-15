@@ -24,7 +24,6 @@
     <!-- Modo demostración -->
     <string name="demo_title">Modo demostración</string>
     <string name="demo_body">Los importes son de ejemplo. Todavía no se guarda ningún dato real.</string>
-    <string name="coming_soon_snackbar">Esta función llega en la Fase %1$d</string>
     <string name="coming_soon_features_title">Lo que va a incluir</string>
 
     <!-- Inicio -->
@@ -66,17 +65,9 @@
     <string name="menu_settings_desc">Moneda, tema, copias de seguridad y más</string>
 
     <!-- Fases del plan -->
-    <string name="phase_5">Fase 5 · Obligaciones y préstamos</string>
     <string name="phase_6">Fase 6 · Presupuestos y estadísticas</string>
 
     <!-- Secciones en construcción -->
-
-    <string name="obligations_intro">Facturas, vencimientos y dinero prestado o recibido en préstamo.</string>
-    <string-array name="obligations_features">
-        <item>Facturas pendientes que no descuentan saldo hasta que las pagás</item>
-        <item>Préstamos realizados y recibidos, con devoluciones parciales</item>
-        <item>Dinero libre estimado y patrimonio</item>
-    </string-array>
 
     <string name="stats_intro">Entendé en qué se va tu dinero con reglas claras, sin inteligencia artificial.</string>
     <string-array name="stats_features">

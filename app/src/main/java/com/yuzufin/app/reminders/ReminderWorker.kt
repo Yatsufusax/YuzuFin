@@ -8,6 +8,7 @@ import com.yuzufin.app.YuzuFinApplication
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.data.DueNotice
+import com.yuzufin.app.ui.common.formatShortDate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
@@ -54,6 +55,8 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 income.markNotified(due.map { it.occurrenceId })
             }
             remindSavings(container, today)
+            remindBills(container, today)
+            remindLoans(container, today)
             Result.success()
         } catch (e: CancellationException) {
             throw e
@@ -91,6 +94,87 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
         }
         // Se marcan aunque los avisos estén apagados, para no acumular avisos viejos.
         savings.markReminded(due.map { it.goalId }, today)
+    }
+
+    /** Facturas que vencen mañana, hoy o ya vencieron: un aviso por vencimiento. */
+    private suspend fun remindBills(container: com.yuzufin.app.AppContainer, today: LocalDate) {
+        val obligations = container.obligationsRepository
+        val due = obligations.dueBillReminders(today)
+        if (due.isEmpty()) return
+        val settings = container.settingsRepository.settings.first()
+        if (settings.remindersEnabled) {
+            val currency = CurrencyInfo.fromCode(settings.currencyCode)
+            val text = due.joinToString("\n") { bill ->
+                val date = formatShortDate(bill.dueDate)
+                if (settings.showAmountsInNotifications) {
+                    applicationContext.getString(
+                        R.string.reminders_bill_item_amount,
+                        bill.name,
+                        date,
+                        MoneyFormatter.format(bill.amountMinor, currency),
+                    )
+                } else {
+                    applicationContext.getString(R.string.reminders_bill_item, bill.name, date)
+                }
+            }
+            NotificationHelper.show(
+                applicationContext,
+                NotificationHelper.ID_BILLS,
+                applicationContext.resources.getQuantityString(R.plurals.reminders_bills_title, due.size, due.size),
+                text,
+            )
+        }
+        obligations.markBillsNotified(due.map { it.id })
+    }
+
+    /**
+     * Últimos días del mes: quién te debe y a quién le debés, una vez por mes y por préstamo,
+     * mientras quede saldo.
+     */
+    private suspend fun remindLoans(container: com.yuzufin.app.AppContainer, today: LocalDate) {
+        val obligations = container.obligationsRepository
+        val reminders = obligations.loanReminders(today)
+        if (reminders.isEmpty) return
+        val settings = container.settingsRepository.settings.first()
+        if (settings.remindersEnabled) {
+            val currency = CurrencyInfo.fromCode(settings.currencyCode)
+            fun describe(items: List<com.yuzufin.app.data.LoanBalance>): String = items.joinToString(", ") { item ->
+                if (settings.showAmountsInNotifications) {
+                    applicationContext.getString(
+                        R.string.reminders_loan_item_amount,
+                        item.person,
+                        MoneyFormatter.format(item.outstandingMinor, currency),
+                    )
+                } else {
+                    item.person
+                }
+            }
+            if (reminders.owedToMe.isNotEmpty()) {
+                NotificationHelper.show(
+                    applicationContext,
+                    NotificationHelper.ID_LOANS_OWED,
+                    applicationContext.resources.getQuantityString(
+                        R.plurals.reminders_owed_title,
+                        reminders.owedToMe.size,
+                        reminders.owedToMe.size,
+                    ),
+                    describe(reminders.owedToMe),
+                )
+            }
+            if (reminders.iOwe.isNotEmpty()) {
+                NotificationHelper.show(
+                    applicationContext,
+                    NotificationHelper.ID_LOANS_OWE,
+                    applicationContext.resources.getQuantityString(
+                        R.plurals.reminders_owe_title,
+                        reminders.iOwe.size,
+                        reminders.iOwe.size,
+                    ),
+                    describe(reminders.iOwe),
+                )
+            }
+        }
+        obligations.markLoansReminded(reminders.ids, today)
     }
 
     private fun describe(items: List<DueNotice>, showAmounts: Boolean, currency: CurrencyInfo): String =

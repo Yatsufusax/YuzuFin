@@ -3,7 +3,7 @@
 App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Room). Local-first, sin cuentas ni IA.
 *Tu dinero. Tus decisiones.*
 
-## Estado: Fase 4, ahorros y metas (listo para probar)
+## Estado: Fase 5, obligaciones y préstamos (listo para probar)
 
 **Hecho (escrito; pendiente de compilar en GitHub Actions)**
 - Configuración inicial: moneda (Gs. por defecto) y saldo inicial, desde hoy o con fecha anterior.
@@ -17,9 +17,11 @@ App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Ro
 - **Recordatorios:** aviso local diario (9:00 por defecto, configurable en Ajustes) cuando hay cobros por confirmar. Una sola notificación por cobro; los montos no se muestran salvo que lo actives.
 - **Fase 4, ahorros y metas:** metas con monto objetivo y fecha límite opcional; aportes y retiros manuales (con fecha y nota) y aporte automático opcional (un % de cada cobro que confirmás). Con fecha límite se muestra cuánto aportar por mes. Recordatorio opcional: un aviso al mes, solo si todavía no aportaste a esa meta.
 - **Disponible vs. ahorrado:** Inicio muestra el **disponible** (saldo total − apartado) y debajo lo **ahorrado**. Apartar no es un gasto ni un ingreso: no aparece en Movimientos ni cambia el extracto PDF.
-- Tests: `SavingsMathTest` (disponible, avance, meses que quedan, aporte mensual, aporte automático), `StatementBuilderTest`, `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`, `IncomeSchedulerTest` (fechas, meses cortos, años bisiestos, quincenas), `ReminderSchedulerTest`.
+- **Fase 5, obligaciones:** facturas con vencimiento (únicas o mensuales) que **no descuentan el saldo hasta que las pagás**; al pagar se crea el gasto real (importe y fecha editables) y, si es mensual, queda lista la del mes siguiente. Préstamos que hiciste o que te hicieron, con devoluciones parciales. Inicio muestra los próximos vencimientos y el **libre estimado** (disponible − facturas pendientes). La pantalla Obligaciones suma además lo que te deben, lo que debés y el **patrimonio**.
+- **Avisos de la Fase 5:** factura por vencer (desde el día anterior, o ya vencida; un aviso por vencimiento) y, los últimos dos días de cada mes, quién te debe y a quién le debés mientras quede saldo (una vez por mes y por préstamo). Todo se puede apagar por factura o préstamo.
+- Tests: `ObligationMathTest` (vencimientos mensuales y meses cortos, avisos, devoluciones, totales, fin de mes), `SavingsMathTest` (disponible, avance, meses que quedan, aporte mensual, aporte automático), `StatementBuilderTest`, `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`, `IncomeSchedulerTest` (fechas, meses cortos, años bisiestos, quincenas), `ReminderSchedulerTest`.
 
-**No hecho todavía:** vencimientos, deudas y préstamos con sus recordatorios (Fase 5), estadísticas (Fase 6). El sistema de recordatorios de la Fase 3 se reutiliza para esas fases.
+**No hecho todavía:** presupuestos y estadísticas (Fase 6).
 
 **Sin verificar:** no se pudo compilar ni ejecutar donde se escribió (sin acceso al SDK de Android). Solo se revisaron recursos y XML con scripts. La compilación y los tests corren en GitHub Actions; si falla, pegá el error.
 
@@ -39,6 +41,12 @@ App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Ro
 - Aporte automático: al confirmar un cobro, en la misma transacción, cada meta con porcentaje recibe esa parte (sin pasar de lo que le falta ni del cobro). El aporte guarda el id del ingreso: si borrás ese ingreso, el aporte se deshace. Si lo editás, el aporte no se recalcula. Entre todas las metas el porcentaje no puede pasar de 100.
 - Borrar una meta borra sus aportes: ese dinero vuelve a estar disponible. Los movimientos no se tocan.
 - La base pasó a la versión 3 (`MIGRATION_2_3`) y conserva tus datos.
+- `bills(id, name, amountMinor, categoryId, dueEpochDay, repeatDay, remind, paid, paidTransactionId?, paidEpochDay?, notified, createdAt)`: una fila por vencimiento. Mensual = `repeatDay` 1 a 31 (31 = último día); al pagarla se crea la siguiente con el mismo día (en meses cortos, el último día).
+- **Factura pendiente = no toca el saldo.** Pagarla crea el gasto y marca la factura en una sola transacción. Si después borrás ese gasto, la factura sigue pagada pero sin enlace (no se reabre para no duplicar la del mes siguiente).
+- `loans(id, person, direction, principalMinor, startEpochDay, note, remind, lastRemindedMonth, principalTransactionId?, createdAt)` y `loan_payments(id, loanId, amountMinor, dateEpochDay, note, transactionId?, createdAt)` (FK con borrado en cascada).
+- **Préstamos y saldo:** prestar o recibir y cada devolución crean un movimiento **interno** (`transactions.internalTransfer = 1`, categoría "Préstamos"). Mueven el saldo, aparecen en Movimientos y en el extracto PDF (tipo "Préstamo"; el resumen suma ingresos y gastos sin ellos y aclara "Préstamos (neto)"), pero **no cuentan como ingreso ni gasto del mes** y no se editan desde Movimientos (se gestionan en Obligaciones). Una devolución no puede superar lo que falta. Borrar un préstamo borra también sus movimientos y el saldo vuelve a como estaba.
+- **Libre estimado = disponible − facturas pendientes. Patrimonio = disponible + ahorrado + te deben − debés** (el ahorro y los préstamos no se cuentan dos veces).
+- La base pasó a la versión 4 (`MIGRATION_3_4`: columna `internalTransfer`, categoría "Préstamos" y las tablas nuevas) y conserva tus datos.
 - Todo el dinero es `Long` en unidad mínima (Gs. sin decimales, USD en centavos).
 
 ## Actualizaciones desde GitHub
@@ -69,7 +77,7 @@ Por terminal (con el SDK instalado y `local.properties` con `sdk.dir=...`):
 ```
 
 ## Recordatorios (Fase 3)
-WorkManager con una tarea periódica diaria a la hora elegida (revisa cobros y, una vez al mes por meta, el aporte a ahorros); todo local, sin servicios externos. Necesita el permiso de notificaciones (Android 13+), que se pide al activar los recordatorios. Con ahorro de batería agresivo Android puede retrasar la hora. Las notificaciones son de visibilidad privada y no incluyen montos por defecto.
+WorkManager con una tarea periódica diaria a la hora elegida (revisa cobros, vencimientos de facturas, saldos de préstamos a fin de mes y, una vez al mes por meta, el aporte a ahorros); todo local, sin servicios externos. Necesita el permiso de notificaciones (Android 13+), que se pide al activar los recordatorios. Con ahorro de batería agresivo Android puede retrasar la hora. Las notificaciones son de visibilidad privada y no incluyen montos por defecto.
 
 ## Estructura
 ```
@@ -84,4 +92,4 @@ app/src/main/java/com/yuzufin/app/
 ```
 
 ## Siguiente paso
-Revisar la Fase 4. Después, Fase 5: vencimientos, deudas y préstamos (con sus recordatorios).
+Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.

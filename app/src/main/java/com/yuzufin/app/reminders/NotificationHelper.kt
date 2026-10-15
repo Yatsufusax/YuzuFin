@@ -21,6 +21,9 @@ object NotificationHelper {
     const val ID_PENDING = 1001
     const val ID_AUTO = 1002
     const val ID_SAVINGS = 1003
+    const val ID_BILLS = 1004
+    const val ID_LOANS_OWED = 1005
+    const val ID_LOANS_OWE = 1006
 
     fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
