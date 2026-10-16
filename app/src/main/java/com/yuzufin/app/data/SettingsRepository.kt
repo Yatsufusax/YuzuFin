@@ -8,6 +8,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.domain.AppSettings
+import com.yuzufin.app.domain.ThemeMode
+import com.yuzufin.app.domain.ThemePalette
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -24,6 +26,8 @@ class SettingsRepository(private val context: Context) {
             remindersEnabled = prefs[REMINDERS_ENABLED] ?: true,
             reminderHour = (prefs[REMINDER_HOUR] ?: DEFAULT_REMINDER_HOUR).coerceIn(0, 23),
             showAmountsInNotifications = prefs[SHOW_AMOUNTS] ?: false,
+            themePalette = ThemePalette.fromName(prefs[THEME_PALETTE]),
+            themeMode = ThemeMode.fromName(prefs[THEME_MODE]),
         )
     }
 
@@ -51,6 +55,14 @@ class SettingsRepository(private val context: Context) {
         context.settingsDataStore.edit { prefs -> prefs[SHOW_AMOUNTS] = show }
     }
 
+    suspend fun setThemePalette(palette: ThemePalette) {
+        context.settingsDataStore.edit { prefs -> prefs[THEME_PALETTE] = palette.name }
+    }
+
+    suspend fun setThemeMode(mode: ThemeMode) {
+        context.settingsDataStore.edit { prefs -> prefs[THEME_MODE] = mode.name }
+    }
+
     companion object {
         const val MAX_NAME_LENGTH = 40
         const val DEFAULT_REMINDER_HOUR = 9
@@ -60,5 +72,7 @@ class SettingsRepository(private val context: Context) {
         private val REMINDERS_ENABLED = booleanPreferencesKey("reminders_enabled")
         private val REMINDER_HOUR = intPreferencesKey("reminder_hour")
         private val SHOW_AMOUNTS = booleanPreferencesKey("show_amounts_in_notifications")
+        private val THEME_PALETTE = stringPreferencesKey("theme_palette")
+        private val THEME_MODE = stringPreferencesKey("theme_mode")
     }
 }

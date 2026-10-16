@@ -200,3 +200,21 @@ data class LoanPaymentEntity(
     val transactionId: Long?,
     val createdAt: Long,
 )
+
+/**
+ * Registro de avisos de la app (campanilla). [dedupeKey] es único: si el revisor diario se
+ * ejecuta dos veces el mismo día, el aviso queda una sola vez.
+ */
+@Entity(
+    tableName = "app_notifications",
+    indices = [Index(value = ["dedupeKey"], unique = true)],
+)
+data class AppNotificationEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val kind: String,
+    val title: String,
+    val body: String,
+    val createdAt: Long,
+    val read: Boolean,
+    val dedupeKey: String,
+)

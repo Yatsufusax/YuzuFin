@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notif_title">Notificaciones</string>
+    <string name="notif_empty_title">Todo tranquilo por acá</string>
+    <string name="notif_empty_body">Los avisos de cobros, facturas, préstamos y ahorros van a quedar guardados en esta pantalla.</string>
+    <string name="notif_clear_all">Vaciar</string>
+    <string name="notif_clear_title">¿Vaciar las notificaciones?</string>
+    <string name="notif_clear_body">Se borra solo este historial de avisos. Tus movimientos y saldos no cambian.</string>
+    <string name="notif_clear_confirm">Vaciar</string>
+    <string name="notif_delete">Borrar aviso</string>
+    <string name="notif_unread_badge">%1$d avisos sin leer</string>
+    <string name="notif_new">Nuevo</string>
+    <string name="notif_today">Hoy</string>
+    <string name="notif_yesterday">Ayer</string>
+    <string name="notif_footer">Se guardan los últimos 200 avisos, solo en tu teléfono.</string>
+    <plurals name="reminders_soon_title">
+        <item quantity="one">Mañana tenés un cobro</item>
+        <item quantity="other">Mañana tenés %1$d cobros</item>
+    </plurals>
+</resources>

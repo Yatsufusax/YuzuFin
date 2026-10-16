@@ -17,6 +17,7 @@ sealed class Destination(val route: String, val isTopLevel: Boolean) {
     data object Obligations : Destination("obligations", false)
     data object Stats : Destination("stats", false)
     data object Settings : Destination("settings", false)
+    data object Notifications : Destination("notifications", false)
 }
 
 /** Formulario para crear o editar un movimiento. Oculta la barra inferior. */

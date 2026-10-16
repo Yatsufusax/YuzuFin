@@ -22,6 +22,7 @@ import com.yuzufin.app.ui.movements.MovementsScreen
 import com.yuzufin.app.ui.incomes.IncomeFormScreen
 import com.yuzufin.app.ui.incomes.IncomeFormViewModel
 import com.yuzufin.app.ui.incomes.IncomesScreen
+import com.yuzufin.app.ui.notifications.NotificationsScreen
 import com.yuzufin.app.ui.obligations.BillFormScreen
 import com.yuzufin.app.ui.obligations.BillFormViewModel
 import com.yuzufin.app.ui.obligations.LoanFormScreen
@@ -59,11 +60,13 @@ fun YuzuNavHost(
         composable(Destination.Home.route) {
             val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.factory(container))
             val state by homeViewModel.uiState.collectAsStateWithLifecycle()
+            val unread by container.notificationRepository.unreadCount.collectAsStateWithLifecycle(initialValue = 0)
             HomeScreen(
                 contentPadding = contentPadding,
                 state = state,
                 onNavigate = navController::navigateTo,
                 onQuickAction = onQuickAction,
+                unreadNotifications = unread,
                 onNotificationsClick = onNotificationsClick,
                 onEditMovement = { id -> openForm(id, TransactionType.EXPENSE) },
                 onConfirmIncome = homeViewModel::confirmIncome,
@@ -104,6 +107,9 @@ fun YuzuNavHost(
                 onAddLoan = { direction -> navController.navigate(LoanFormRoute.create(direction = direction)) { launchSingleTop = true } },
                 onEditLoan = { id -> navController.navigate(LoanFormRoute.create(id)) { launchSingleTop = true } },
             )
+        }
+        composable(Destination.Notifications.route) {
+            NotificationsScreen(contentPadding = contentPadding, onBack = goBack)
         }
         composable(Destination.Stats.route) { StatsScreen(contentPadding, goBack) }
         composable(Destination.Settings.route) {

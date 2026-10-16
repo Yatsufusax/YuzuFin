@@ -8,7 +8,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
- * Base de datos local. Al cambiar las tablas (Fases 3 a 5) se sube [version] y se agrega
+ * Base de datos local. Al cambiar las tablas (Fases 3 a 6) se sube [version] y se agrega
  * una migración explícita: nunca se borra la base de datos del usuario.
  */
 @Database(
@@ -23,8 +23,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         BillEntity::class,
         LoanEntity::class,
         LoanPaymentEntity::class,
+        AppNotificationEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -35,6 +36,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun savingsDao(): SavingsDao
     abstract fun billDao(): BillDao
     abstract fun loanDao(): LoanDao
+    abstract fun notificationDao(): NotificationDao
 
     companion object {
         /** Fase 3: agrega las fuentes de ingreso y sus cobros. No toca las tablas existentes. */
@@ -169,9 +171,29 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Fase 6: registro de avisos (campanilla). No toca las tablas existentes. */
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `app_notifications` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`kind` TEXT NOT NULL, " +
+                        "`title` TEXT NOT NULL, " +
+                        "`body` TEXT NOT NULL, " +
+                        "`createdAt` INTEGER NOT NULL, " +
+                        "`read` INTEGER NOT NULL, " +
+                        "`dedupeKey` TEXT NOT NULL)",
+                )
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS `index_app_notifications_dedupeKey` " +
+                        "ON `app_notifications` (`dedupeKey`)",
+                )
+            }
+        }
+
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "yuzufin.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 .build()
     }
 }

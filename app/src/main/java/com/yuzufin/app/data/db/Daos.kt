@@ -214,3 +214,32 @@ interface LoanDao {
     @Query("DELETE FROM loan_payments WHERE id = :id")
     suspend fun deletePayment(id: Long)
 }
+
+@Dao
+interface NotificationDao {
+    @Query("SELECT * FROM app_notifications ORDER BY createdAt DESC, id DESC")
+    fun observeAll(): Flow<List<AppNotificationEntity>>
+
+    @Query("SELECT COUNT(*) FROM app_notifications WHERE `read` = 0")
+    fun observeUnreadCount(): Flow<Int>
+
+    /** Devuelve -1 si ya existía un aviso con la misma clave. */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(entity: AppNotificationEntity): Long
+
+    @Query("UPDATE app_notifications SET `read` = 1")
+    suspend fun markAllRead()
+
+    @Query("DELETE FROM app_notifications WHERE id = :id")
+    suspend fun delete(id: Long)
+
+    @Query("DELETE FROM app_notifications")
+    suspend fun clear()
+
+    /** Conserva solo los [keep] avisos más recientes. */
+    @Query(
+        "DELETE FROM app_notifications WHERE id NOT IN " +
+            "(SELECT id FROM app_notifications ORDER BY createdAt DESC, id DESC LIMIT :keep)",
+    )
+    suspend fun prune(keep: Int)
+}

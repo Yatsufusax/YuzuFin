@@ -6,7 +6,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
+import com.yuzufin.app.domain.ThemePalette
 
 /** Esquinas generosas, como las tarjetas de la referencia bancaria. */
 internal val YuzuShapes = Shapes(
@@ -20,10 +22,11 @@ internal val YuzuShapes = Shapes(
 @Composable
 fun YuzuFinTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    palette: ThemePalette = ThemePalette.GREEN,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = if (darkTheme) DarkColors else LightColors
-    val yuzuColors = if (darkTheme) DarkYuzuColors else LightYuzuColors
+    val colorScheme = remember(palette, darkTheme) { yuzuColorScheme(palette, darkTheme) }
+    val yuzuColors = remember(palette, darkTheme) { yuzuExtraColors(palette, darkTheme) }
 
     CompositionLocalProvider(LocalYuzuColors provides yuzuColors) {
         MaterialTheme(

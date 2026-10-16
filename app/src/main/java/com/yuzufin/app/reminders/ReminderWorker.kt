@@ -8,6 +8,7 @@ import com.yuzufin.app.YuzuFinApplication
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.data.DueNotice
+import com.yuzufin.app.domain.NotificationKind
 import com.yuzufin.app.ui.common.formatShortDate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
@@ -34,17 +35,13 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     val pending = due.filter { it.remind && it.pending }
                     val auto = due.filter { it.remind && !it.pending }
                     if (pending.isNotEmpty()) {
-                        NotificationHelper.show(
-                            applicationContext,
-                            NotificationHelper.ID_PENDING,
+                        post(container, today, NotificationHelper.ID_PENDING,
                             applicationContext.resources.getQuantityString(R.plurals.reminders_pending_title, pending.size, pending.size),
                             describe(pending, settings.showAmountsInNotifications, currency),
                         )
                     }
                     if (auto.isNotEmpty()) {
-                        NotificationHelper.show(
-                            applicationContext,
-                            NotificationHelper.ID_AUTO,
+                        post(container, today, NotificationHelper.ID_AUTO,
                             applicationContext.resources.getQuantityString(R.plurals.reminders_auto_title, auto.size, auto.size),
                             describe(auto, settings.showAmountsInNotifications, currency),
                         )
@@ -54,6 +51,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 // no llega una avalancha de cobros viejos.
                 income.markNotified(due.map { it.occurrenceId })
             }
+            remindIncomeSoon(container, today)
             remindSavings(container, today)
             remindBills(container, today)
             remindLoans(container, today)
@@ -85,9 +83,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     goal.name
                 }
             }
-            NotificationHelper.show(
-                applicationContext,
-                NotificationHelper.ID_SAVINGS,
+            post(container, today, NotificationHelper.ID_SAVINGS,
                 applicationContext.resources.getQuantityString(R.plurals.reminders_savings_title, due.size, due.size),
                 text,
             )
@@ -117,9 +113,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     applicationContext.getString(R.string.reminders_bill_item, bill.name, date)
                 }
             }
-            NotificationHelper.show(
-                applicationContext,
-                NotificationHelper.ID_BILLS,
+            post(container, today, NotificationHelper.ID_BILLS,
                 applicationContext.resources.getQuantityString(R.plurals.reminders_bills_title, due.size, due.size),
                 text,
             )
@@ -150,9 +144,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 }
             }
             if (reminders.owedToMe.isNotEmpty()) {
-                NotificationHelper.show(
-                    applicationContext,
-                    NotificationHelper.ID_LOANS_OWED,
+                post(container, today, NotificationHelper.ID_LOANS_OWED,
                     applicationContext.resources.getQuantityString(
                         R.plurals.reminders_owed_title,
                         reminders.owedToMe.size,
@@ -162,9 +154,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 )
             }
             if (reminders.iOwe.isNotEmpty()) {
-                NotificationHelper.show(
-                    applicationContext,
-                    NotificationHelper.ID_LOANS_OWE,
+                post(container, today, NotificationHelper.ID_LOANS_OWE,
                     applicationContext.resources.getQuantityString(
                         R.plurals.reminders_owe_title,
                         reminders.iOwe.size,
@@ -175,6 +165,45 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             }
         }
         obligations.markLoansReminded(reminders.ids, today)
+    }
+
+    /** Un día antes: cobros programados para mañana. */
+    private suspend fun remindIncomeSoon(container: com.yuzufin.app.AppContainer, today: LocalDate) {
+        val soon = container.incomeRepository.dueTomorrow(today)
+        if (soon.isEmpty()) return
+        val settings = container.settingsRepository.settings.first()
+        if (!settings.remindersEnabled) return
+        val currency = CurrencyInfo.fromCode(settings.currencyCode)
+        post(
+            container,
+            today,
+            NotificationHelper.ID_INCOME_SOON,
+            applicationContext.resources.getQuantityString(R.plurals.reminders_soon_title, soon.size, soon.size),
+            describe(soon, settings.showAmountsInNotifications, currency),
+        )
+    }
+
+    /** Guarda el aviso en la campanilla y lo muestra como notificación del sistema. */
+    private suspend fun post(
+        container: com.yuzufin.app.AppContainer,
+        today: LocalDate,
+        id: Int,
+        title: String,
+        text: String,
+    ) {
+        val kind = when (id) {
+            NotificationHelper.ID_PENDING -> NotificationKind.INCOME_PENDING
+            NotificationHelper.ID_AUTO -> NotificationKind.INCOME_AUTO
+            NotificationHelper.ID_INCOME_SOON -> NotificationKind.INCOME_SOON
+            NotificationHelper.ID_SAVINGS -> NotificationKind.SAVINGS
+            NotificationHelper.ID_BILLS -> NotificationKind.BILL
+            NotificationHelper.ID_LOANS_OWED -> NotificationKind.LOAN_OWED
+            NotificationHelper.ID_LOANS_OWE -> NotificationKind.LOAN_OWE
+            else -> NotificationKind.OTHER
+        }
+        // El historial se guarda aunque Android no deje mostrar la notificación (permiso apagado).
+        container.notificationRepository.log(kind, title, text, "$id:${today.toEpochDay()}")
+        NotificationHelper.show(applicationContext, id, title, text)
     }
 
     private fun describe(items: List<DueNotice>, showAmounts: Boolean, currency: CurrencyInfo): String =

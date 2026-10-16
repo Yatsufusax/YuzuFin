@@ -145,6 +145,14 @@ class IncomeRepository(private val db: AppDatabase) {
         }
     }
 
+    /** Cobros programados para mañana (fuentes activas con recordatorio): aviso "un día antes". */
+    suspend fun dueTomorrow(today: LocalDate): List<DueNotice> {
+        val tomorrow = today.plusDays(1)
+        return dao.allSources().map { it.toDomain() }
+            .filter { it.active && it.remind && IncomeScheduler.dueDates(it, tomorrow, tomorrow).isNotEmpty() }
+            .map { DueNotice(occurrenceId = 0, sourceName = it.name, amountMinor = it.amountMinor, pending = true, remind = true) }
+    }
+
     suspend fun markNotified(ids: List<Long>) {
         if (ids.isNotEmpty()) dao.markNotified(ids)
     }

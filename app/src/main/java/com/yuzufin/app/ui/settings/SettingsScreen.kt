@@ -83,6 +83,13 @@ fun SettingsScreen(
         )
 
         settings?.let { current ->
+            AppearanceCard(
+                palette = current.themePalette,
+                mode = current.themeMode,
+                onPaletteChange = { value -> scope.launch { container.settingsRepository.setThemePalette(value) } },
+                onModeChange = { value -> scope.launch { container.settingsRepository.setThemeMode(value) } },
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
             RemindersCard(
                 settings = current,
                 onEnabledChange = { value -> scope.launch { container.settingsRepository.setRemindersEnabled(value) } },

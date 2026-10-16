@@ -29,6 +29,8 @@ import androidx.compose.material.icons.rounded.Payments
 import androidx.compose.material.icons.rounded.Savings
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -94,6 +96,7 @@ fun HomeScreen(
     state: HomeUiState,
     onNavigate: (Destination) -> Unit,
     onQuickAction: (QuickAction) -> Unit,
+    unreadNotifications: Int,
     onNotificationsClick: () -> Unit,
     onEditMovement: (Long) -> Unit,
     onConfirmIncome: (occurrenceId: Long, amountMinor: Long) -> Unit,
@@ -123,7 +126,7 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Spacer(Modifier.height(4.dp))
-        HomeHeader(name = state.userName, onNotificationsClick = onNotificationsClick)
+        HomeHeader(name = state.userName, unread = unreadNotifications, onNotificationsClick = onNotificationsClick)
 
         if (!state.loading) {
             BalanceCard(
@@ -278,7 +281,7 @@ private fun UpcomingBillsCard(state: HomeUiState, onClick: () -> Unit) {
 }
 
 @Composable
-private fun HomeHeader(name: String, onNotificationsClick: () -> Unit) {
+private fun HomeHeader(name: String, unread: Int, onNotificationsClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -321,10 +324,18 @@ private fun HomeHeader(name: String, onNotificationsClick: () -> Unit) {
             modifier = Modifier.size(48.dp),
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Rounded.Notifications,
-                    contentDescription = stringResource(R.string.home_notifications),
-                )
+                BadgedBox(
+                    badge = {
+                        if (unread > 0) {
+                            Badge { Text(if (unread > 9) "9+" else unread.toString()) }
+                        }
+                    },
+                ) {
+                    Icon(
+                        Icons.Rounded.Notifications,
+                        contentDescription = stringResource(R.string.home_notifications),
+                    )
+                }
             }
         }
     }

@@ -1,10 +1,8 @@
 ## Nuevo
-- Obligaciones: cargá tus facturas con vencimiento (únicas o mensuales) y pagalas con un toque. No descuentan tu saldo hasta que las pagás.
-- Préstamos: anotá lo que prestaste o te prestaron y registrá las devoluciones de a poco.
-- Inicio muestra tus próximos vencimientos y tu libre estimado.
-- Avisos de facturas por vencer y, a fin de mes, de quién te debe y a quién le debés.
-- Patrimonio: tu disponible más tus ahorros y lo que te deben, menos lo que debés.
+- Colores a elección: verde, violeta, azul marino, rojo, naranja, rosa y turquesa, cada uno con su versión clara y oscura (Ajustes → Apariencia).
+- Modo claro, oscuro o como el teléfono, con cambio al instante.
+- La campana de Inicio ahora es tu historial de notificaciones: queda registrado cada aviso de cobros, facturas, préstamos y ahorros, con un contador de no leídos.
+- Aviso un día antes de tus cobros programados.
 
 ## Mejorado
-- Los atajos Pagar y Préstamo de la hoja "+" ya funcionan.
-- La campana de Inicio abre los recordatorios en Ajustes.
+- Las facturas por vencer ya avisaban mañana, hoy y vencidas: ahora esos avisos también quedan guardados en la campana.

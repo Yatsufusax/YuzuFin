@@ -3,7 +3,7 @@
 App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Room). Local-first, sin cuentas ni IA.
 *Tu dinero. Tus decisiones.*
 
-## Estado: Fase 5, obligaciones y préstamos (listo para probar)
+## Estado: Fase 5 + temas y centro de notificaciones (listo para probar)
 
 **Hecho (escrito; pendiente de compilar en GitHub Actions)**
 - Configuración inicial: moneda (Gs. por defecto) y saldo inicial, desde hoy o con fecha anterior.
@@ -93,3 +93,8 @@ app/src/main/java/com/yuzufin/app/
 
 ## Siguiente paso
 Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
+
+## Temas y centro de notificaciones (entre Fase 5 y 6)
+- **Paletas:** `ui/theme/Palettes.kt`. El verde conserva sus colores originales; las otras seis (violeta, azul marino, rojo, naranja, rosa, turquesa) se generan desde un tono para que fondos, superficies y contenedores combinen en claro y en oscuro. Ingresos (verde) y gastos (rojo) mantienen su significado en todas las paletas. Preferencias en DataStore: `theme_palette`, `theme_mode` (SYSTEM / LIGHT / DARK).
+- **Centro de notificaciones:** tabla `app_notifications(id, kind, title, body, createdAt, read, dedupeKey)` con índice único en `dedupeKey` (el mismo aviso no se repite si el revisor corre dos veces). Base en versión 5 con `MIGRATION_4_5`. El revisor diario guarda cada aviso en la tabla y después lo muestra; se guardan los últimos 200. El texto guardado es el mismo de la notificación, así que no incluye importes salvo que lo actives.
+- Sin verificar: no se compiló en el entorno donde se escribió; solo se revisaron recursos y balance de llaves con un script.

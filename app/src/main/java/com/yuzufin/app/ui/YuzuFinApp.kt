@@ -13,6 +13,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.yuzufin.app.domain.ThemeMode
+import com.yuzufin.app.domain.ThemePalette
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.onboarding.OnboardingScreen
 import com.yuzufin.app.ui.splash.AnimatedSplash
@@ -28,9 +30,14 @@ private enum class Stage { Splash, Onboarding, Main }
 fun YuzuFinApp() {
     // rememberSaveable: al rotar la pantalla no se repite la splash.
     var showSplash by rememberSaveable { mutableStateOf(true) }
-    val darkTheme = isSystemInDarkTheme()
+    val systemDark = isSystemInDarkTheme()
     val container = rememberAppContainer()
     val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
+    val darkTheme = when (settings?.themeMode ?: ThemeMode.SYSTEM) {
+        ThemeMode.SYSTEM -> systemDark
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
 
     // Mientras las preferencias no se leyeron se sigue mostrando la splash (dura milisegundos).
     val loadedSettings = settings
@@ -40,7 +47,7 @@ fun YuzuFinApp() {
         else -> Stage.Main
     }
 
-    YuzuFinTheme(darkTheme = darkTheme) {
+    YuzuFinTheme(darkTheme = darkTheme, palette = settings?.themePalette ?: ThemePalette.GREEN) {
         // La splash es oscura: iconos claros. En las demás pantallas, oscuros solo con tema claro.
         SystemBarIcons(darkIcons = stage != Stage.Splash && !darkTheme)
 

@@ -51,4 +51,8 @@ data class AppSettings(
     val reminderHour: Int = 9,
     /** Si el texto de la notificación incluye el importe. Apagado por defecto: se ve en la pantalla bloqueada. */
     val showAmountsInNotifications: Boolean = false,
+    /** Paleta de color elegida. */
+    val themePalette: ThemePalette = ThemePalette.GREEN,
+    /** Claro, oscuro o el del teléfono. */
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
 )

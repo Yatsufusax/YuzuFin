@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_appearance_title">Apariencia</string>
+    <string name="settings_mode_label">Modo</string>
+    <string name="settings_mode_system">Como el teléfono</string>
+    <string name="settings_mode_light">Claro</string>
+    <string name="settings_mode_dark">Oscuro</string>
+    <string name="settings_palette_label">Color</string>
+    <string name="settings_appearance_note">Cada color tiene su versión clara y su versión oscura. El cambio se aplica al instante.</string>
+    <string name="palette_green">Verde</string>
+    <string name="palette_violet">Violeta</string>
+    <string name="palette_navy">Azul marino</string>
+    <string name="palette_red">Rojo</string>
+    <string name="palette_orange">Naranja</string>
+    <string name="palette_pink">Rosa</string>
+    <string name="palette_teal">Turquesa</string>
+</resources>

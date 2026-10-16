@@ -113,7 +113,7 @@ fun MainShell() {
             contentPadding = innerPadding,
             updateViewModel = updateViewModel,
             onQuickAction = onQuickAction,
-            onNotificationsClick = { navController.navigateTo(Destination.Settings) },
+            onNotificationsClick = { navController.navigateTo(Destination.Notifications) },
             modifier = Modifier.fillMaxSize(),
         )
     }
