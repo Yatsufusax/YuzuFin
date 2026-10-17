@@ -24,8 +24,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         LoanEntity::class,
         LoanPaymentEntity::class,
         AppNotificationEntity::class,
+        BudgetEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -37,6 +38,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun billDao(): BillDao
     abstract fun loanDao(): LoanDao
     abstract fun notificationDao(): NotificationDao
+    abstract fun budgetDao(): BudgetDao
 
     companion object {
         /** Fase 3: agrega las fuentes de ingreso y sus cobros. No toca las tablas existentes. */
@@ -191,9 +193,27 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Fase 6: categorías archivables y presupuestos por categoría. Conserva todos los datos. */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `categories` ADD COLUMN `archived` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `budgets` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`categoryId` INTEGER NOT NULL, " +
+                        "`limitMinor` INTEGER NOT NULL, " +
+                        "FOREIGN KEY(`categoryId`) REFERENCES `categories`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE)",
+                )
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS `index_budgets_categoryId` ON `budgets` (`categoryId`)",
+                )
+            }
+        }
+
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "yuzufin.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                 .build()
     }
 }

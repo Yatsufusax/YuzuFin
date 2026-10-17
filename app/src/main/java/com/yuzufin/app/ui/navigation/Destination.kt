@@ -16,6 +16,8 @@ sealed class Destination(val route: String, val isTopLevel: Boolean) {
     data object Incomes : Destination("incomes", false)
     data object Obligations : Destination("obligations", false)
     data object Stats : Destination("stats", false)
+    data object Budgets : Destination("budgets", false)
+    data object Categories : Destination("categories", false)
     data object Settings : Destination("settings", false)
     data object Notifications : Destination("notifications", false)
 }
@@ -85,6 +87,8 @@ fun isMenuGroupRoute(route: String?): Boolean = when (route) {
     Destination.Incomes.route,
     Destination.Obligations.route,
     Destination.Stats.route,
+    Destination.Budgets.route,
+    Destination.Categories.route,
     Destination.Settings.route,
     -> true
     else -> false

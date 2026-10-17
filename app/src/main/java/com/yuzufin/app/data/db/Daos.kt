@@ -23,6 +23,26 @@ interface CategoryDao {
 
     @Query("SELECT * FROM categories WHERE iconKey = :iconKey AND type = :type LIMIT 1")
     suspend fun findByIcon(iconKey: String, type: String): CategoryEntity?
+
+    @Query("SELECT * FROM categories")
+    suspend fun all(): List<CategoryEntity>
+
+    @Query("SELECT * FROM categories WHERE id = :id")
+    suspend fun getById(id: Long): CategoryEntity?
+
+    @Update
+    suspend fun update(entity: CategoryEntity)
+
+    @Query("DELETE FROM categories WHERE id = :id")
+    suspend fun delete(id: Long)
+
+    /** Cuántos movimientos, facturas y fuentes de ingreso usan la categoría. */
+    @Query(
+        "SELECT (SELECT COUNT(*) FROM transactions WHERE categoryId = :id) + " +
+            "(SELECT COUNT(*) FROM bills WHERE categoryId = :id) + " +
+            "(SELECT COUNT(*) FROM income_sources WHERE categoryId = :id)",
+    )
+    suspend fun usageCount(id: Long): Int
 }
 
 @Dao
@@ -242,4 +262,19 @@ interface NotificationDao {
             "(SELECT id FROM app_notifications ORDER BY createdAt DESC, id DESC LIMIT :keep)",
     )
     suspend fun prune(keep: Int)
+}
+
+@Dao
+interface BudgetDao {
+    @Query("SELECT * FROM budgets")
+    fun observeAll(): Flow<List<BudgetEntity>>
+
+    @Query("SELECT * FROM budgets")
+    suspend fun all(): List<BudgetEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(entity: BudgetEntity)
+
+    @Query("DELETE FROM budgets WHERE categoryId = :categoryId")
+    suspend fun deleteByCategory(categoryId: Long)
 }

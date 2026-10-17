@@ -58,7 +58,7 @@ class BillFormViewModel(
         viewModelScope.launch {
             val currency = CurrencyInfo.fromCode(settings.settings.first().currencyCode)
             val categories = finance.categories.first()
-                .filter { it.type == TransactionType.EXPENSE && it.iconKey != LOAN_ICON_KEY }
+                .filter { it.type == TransactionType.EXPENSE && it.iconKey != LOAN_ICON_KEY && !it.archived }
             val defaultCategory = (categories.firstOrNull { it.iconKey == "utilities" } ?: categories.firstOrNull())?.id ?: 0L
             if (editingId == 0L) {
                 _state.update { it.copy(loading = false, currency = currency, categories = categories, categoryId = defaultCategory) }

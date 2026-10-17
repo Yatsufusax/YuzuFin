@@ -74,6 +74,8 @@ class TransactionFormViewModel(
         // La categoría "Préstamos" es interna: la usan los préstamos, no el registro manual.
         allCategories = finance.categories.first().filter { it.iconKey != LOAN_ICON_KEY }
         val existing = if (editingId != 0L) finance.getTransaction(editingId) else null
+        // Las archivadas no se ofrecen, salvo la que ya tiene el movimiento que se está editando.
+        allCategories = allCategories.filter { !it.archived || it.id == existing?.categoryId }
 
         if (editingId != 0L && (existing == null || existing.internalTransfer)) {
             _state.update { it.copy(loading = false, notFound = true) }

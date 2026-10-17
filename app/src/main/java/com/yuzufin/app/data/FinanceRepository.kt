@@ -75,7 +75,41 @@ class FinanceRepository(private val db: AppDatabase) {
         }
     }
 
+    /** Crea (id = 0) o renombra una categoría. El tipo (gasto/ingreso) no cambia al editar. */
+    suspend fun saveCategory(id: Long, name: String, type: TransactionType, iconKey: String): CategorySaveResult {
+        val clean = name.trim().replace(Regex("\\s+"), " ").take(MAX_CATEGORY_NAME)
+        if (clean.isEmpty()) return CategorySaveResult.EMPTY_NAME
+        return db.withTransaction {
+            val existing = if (id != 0L) categoryDao.getById(id) else null
+            val finalType = existing?.type ?: type
+            val duplicate = categoryDao.all().any {
+                it.id != id && it.type == finalType && it.name.equals(clean, ignoreCase = true)
+            }
+            if (duplicate) return@withTransaction CategorySaveResult.DUPLICATE
+            if (existing == null) {
+                categoryDao.insert(CategoryEntity(name = clean, type = finalType, iconKey = iconKey))
+            } else {
+                categoryDao.update(existing.copy(name = clean, iconKey = iconKey))
+            }
+            CategorySaveResult.OK
+        }
+    }
+
+    suspend fun setCategoryArchived(id: Long, archived: Boolean) {
+        val existing = categoryDao.getById(id) ?: return
+        categoryDao.update(existing.copy(archived = archived))
+    }
+
+    /** Borra la categoría solo si nada la usa (el presupuesto asociado se borra con ella). */
+    suspend fun deleteCategoryIfUnused(id: Long): Boolean = db.withTransaction {
+        if (categoryDao.usageCount(id) > 0) false else {
+            categoryDao.delete(id)
+            true
+        }
+    }
+
     private companion object {
+        const val MAX_CATEGORY_NAME = 30
         val DEFAULT_CATEGORIES = listOf(
             CategoryEntity(name = "Alimentación", type = TransactionType.EXPENSE, iconKey = "food"),
             CategoryEntity(name = "Transporte", type = TransactionType.EXPENSE, iconKey = "transport"),
@@ -95,7 +129,9 @@ class FinanceRepository(private val db: AppDatabase) {
     }
 }
 
-private fun CategoryEntity.toDomain() = Category(id = id, name = name, type = type, iconKey = iconKey)
+enum class CategorySaveResult { OK, EMPTY_NAME, DUPLICATE }
+
+private fun CategoryEntity.toDomain() = Category(id = id, name = name, type = type, iconKey = iconKey, archived = archived)
 
 private fun TransactionEntity.toDomain() = FinanceTransaction(
     id = id,

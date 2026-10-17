@@ -3,7 +3,7 @@
 App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Room). Local-first, sin cuentas ni IA.
 *Tu dinero. Tus decisiones.*
 
-## Estado: Fase 5 + temas y centro de notificaciones (listo para probar)
+## Estado: Fase 6, presupuestos y estadísticas (listo para probar)
 
 **Hecho (escrito; pendiente de compilar en GitHub Actions)**
 - Configuración inicial: moneda (Gs. por defecto) y saldo inicial, desde hoy o con fecha anterior.
@@ -98,3 +98,11 @@ Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
 - **Paletas:** `ui/theme/Palettes.kt`. El verde conserva sus colores originales; las otras seis (violeta, azul marino, rojo, naranja, rosa, turquesa) se generan desde un tono para que fondos, superficies y contenedores combinen en claro y en oscuro. Ingresos (verde) y gastos (rojo) mantienen su significado en todas las paletas. Preferencias en DataStore: `theme_palette`, `theme_mode` (SYSTEM / LIGHT / DARK).
 - **Centro de notificaciones:** tabla `app_notifications(id, kind, title, body, createdAt, read, dedupeKey)` con índice único en `dedupeKey` (el mismo aviso no se repite si el revisor corre dos veces). Base en versión 5 con `MIGRATION_4_5`. El revisor diario guarda cada aviso en la tabla y después lo muestra; se guardan los últimos 200. El texto guardado es el mismo de la notificación, así que no incluye importes salvo que lo actives.
 - Sin verificar: no se compiló en el entorno donde se escribió; solo se revisaron recursos y balance de llaves con un script.
+
+## Fase 6: categorías, presupuestos y estadísticas
+- **Reglas de cálculo** (`domain/Stats.kt`, funciones puras con tests): ingreso/gasto del mes = movimientos confirmados, desde la fecha inicial, que no sean internos. Quedan fuera los préstamos (dados, recibidos, devueltos) y los aportes a ahorro (no son movimientos).
+- **Presupuestos:** `budgets(id, categoryId único, limitMinor)`. Progreso = gasto del mes calendario ÷ tope. Nivel: normal (<80 %), aviso (≥80 %), superado (≥100 %). El revisor diario guarda un aviso por categoría, mes y nivel en la campanilla.
+- **Categorías:** columna `categories.archived`. Archivadas no se ofrecen al registrar (la de un movimiento que se edita sí). Se eliminan solo si ningún movimiento, factura o ingreso fijo las usa. Las de préstamos son internas.
+- **Recomendaciones:** reglas fijas (presupuesto superado o cerca, gasto mayor al ingreso, cierre estimado del mes, categoría que subió ≥20 %, ahorro bajo el 10 %, escenario de reducir 10 % la categoría más grande). Cada una muestra su cuenta; proyecciones y escenarios se marcan como aproximados. La proyección usa un promedio lineal y solo aparece desde el día 7 del mes.
+- Base de datos en versión 6 (`MIGRATION_5_6`, conserva los datos).
+- Sin verificar: no se compiló en el entorno donde se escribió.

@@ -14,6 +14,7 @@ data class Category(
     val type: TransactionType,
     /** Clave del icono (ver `categoryIcon`). */
     val iconKey: String,
+    val archived: Boolean = false,
 )
 
 /** Ingreso o gasto confirmado. [amountMinor] siempre es positivo; el tipo da el signo. */

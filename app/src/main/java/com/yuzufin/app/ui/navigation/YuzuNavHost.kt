@@ -31,7 +31,10 @@ import com.yuzufin.app.ui.obligations.ObligationsScreen
 import com.yuzufin.app.ui.savings.SavingsGoalFormScreen
 import com.yuzufin.app.ui.savings.SavingsGoalFormViewModel
 import com.yuzufin.app.ui.savings.SavingsScreen
-import com.yuzufin.app.ui.sections.StatsScreen
+import com.yuzufin.app.ui.budgets.BudgetsScreen
+import com.yuzufin.app.ui.categories.CategoriesScreen
+import com.yuzufin.app.ui.stats.StatsScreen
+import com.yuzufin.app.ui.stats.StatsViewModel
 import com.yuzufin.app.ui.settings.SettingsScreen
 import com.yuzufin.app.ui.transaction.TransactionFormScreen
 import com.yuzufin.app.ui.transaction.TransactionFormViewModel
@@ -111,7 +114,20 @@ fun YuzuNavHost(
         composable(Destination.Notifications.route) {
             NotificationsScreen(contentPadding = contentPadding, onBack = goBack)
         }
-        composable(Destination.Stats.route) { StatsScreen(contentPadding, goBack) }
+        composable(Destination.Stats.route) {
+            val statsViewModel: StatsViewModel = viewModel(factory = StatsViewModel.factory(container))
+            val statsState by statsViewModel.uiState.collectAsStateWithLifecycle()
+            StatsScreen(
+                contentPadding = contentPadding,
+                state = statsState,
+                onBack = goBack,
+                onPreviousMonth = statsViewModel::previousMonth,
+                onNextMonth = statsViewModel::nextMonth,
+                onManageBudgets = { navController.navigateTo(Destination.Budgets) },
+            )
+        }
+        composable(Destination.Budgets.route) { BudgetsScreen(contentPadding = contentPadding, onBack = goBack) }
+        composable(Destination.Categories.route) { CategoriesScreen(contentPadding = contentPadding, onBack = goBack) }
         composable(Destination.Settings.route) {
             SettingsScreen(
                 contentPadding = contentPadding,

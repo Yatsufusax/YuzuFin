@@ -1,8 +1,9 @@
 ## Nuevo
-- Colores a elección: verde, violeta, azul marino, rojo, naranja, rosa y turquesa, cada uno con su versión clara y oscura (Ajustes → Apariencia).
-- Modo claro, oscuro o como el teléfono, con cambio al instante.
-- La campana de Inicio ahora es tu historial de notificaciones: queda registrado cada aviso de cobros, facturas, préstamos y ahorros, con un contador de no leídos.
-- Aviso un día antes de tus cobros programados.
+- Estadísticas: resumen del mes, gráfico de los últimos 6 meses, gasto por categoría y comparación con el mes anterior.
+- Presupuestos: poné un tope mensual a cada categoría de gasto, mirá cuánto te queda y recibí aviso al llegar al 80% y al pasarte.
+- Categorías a tu gusto: creá, renombrá, cambiá el ícono, archivá o eliminá (si no se usan).
+- Recomendaciones con la cuenta explicada, por ejemplo cuánto podrías ahorrar por mes si reducís un gasto un 10%.
+- Ahorro acumulado y lo comprometido en los próximos 30 días.
 
 ## Mejorado
-- Las facturas por vencer ya avisaban mañana, hoy y vencidas: ahora esos avisos también quedan guardados en la campana.
+- Los préstamos y lo que apartás para ahorrar no cuentan como ingreso ni gasto en las estadísticas.

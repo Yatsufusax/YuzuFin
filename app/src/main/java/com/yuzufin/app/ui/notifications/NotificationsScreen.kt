@@ -21,6 +21,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Payments
+import androidx.compose.material.icons.rounded.PieChart
 import androidx.compose.material.icons.rounded.Receipt
 import androidx.compose.material.icons.rounded.Savings
 import androidx.compose.material.icons.rounded.SwapHoriz
@@ -91,10 +92,10 @@ fun NotificationsScreen(
                 }
             },
         )
-        val items = list
+        val rows = list
         when {
-            items == null -> Unit
-            items.isEmpty() -> EmptyState()
+            rows == null -> Unit
+            rows.isEmpty() -> EmptyState()
             else -> LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
@@ -105,7 +106,7 @@ fun NotificationsScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                items(items, key = { it.id }) { item ->
+                items(rows, key = { it.id }) { item ->
                     NotificationRow(
                         item = item,
                         highlighted = unreadAtOpen?.contains(item.id) == true,
@@ -213,6 +214,7 @@ private fun kindIcon(kind: NotificationKind): ImageVector = when (kind) {
     NotificationKind.BILL -> Icons.Rounded.Receipt
     NotificationKind.LOAN_OWED, NotificationKind.LOAN_OWE -> Icons.Rounded.SwapHoriz
     NotificationKind.SAVINGS -> Icons.Rounded.Savings
+    NotificationKind.BUDGET -> Icons.Rounded.PieChart
     NotificationKind.OTHER -> Icons.Rounded.AccountBalanceWallet
 }
 

@@ -8,11 +8,14 @@ import com.yuzufin.app.YuzuFinApplication
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.data.DueNotice
+import com.yuzufin.app.domain.BudgetLevel
 import com.yuzufin.app.domain.NotificationKind
+import com.yuzufin.app.domain.StatsCalculator
 import com.yuzufin.app.ui.common.formatShortDate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
+import java.time.YearMonth
 
 /**
  * Una vez al día: crea los cobros vencidos (y registra los automáticos) y avisa de los que la
@@ -55,6 +58,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             remindSavings(container, today)
             remindBills(container, today)
             remindLoans(container, today)
+            remindBudgets(container, today)
             Result.success()
         } catch (e: CancellationException) {
             throw e
@@ -165,6 +169,54 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             }
         }
         obligations.markLoansReminded(reminders.ids, today)
+    }
+
+    /**
+     * Presupuestos: un aviso al llegar al 80 % y otro al pasarse, una vez por categoría y por mes.
+     * Se revisa una vez al día, junto con el resto de los avisos.
+     */
+    private suspend fun remindBudgets(container: com.yuzufin.app.AppContainer, today: LocalDate) {
+        val budgets = container.budgetRepository.all()
+        if (budgets.isEmpty()) return
+        val settings = container.settingsRepository.settings.first()
+        if (!settings.remindersEnabled) return
+        val currency = CurrencyInfo.fromCode(settings.currencyCode)
+        val month = YearMonth.from(today)
+        val spent = StatsCalculator.expenseByCategory(
+            container.financeRepository.initialBalance.first(),
+            container.financeRepository.transactions.first(),
+            month,
+        )
+        val names = container.financeRepository.categories.first().associate { it.id to it.name }
+        for (progress in StatsCalculator.budgetProgress(budgets, spent)) {
+            val over = progress.level == BudgetLevel.OVER
+            if (!over && progress.level != BudgetLevel.WARNING) continue
+            val name = names[progress.categoryId] ?: continue
+            val title = if (over) {
+                applicationContext.getString(R.string.notif_budget_over_title, name)
+            } else {
+                applicationContext.getString(R.string.notif_budget_warn_title, name, progress.percent)
+            }
+            val body = if (settings.showAmountsInNotifications) {
+                applicationContext.getString(
+                    R.string.notif_budget_body_amount,
+                    MoneyFormatter.format(progress.spentMinor, currency),
+                    MoneyFormatter.format(progress.limitMinor, currency),
+                )
+            } else {
+                applicationContext.getString(R.string.notif_budget_body)
+            }
+            val key = "budget:${progress.categoryId}:${month.year * 100 + month.monthValue}:${if (over) "over" else "warn"}"
+            val isNew = container.notificationRepository.log(NotificationKind.BUDGET, title, body, key)
+            if (isNew) {
+                NotificationHelper.show(
+                    applicationContext,
+                    NotificationHelper.ID_BUDGET_BASE + (progress.categoryId % 1000).toInt(),
+                    title,
+                    body,
+                )
+            }
+        }
     }
 
     /** Un día antes: cobros programados para mañana. */

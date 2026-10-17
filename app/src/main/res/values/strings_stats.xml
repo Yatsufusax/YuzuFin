@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="stats_prev_month">Mes anterior</string>
+    <string name="stats_next_month">Mes siguiente</string>
+    <string name="stats_summary_title">Resumen del mes</string>
+    <string name="stats_income">Ingresos</string>
+    <string name="stats_expense">Gastos</string>
+    <string name="stats_net">Resultado</string>
+    <string name="stats_excluded_note">No cuentan los préstamos (dados, recibidos ni devueltos) ni lo que apartás para ahorrar: son movimientos de tu plata, no consumo.</string>
+    <string name="stats_delta_up">▲ %1$d%% más de gasto que el mes anterior</string>
+    <string name="stats_delta_down">▼ %1$d%% menos de gasto que el mes anterior</string>
+    <string name="stats_delta_same">Mismo gasto que el mes anterior</string>
+    <string name="stats_delta_none">El mes anterior no hubo gastos para comparar</string>
+    <string name="stats_daily_average">Promedio diario de gasto: %1$s</string>
+    <string name="stats_projection">Gasto estimado al cierre del mes: %1$s (aproximado, al ritmo de hoy)</string>
+    <string name="stats_rate">Resultado sobre tus ingresos: %1$d%%</string>
+    <string name="stats_chart_title">Últimos 6 meses</string>
+    <string name="stats_chart_desc">Gráfico de barras con los ingresos y gastos de los últimos 6 meses</string>
+    <string name="stats_categories_title">Gasto por categoría</string>
+    <string name="stats_categories_empty">Todavía no hay gastos en este mes.</string>
+    <string name="stats_short_up">▲ %1$d%%</string>
+    <string name="stats_short_down">▼ %1$d%%</string>
+    <string name="stats_short_same">= igual</string>
+    <string name="stats_short_new">Nuevo</string>
+    <string name="stats_categories_note">El porcentaje de cada barra es su parte del gasto del mes. La flecha compara con el mes anterior.</string>
+    <string name="stats_budgets_title">Presupuestos</string>
+    <string name="stats_budgets_empty">Poné un tope mensual a una categoría y mirá cuánto te queda.</string>
+    <string name="stats_budgets_manage">Administrar presupuestos</string>
+    <string name="stats_budget_progress">%1$s de %2$s</string>
+    <string name="stats_budget_left">Te quedan %1$s</string>
+    <string name="stats_budget_over">Te pasaste por %1$s</string>
+    <string name="stats_reco_title">Recomendaciones</string>
+    <string name="stats_reco_empty">Sin recomendaciones por ahora: nada llama la atención este mes.</string>
+    <string name="stats_reco_how">Cómo se calculó: %1$s</string>
+    <string name="stats_reco_note">Son reglas simples sobre tus propios datos, no asesoramiento financiero. Las proyecciones y los escenarios son estimaciones aproximadas.</string>
+    <string name="stats_saved_title">Ahorro acumulado</string>
+    <string name="stats_committed_title">Comprometido en los próximos 30 días</string>
+    <string name="stats_committed_note">Facturas pendientes que vencen en ese plazo (incluye las vencidas).</string>
+    <string name="stats_unknown_category">Sin categoría</string>
+
+    <string name="reco_budget_over_title">Superaste el presupuesto de %1$s</string>
+    <string name="reco_budget_over_how">Gastaste %1$s y el tope es %2$s: %3$s de más.</string>
+    <string name="reco_budget_near_title">%1$s ya usó el %2$d%% de su presupuesto</string>
+    <string name="reco_budget_near_how">Te quedan %1$s hasta fin de mes. El aviso salta desde el 80%%.</string>
+    <string name="reco_deficit_title">Este mes gastaste más de lo que ingresó</string>
+    <string name="reco_deficit_how">Ingresos %1$s y gastos %2$s: salieron %3$s más de los que entraron.</string>
+    <string name="reco_projection_title">A este ritmo, el mes cerraría con más gastos que ingresos</string>
+    <string name="reco_projection_how">Estimación aproximada: al ritmo de lo gastado hasta hoy, el mes cerraría con %1$s de gastos, frente a %2$s de ingresos.</string>
+    <string name="reco_rise_title">Subió el gasto en %1$s</string>
+    <string name="reco_rise_how">%2$s este mes contra %3$s el mes anterior: %4$d%% más.</string>
+    <string name="reco_rate_title">Estás guardando poco de lo que ingresa (%1$d%%)</string>
+    <string name="reco_rate_how">(Ingresos − gastos) ÷ ingresos = %1$d%%. Una referencia habitual es apartar alrededor del 10%% o más.</string>
+    <string name="reco_scenario_title">Reducir un %1$d%% «%2$s» podría ahorrarte %3$s por mes</string>
+    <string name="reco_scenario_how_history">Promedio de los %1$d mes(es) anteriores con gastos: %2$s. El %3$d%% de eso es %4$s. Estimación aproximada: supone que gastás parecido.</string>
+    <string name="reco_scenario_how_current">Con lo gastado este mes (%1$s), el %2$d%% es %3$s. Estimación aproximada: supone que gastás parecido.</string>
+
+    <string name="budgets_title">Presupuestos</string>
+    <string name="budgets_intro">Fijá un tope mensual por categoría de gasto. Te avisamos al llegar al 80%% y al pasarte. Cuenta lo gastado en el mes calendario.</string>
+    <string name="budgets_none">Sin tope</string>
+    <string name="budgets_set">Definir</string>
+    <string name="budgets_edit">Cambiar</string>
+    <string name="budgets_dialog_title">Presupuesto de %1$s</string>
+    <string name="budgets_dialog_hint">Tope mensual</string>
+    <string name="budgets_dialog_save">Guardar</string>
+    <string name="budgets_dialog_remove">Quitar tope</string>
+    <string name="budgets_spent">Gastado este mes: %1$s</string>
+    <string name="budgets_empty_categories">No hay categorías de gasto activas.</string>
+
+    <string name="categories_title">Categorías</string>
+    <string name="categories_intro">Creá, renombrá o archivá tus categorías. Las archivadas dejan de ofrecerse al registrar, pero tus movimientos viejos las conservan.</string>
+    <string name="categories_tab_expense">Gastos</string>
+    <string name="categories_tab_income">Ingresos</string>
+    <string name="categories_add">Nueva categoría</string>
+    <string name="categories_dialog_new">Nueva categoría</string>
+    <string name="categories_dialog_edit">Editar categoría</string>
+    <string name="categories_name_hint">Nombre</string>
+    <string name="categories_icon_label">Ícono</string>
+    <string name="categories_error_empty">Escribí un nombre.</string>
+    <string name="categories_error_duplicate">Ya existe una categoría con ese nombre.</string>
+    <string name="categories_archive">Archivar</string>
+    <string name="categories_restore">Restaurar</string>
+    <string name="categories_delete">Eliminar</string>
+    <string name="categories_delete_blocked">No se puede eliminar: tiene movimientos, facturas o ingresos asociados. Podés archivarla.</string>
+    <string name="categories_archived_section">Archivadas</string>
+    <string name="categories_save">Guardar</string>
+    <string name="categories_delete_confirm">¿Eliminar «%1$s»? No se puede deshacer.</string>
+    <string name="categories_empty">No hay categorías en esta lista.</string>
+
+    <string name="menu_budgets">Presupuestos</string>
+    <string name="menu_budgets_desc">Topes mensuales por categoría</string>
+    <string name="menu_categories">Categorías</string>
+    <string name="menu_categories_desc">Creá y ordená tus categorías</string>
+
+    <string name="notif_budget_warn_title">%1$s: llegaste al %2$d%% del presupuesto</string>
+    <string name="notif_budget_over_title">%1$s: superaste el presupuesto</string>
+    <string name="notif_budget_body_amount">Llevás %1$s de %2$s este mes.</string>
+    <string name="notif_budget_body">Revisá tus gastos de esta categoría.</string>
+</resources>

@@ -13,6 +13,8 @@ data class CategoryEntity(
     val name: String,
     val type: TransactionType,
     val iconKey: String,
+    /** Archivada: no se ofrece al registrar, pero los movimientos viejos la conservan. */
+    @ColumnInfo(defaultValue = "0") val archived: Boolean = false,
 )
 
 /**
@@ -217,4 +219,23 @@ data class AppNotificationEntity(
     val createdAt: Long,
     val read: Boolean,
     val dedupeKey: String,
+)
+
+/** Tope mensual de gasto de una categoría. Una sola fila por categoría. */
+@Entity(
+    tableName = "budgets",
+    foreignKeys = [
+        ForeignKey(
+            entity = CategoryEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["categoryId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index(value = ["categoryId"], unique = true)],
+)
+data class BudgetEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val categoryId: Long,
+    val limitMinor: Long,
 )

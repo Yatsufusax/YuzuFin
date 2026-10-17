@@ -77,7 +77,7 @@ class IncomeFormViewModel(
     init {
         viewModelScope.launch {
             val currency = CurrencyInfo.fromCode(settings.settings.first().currencyCode)
-            val categories = finance.categories.first().filter { it.type == TransactionType.INCOME && it.iconKey != LOAN_ICON_KEY }
+            val categories = finance.categories.first().filter { it.type == TransactionType.INCOME && it.iconKey != LOAN_ICON_KEY && !it.archived }
             val defaultCategory = (categories.firstOrNull { it.iconKey == "salary" } ?: categories.firstOrNull())?.id ?: 0L
 
             if (editingId == 0L) {

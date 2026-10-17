@@ -2,6 +2,14 @@ package com.yuzufin.app.ui.common
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.CardGiftcard
+import androidx.compose.material.icons.rounded.ChildCare
+import androidx.compose.material.icons.rounded.Coffee
+import androidx.compose.material.icons.rounded.DirectionsCar
+import androidx.compose.material.icons.rounded.FitnessCenter
+import androidx.compose.material.icons.rounded.Flight
+import androidx.compose.material.icons.rounded.Pets
+import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.DirectionsBus
 import androidx.compose.material.icons.rounded.Home
@@ -60,6 +68,12 @@ fun buildMovementItems(
     }
 }
 
+/** Íconos que se pueden elegir al crear una categoría (el de préstamos es interno). */
+val categoryIconKeys = listOf(
+    "food", "transport", "home", "utilities", "health", "education", "leisure", "shopping",
+    "salary", "extra", "pets", "gift", "travel", "fitness", "phone", "coffee", "car", "child", "other",
+)
+
 fun categoryIcon(key: String): ImageVector = when (key) {
     "food" -> Icons.Rounded.Restaurant
     "transport" -> Icons.Rounded.DirectionsBus
@@ -73,6 +87,14 @@ fun categoryIcon(key: String): ImageVector = when (key) {
     "extra" -> Icons.Rounded.Work
     "loan" -> Icons.Rounded.SwapHoriz
     "other" -> Icons.Rounded.MoreHoriz
+    "pets" -> Icons.Rounded.Pets
+    "gift" -> Icons.Rounded.CardGiftcard
+    "travel" -> Icons.Rounded.Flight
+    "fitness" -> Icons.Rounded.FitnessCenter
+    "phone" -> Icons.Rounded.PhoneAndroid
+    "coffee" -> Icons.Rounded.Coffee
+    "car" -> Icons.Rounded.DirectionsCar
+    "child" -> Icons.Rounded.ChildCare
     else -> Icons.Rounded.Category
 }
 
