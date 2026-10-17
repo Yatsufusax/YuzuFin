@@ -101,21 +101,12 @@ fun SettingsScreen(
             )
         }
 
-        YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Text(stringResource(R.string.settings_currency_title), style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
-            val currency = CurrencyInfo.fromCode(settings?.currencyCode)
-            Text(
-                text = "${currency.symbol} · ${currency.code}",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.settings_currency_note),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        CurrencyCard(
+            currency = CurrencyInfo.fromCode(settings?.currencyCode),
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
+
+        BackupCard(modifier = Modifier.padding(horizontal = 16.dp))
 
         YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text(stringResource(R.string.settings_app_title), style = MaterialTheme.typography.titleMedium)

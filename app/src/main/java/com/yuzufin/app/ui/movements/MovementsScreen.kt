@@ -29,6 +29,19 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -68,6 +81,8 @@ fun MovementsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val filters = state.filters
     var showExport by rememberSaveable { mutableStateOf(false) }
+    var pendingDelete by remember { mutableStateOf<MovementItem?>(null) }
+    val scope = rememberCoroutineScope()
     if (showExport) StatementExportDialog(onDismiss = { showExport = false })
 
     LazyColumn(
@@ -209,10 +224,82 @@ fun MovementsScreen(
                 YuzuCard(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
                     group.items.forEachIndexed { index, item ->
                         if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        MovementListRow(item = item, state = state, onClick = { if (!item.isInternal) onEdit(item.id) })
+                        SwipeableMovementRow(
+                            item = item,
+                            state = state,
+                            onClick = { if (!item.isInternal) onEdit(item.id) },
+                            onRequestDelete = { pendingDelete = item },
+                        )
                     }
                 }
             }
+        }
+    }
+
+    pendingDelete?.let { target ->
+        AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            title = { Text(stringResource(R.string.delete_title)) },
+            text = { Text(stringResource(R.string.delete_body)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingDelete = null
+                        scope.launch { container.financeRepository.deleteTransaction(target.id) }
+                    },
+                ) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SwipeableMovementRow(
+    item: MovementItem,
+    state: MovementsUiState,
+    onClick: () -> Unit,
+    onRequestDelete: () -> Unit,
+) {
+    // Los movimientos de préstamos se gestionan desde Obligaciones: no se deslizan.
+    if (item.isInternal) {
+        MovementListRow(item = item, state = state, onClick = onClick)
+        return
+    }
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) onRequestDelete()
+            // Siempre vuelve a su lugar: el borrado real ocurre después de confirmar.
+            false
+        },
+    )
+    val swiping = dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(if (swiping) MaterialTheme.yuzu.expense else Color.Transparent)
+                    .padding(end = 24.dp),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                if (swiping) {
+                    Icon(
+                        Icons.Rounded.Delete,
+                        contentDescription = stringResource(R.string.action_delete),
+                        tint = Color.White,
+                    )
+                }
+            }
+        },
+    ) {
+        Box(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+            MovementListRow(item = item, state = state, onClick = onClick)
         }
     }
 }

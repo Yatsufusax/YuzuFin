@@ -3,7 +3,7 @@
 App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Room). Local-first, sin cuentas ni IA.
 *Tu dinero. Tus decisiones.*
 
-## Estado: Fase 6, presupuestos y estadísticas (listo para probar)
+## Estado: Fase 6 + copias de seguridad, cambio de moneda y borrado deslizando (listo para probar)
 
 **Hecho (escrito; pendiente de compilar en GitHub Actions)**
 - Configuración inicial: moneda (Gs. por defecto) y saldo inicial, desde hoy o con fecha anterior.
@@ -105,4 +105,10 @@ Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
 - **Categorías:** columna `categories.archived`. Archivadas no se ofrecen al registrar (la de un movimiento que se edita sí). Se eliminan solo si ningún movimiento, factura o ingreso fijo las usa. Las de préstamos son internas.
 - **Recomendaciones:** reglas fijas (presupuesto superado o cerca, gasto mayor al ingreso, cierre estimado del mes, categoría que subió ≥20 %, ahorro bajo el 10 %, escenario de reducir 10 % la categoría más grande). Cada una muestra su cuenta; proyecciones y escenarios se marcan como aproximados. La proyección usa un promedio lineal y solo aparece desde el día 7 del mes.
 - Base de datos en versión 6 (`MIGRATION_5_6`, conserva los datos).
+- Sin verificar: no se compiló en el entorno donde se escribió.
+
+## Copia de seguridad, cambio de moneda y borrado deslizando
+- **Copia de seguridad** (`data/BackupManager.kt`): un `.zip` con `yuzufin.db` (después de un checkpoint del WAL), `settings.json` y `manifest.json`. Se guarda y se lee con el selector de archivos de Android (sin permisos de almacenamiento). **No está cifrado.** Al restaurar se valida: manifiesto de YuzuFin, versión de la base no mayor a la actual, `integrity_check`, y las tablas principales. La base actual se renombra a `.pre-restore` hasta que la copia queda bien puesta; si algo falla se vuelve a poner. Una copia de una versión anterior se migra sola al abrir. Tras restaurar la app se reinicia.
+- **Cambio de moneda** (`domain/CurrencyConversion.kt`, `data/CurrencyConverter.kt`): factor = tipo de cambio × 10^(decimales nuevos − decimales viejos), todo con BigDecimal. Se convierten las 10 columnas de dinero en una sola transacción y después se guarda la moneda. Redondeo al más cercano; un importe distinto de cero nunca queda en cero. Los totales pueden variar por centavos y volver atrás no devuelve los números exactos. El tipo de cambio se pregunta como "1 USD = X Gs." (si interviene el guaraní) o "1 [actual] = X [nueva]". "Mantener los números" solo cambia la moneda y sus decimales. Los avisos ya guardados en la campanilla conservan su texto original.
+- **Borrado deslizando:** en Movimientos, deslizar a la izquierda abre la misma confirmación del formulario; los movimientos internos de préstamos no se deslizan (se gestionan desde Obligaciones).
 - Sin verificar: no se compiló en el entorno donde se escribió.

@@ -80,7 +80,7 @@
     <string name="settings_name_save">Guardar nombre</string>
     <string name="settings_name_saved">Nombre guardado</string>
     <string name="settings_currency_title">Moneda</string>
-    <string name="settings_currency_note">Se eligió al empezar. Más adelante vas a poder cambiarla con una confirmación, sin convertir los importes ya registrados.</string>
+    <string name="settings_currency_note">Podés cambiarla: tus importes se convierten con el tipo de cambio que indiques. Conviene hacer una copia de seguridad antes.</string>
     <string name="settings_app_title">Aplicación</string>
     <string name="settings_version">Versión %1$s</string>
     <string name="settings_check_updates">Buscar actualizaciones</string>

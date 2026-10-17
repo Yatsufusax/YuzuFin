@@ -11,7 +11,9 @@ import com.yuzufin.app.domain.AppSettings
 import com.yuzufin.app.domain.ThemeMode
 import com.yuzufin.app.domain.ThemePalette
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import org.json.JSONObject
 
 private val Context.settingsDataStore by preferencesDataStore(name = "settings")
 
@@ -53,6 +55,41 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setShowAmountsInNotifications(show: Boolean) {
         context.settingsDataStore.edit { prefs -> prefs[SHOW_AMOUNTS] = show }
+    }
+
+    suspend fun setCurrencyCode(code: String) {
+        context.settingsDataStore.edit { prefs -> prefs[CURRENCY_CODE] = CurrencyInfo.fromCode(code).code }
+    }
+
+    /** Todas las preferencias como JSON, para incluirlas en la copia de seguridad. */
+    suspend fun exportJson(): String {
+        val prefs = context.settingsDataStore.data.first()
+        return JSONObject().apply {
+            put("onboardingDone", prefs[ONBOARDING_DONE] ?: false)
+            put("currencyCode", prefs[CURRENCY_CODE] ?: CurrencyInfo.PYG.code)
+            put("userName", prefs[USER_NAME] ?: "")
+            put("remindersEnabled", prefs[REMINDERS_ENABLED] ?: true)
+            put("reminderHour", prefs[REMINDER_HOUR] ?: DEFAULT_REMINDER_HOUR)
+            put("showAmounts", prefs[SHOW_AMOUNTS] ?: false)
+            put("themePalette", prefs[THEME_PALETTE] ?: ThemePalette.GREEN.name)
+            put("themeMode", prefs[THEME_MODE] ?: ThemeMode.SYSTEM.name)
+        }.toString()
+    }
+
+    /** Restaura las preferencias de una copia. Los valores se validan igual que al leerlos normalmente. */
+    suspend fun importJson(text: String) {
+        val json = JSONObject(text)
+        context.settingsDataStore.edit { prefs ->
+            // Una copia con datos implica que la configuración inicial ya se hizo.
+            prefs[ONBOARDING_DONE] = json.optBoolean("onboardingDone", true)
+            prefs[CURRENCY_CODE] = CurrencyInfo.fromCode(json.optString("currencyCode")).code
+            prefs[USER_NAME] = json.optString("userName").trim().take(MAX_NAME_LENGTH)
+            prefs[REMINDERS_ENABLED] = json.optBoolean("remindersEnabled", true)
+            prefs[REMINDER_HOUR] = json.optInt("reminderHour", DEFAULT_REMINDER_HOUR).coerceIn(0, 23)
+            prefs[SHOW_AMOUNTS] = json.optBoolean("showAmounts", false)
+            prefs[THEME_PALETTE] = ThemePalette.fromName(json.optString("themePalette")).name
+            prefs[THEME_MODE] = ThemeMode.fromName(json.optString("themeMode")).name
+        }
     }
 
     suspend fun setThemePalette(palette: ThemePalette) {
