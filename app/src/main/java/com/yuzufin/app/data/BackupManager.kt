@@ -24,11 +24,13 @@ class BackupManager(
     private val context: Context,
     private val database: AppDatabase,
     private val settings: SettingsRepository,
+    private val attachmentFiles: AttachmentFileStore,
 ) {
 
     enum class RestoreResult { OK, NOT_A_BACKUP, TOO_NEW, CORRUPT, FAILED }
 
-    suspend fun export(target: Uri): Boolean = withContext(Dispatchers.IO) {
+    /** Devuelve el tamaño del archivo en bytes, o null si no se pudo guardar. */
+    suspend fun export(target: Uri): Long? = withContext(Dispatchers.IO) {
         try {
             val db = database.openHelper.writableDatabase
             // Pasa lo que está en el registro temporal (WAL) al archivo principal antes de copiarlo.
@@ -40,20 +42,31 @@ class BackupManager(
                 .put("createdAt", System.currentTimeMillis())
                 .toString()
             val settingsJson = settings.exportJson()
-            val output = context.contentResolver.openOutputStream(target, "w") ?: return@withContext false
-            output.use { raw ->
-                ZipOutputStream(raw.buffered()).use { zip ->
+            val photoNames = ArrayList<String>()
+            db.query("SELECT fileName FROM attachments").use { cursor ->
+                while (cursor.moveToNext()) photoNames += cursor.getString(0)
+            }
+            val output = context.contentResolver.openOutputStream(target, "w") ?: return@withContext null
+            val counter = CountingOutputStream(output.buffered())
+            counter.use { raw ->
+                ZipOutputStream(raw).use { zip ->
                     zip.putText(MANIFEST, manifest)
                     zip.putText(SETTINGS, settingsJson)
                     zip.putNextEntry(ZipEntry(DATABASE))
                     FileInputStream(context.getDatabasePath(DB_NAME)).use { it.copyTo(zip) }
                     zip.closeEntry()
+                    for (name in photoNames.distinct()) {
+                        val photo = attachmentFiles.file(name) ?: continue
+                        zip.putNextEntry(ZipEntry(PHOTOS_PREFIX + name))
+                        FileInputStream(photo).use { it.copyTo(zip) }
+                        zip.closeEntry()
+                    }
                 }
             }
-            true
+            counter.count
         } catch (e: Exception) {
             // Sin detalles en el log: no se escribe ningún dato financiero.
-            false
+            null
         }
     }
 
@@ -67,6 +80,8 @@ class BackupManager(
             work.deleteRecursively()
             work.mkdirs()
             val dbTemp = File(work, "restored.db")
+            val photosTemp = File(work, "photos").apply { mkdirs() }
+            var photoBytes = 0L
             var manifest: JSONObject? = null
             var settingsJson: String? = null
             var haveDb = false
@@ -82,6 +97,15 @@ class BackupManager(
                             DATABASE -> {
                                 FileOutputStream(dbTemp).use { out -> zip.copyLimited(out, DB_LIMIT) }
                                 haveDb = true
+                            }
+                            else -> if (entry.name.startsWith(PHOTOS_PREFIX)) {
+                                val photoName = entry.name.removePrefix(PHOTOS_PREFIX)
+                                if (attachmentFiles.isValidName(photoName)) {
+                                    val target = File(photosTemp, photoName)
+                                    FileOutputStream(target).use { out -> zip.copyLimited(out, PHOTO_LIMIT) }
+                                    photoBytes += target.length()
+                                    if (photoBytes > PHOTOS_TOTAL_LIMIT) throw java.io.IOException("Fotos demasiado grandes")
+                                }
                             }
                         }
                         zip.closeEntry()
@@ -110,14 +134,26 @@ class BackupManager(
             if (dbFile.exists() && !dbFile.renameTo(previous)) return@withContext RestoreResult.FAILED
             File(dbFile.path + "-wal").delete()
             File(dbFile.path + "-shm").delete()
+            val photoDir = attachmentFiles.directory
+            val restoredPhotos = photosTemp.listFiles()?.toList().orEmpty()
+            val newlyCopied = ArrayList<File>()
             try {
                 dbTemp.copyTo(dbFile, overwrite = true)
+                // Las fotos restauradas se suman primero; las que sobran se limpian solo si todo salió bien.
+                for (photo in restoredPhotos) {
+                    val destination = File(photoDir, photo.name)
+                    if (!destination.exists()) newlyCopied += destination
+                    photo.copyTo(destination, overwrite = true)
+                }
                 settings.importJson(prefsText)
             } catch (e: Exception) {
+                newlyCopied.forEach { it.delete() }
                 dbFile.delete()
                 previous.renameTo(dbFile)
                 return@withContext RestoreResult.FAILED
             }
+            val keep = restoredPhotos.map { it.name }.toSet()
+            photoDir.listFiles()?.forEach { if (it.name !in keep) it.delete() }
             RestoreResult.OK
         } catch (e: Exception) {
             RestoreResult.FAILED
@@ -141,6 +177,22 @@ class BackupManager(
         }
     } catch (e: Exception) {
         false
+    }
+
+    /** Cuenta los bytes escritos, para mostrar el tamaño de la copia. */
+    private class CountingOutputStream(out: java.io.OutputStream) : java.io.FilterOutputStream(out) {
+        var count = 0L
+            private set
+
+        override fun write(b: Int) {
+            out.write(b)
+            count++
+        }
+
+        override fun write(b: ByteArray, off: Int, len: Int) {
+            out.write(b, off, len)
+            count += len
+        }
     }
 
     private fun ZipOutputStream.putText(name: String, text: String) {
@@ -182,5 +234,8 @@ class BackupManager(
         private const val DATABASE = "yuzufin.db"
         private const val SMALL_LIMIT = 64 * 1024
         private const val DB_LIMIT = 512L * 1024 * 1024
+        private const val PHOTOS_PREFIX = "attachments/"
+        private const val PHOTO_LIMIT = 30L * 1024 * 1024
+        private const val PHOTOS_TOTAL_LIMIT = 2L * 1024 * 1024 * 1024
     }
 }

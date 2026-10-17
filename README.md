@@ -3,7 +3,7 @@
 App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Room). Local-first, sin cuentas ni IA.
 *Tu dinero. Tus decisiones.*
 
-## Estado: Fase 6 + copias de seguridad, cambio de moneda y borrado deslizando (listo para probar)
+## Estado: Fase 6 + copias, cambio de moneda, borrado deslizando y fotos con comprobante PDF (listo para probar)
 
 **Hecho (escrito; pendiente de compilar en GitHub Actions)**
 - Configuración inicial: moneda (Gs. por defecto) y saldo inicial, desde hoy o con fecha anterior.
@@ -112,3 +112,8 @@ Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
 - **Cambio de moneda** (`domain/CurrencyConversion.kt`, `data/CurrencyConverter.kt`): factor = tipo de cambio × 10^(decimales nuevos − decimales viejos), todo con BigDecimal. Se convierten las 10 columnas de dinero en una sola transacción y después se guarda la moneda. Redondeo al más cercano; un importe distinto de cero nunca queda en cero. Los totales pueden variar por centavos y volver atrás no devuelve los números exactos. El tipo de cambio se pregunta como "1 USD = X Gs." (si interviene el guaraní) o "1 [actual] = X [nueva]". "Mantener los números" solo cambia la moneda y sus decimales. Los avisos ya guardados en la campanilla conservan su texto original.
 - **Borrado deslizando:** en Movimientos, deslizar a la izquierda abre la misma confirmación del formulario; los movimientos internos de préstamos no se deslizan (se gestionan desde Obligaciones).
 - Sin verificar: no se compiló en el entorno donde se escribió.
+
+## Fotos adjuntas y comprobante PDF
+- Cada movimiento admite hasta 6 fotos (cámara o galería). Se guardan en `filesDir/attachments/` (privado), corregidas de rotación, a 1600 px máx. y JPEG. Tabla `attachments` (base de datos versión 7, migración 6→7 conserva los datos), borrado en cascada con el movimiento.
+- Las fotos se agregan o quitan al tocar "Guardar". El botón "Generar comprobante en PDF" (al editar un movimiento) arma un PDF A4 con los datos y las fotos (`export/VoucherPdfWriter`), independiente del extracto; se comparte desde el menú de Android.
+- La copia de seguridad incluye las fotos (`attachments/` dentro del zip). No es una factura ni tiene validez fiscal.

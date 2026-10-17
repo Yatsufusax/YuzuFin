@@ -25,8 +25,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         LoanPaymentEntity::class,
         AppNotificationEntity::class,
         BudgetEntity::class,
+        AttachmentEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -39,6 +40,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun loanDao(): LoanDao
     abstract fun notificationDao(): NotificationDao
     abstract fun budgetDao(): BudgetDao
+    abstract fun attachmentDao(): AttachmentDao
 
     companion object {
         /** Fase 3: agrega las fuentes de ingreso y sus cobros. No toca las tablas existentes. */
@@ -211,9 +213,25 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Fotos adjuntas a movimientos. No toca las tablas existentes. */
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `attachments` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`transactionId` INTEGER NOT NULL, " +
+                        "`fileName` TEXT NOT NULL, " +
+                        "`createdAt` INTEGER NOT NULL, " +
+                        "FOREIGN KEY(`transactionId`) REFERENCES `transactions`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE)",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_attachments_transactionId` ON `attachments` (`transactionId`)")
+            }
+        }
+
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "yuzufin.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 .build()
     }
 }

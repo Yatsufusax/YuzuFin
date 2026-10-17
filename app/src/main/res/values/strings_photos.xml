@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="photos_title">Comprobantes y fotos</string>
+    <string name="photos_hint">Adjuntá el ticket o la factura. Las fotos quedan solo en tu teléfono.</string>
+    <string name="photos_add">Agregar foto</string>
+    <string name="photos_camera">Sacar foto</string>
+    <string name="photos_gallery">Elegir de la galería</string>
+    <string name="photos_limit">Llegaste al máximo de %1$d fotos por movimiento.</string>
+    <string name="photos_error">No se pudo agregar la foto. Probá de nuevo.</string>
+    <string name="photos_remove">Quitar foto</string>
+    <string name="photos_close">Cerrar</string>
+    <string name="photos_view">Foto adjunta</string>
+    <string name="photos_has">Tiene fotos adjuntas</string>
+    <string name="voucher_button">Generar comprobante en PDF</string>
+    <string name="voucher_button_busy">Generando…</string>
+    <string name="voucher_save_first">Guardá los cambios para generar el comprobante con las fotos actuales.</string>
+    <string name="voucher_error">No se pudo generar el comprobante.</string>
+
+    <string name="voucher_title">Comprobante de movimiento</string>
+    <string name="voucher_number">Movimiento N.º %1$d</string>
+    <string name="voucher_type_income">Ingreso</string>
+    <string name="voucher_type_expense">Gasto</string>
+    <string name="voucher_row_category">Categoría</string>
+    <string name="voucher_row_description">Descripción</string>
+    <string name="voucher_row_date">Fecha</string>
+    <string name="voucher_row_user">Registrado por</string>
+    <string name="voucher_attachments">Comprobantes adjuntos (%1$d)</string>
+    <string name="voucher_no_attachments">Sin fotos adjuntas</string>
+    <string name="voucher_footer_note">Comprobante personal generado por YuzuFin a partir de tus propios registros.\nNo es una factura ni tiene validez fiscal.</string>
+</resources>

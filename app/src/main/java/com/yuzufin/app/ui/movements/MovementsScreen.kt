@@ -16,6 +16,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.AttachFile
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.PictureAsPdf
 import androidx.compose.material.icons.rounded.Search
@@ -82,6 +83,7 @@ fun MovementsScreen(
     val filters = state.filters
     var showExport by rememberSaveable { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<MovementItem?>(null) }
+    val photoIds by container.attachmentRepository.transactionIdsWithPhotos.collectAsStateWithLifecycle(emptySet())
     val scope = rememberCoroutineScope()
     if (showExport) StatementExportDialog(onDismiss = { showExport = false })
 
@@ -227,6 +229,7 @@ fun MovementsScreen(
                         SwipeableMovementRow(
                             item = item,
                             state = state,
+                            hasPhoto = item.id in photoIds,
                             onClick = { if (!item.isInternal) onEdit(item.id) },
                             onRequestDelete = { pendingDelete = item },
                         )
@@ -261,12 +264,13 @@ fun MovementsScreen(
 private fun SwipeableMovementRow(
     item: MovementItem,
     state: MovementsUiState,
+    hasPhoto: Boolean,
     onClick: () -> Unit,
     onRequestDelete: () -> Unit,
 ) {
     // Los movimientos de préstamos se gestionan desde Obligaciones: no se deslizan.
     if (item.isInternal) {
-        MovementListRow(item = item, state = state, onClick = onClick)
+        MovementListRow(item = item, state = state, hasPhoto = hasPhoto, onClick = onClick)
         return
     }
     val dismissState = rememberSwipeToDismissBoxState(
@@ -299,7 +303,7 @@ private fun SwipeableMovementRow(
         },
     ) {
         Box(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
-            MovementListRow(item = item, state = state, onClick = onClick)
+            MovementListRow(item = item, state = state, hasPhoto = hasPhoto, onClick = onClick)
         }
     }
 }
@@ -342,7 +346,7 @@ private fun MonthSelector(state: MovementsUiState, viewModel: MovementsViewModel
 }
 
 @Composable
-private fun MovementListRow(item: MovementItem, state: MovementsUiState, onClick: () -> Unit) {
+private fun MovementListRow(item: MovementItem, state: MovementsUiState, hasPhoto: Boolean, onClick: () -> Unit) {
     val colors = MaterialTheme.yuzu
     val isIncome = item.type == TransactionType.INCOME
     Row(
@@ -361,12 +365,23 @@ private fun MovementListRow(item: MovementItem, state: MovementsUiState, onClick
             tint = if (isIncome) colors.income else colors.expense,
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (hasPhoto) {
+                    Icon(
+                        Icons.Rounded.AttachFile,
+                        contentDescription = stringResource(R.string.photos_has),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 4.dp).size(14.dp),
+                    )
+                }
+            }
             Text(
                 text = if (item.isInternal) stringResource(R.string.home_internal_transfer) else item.categoryName,
                 style = MaterialTheme.typography.bodySmall,

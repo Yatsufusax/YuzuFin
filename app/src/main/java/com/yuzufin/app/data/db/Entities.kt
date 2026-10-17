@@ -239,3 +239,23 @@ data class BudgetEntity(
     val categoryId: Long,
     val limitMinor: Long,
 )
+
+/** Foto o comprobante adjunto a un movimiento. El archivo vive en la memoria privada de la app. */
+@Entity(
+    tableName = "attachments",
+    foreignKeys = [
+        ForeignKey(
+            entity = TransactionEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["transactionId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index("transactionId")],
+)
+data class AttachmentEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val transactionId: Long,
+    val fileName: String,
+    val createdAt: Long,
+)

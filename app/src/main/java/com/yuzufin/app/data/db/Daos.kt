@@ -278,3 +278,24 @@ interface BudgetDao {
     @Query("DELETE FROM budgets WHERE categoryId = :categoryId")
     suspend fun deleteByCategory(categoryId: Long)
 }
+
+@Dao
+interface AttachmentDao {
+    @Query("SELECT DISTINCT transactionId FROM attachments")
+    fun observeTransactionIds(): Flow<List<Long>>
+
+    @Query("SELECT * FROM attachments WHERE transactionId = :transactionId ORDER BY id")
+    suspend fun forTransaction(transactionId: Long): List<AttachmentEntity>
+
+    @Query("SELECT fileName FROM attachments WHERE transactionId = :transactionId")
+    suspend fun namesFor(transactionId: Long): List<String>
+
+    @Query("SELECT fileName FROM attachments WHERE id IN (:ids)")
+    suspend fun namesByIds(ids: List<Long>): List<String>
+
+    @Insert
+    suspend fun insertAll(items: List<AttachmentEntity>)
+
+    @Query("DELETE FROM attachments WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<Long>)
+}

@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 
 /** Acceso a movimientos, categorías y saldo inicial. La UI nunca toca la base de datos directo. */
-class FinanceRepository(private val db: AppDatabase) {
+class FinanceRepository(private val db: AppDatabase, private val attachmentFiles: AttachmentFileStore) {
 
     private val categoryDao = db.categoryDao()
     private val transactionDao = db.transactionDao()
@@ -64,6 +64,8 @@ class FinanceRepository(private val db: AppDatabase) {
      * (no vuelve a pendiente solo, para no registrar de nuevo algo que la persona borró a propósito).
      */
     suspend fun deleteTransaction(id: Long) {
+        // Las filas de fotos se borran solas con el movimiento (cascada); los archivos, después.
+        val photoNames = db.attachmentDao().namesFor(id)
         db.withTransaction {
             incomeDao.getOccurrenceByTransaction(id)?.let { occurrence ->
                 incomeDao.updateOccurrence(occurrence.copy(status = "SKIPPED", transactionId = null))
@@ -73,6 +75,7 @@ class FinanceRepository(private val db: AppDatabase) {
             billDao.unlinkTransaction(id)
             transactionDao.deleteById(id)
         }
+        attachmentFiles.delete(photoNames)
     }
 
     /** Crea (id = 0) o renombra una categoría. El tipo (gasto/ingreso) no cambia al editar. */

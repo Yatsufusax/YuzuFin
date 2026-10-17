@@ -8,4 +8,12 @@
     <cache-path
         name="exports"
         path="exports/" />
+    <!-- Foto recién sacada con la cámara, antes de importarla. -->
+    <cache-path
+        name="capture"
+        path="capture/" />
+    <!-- Comprobante de movimiento en PDF para compartir. -->
+    <cache-path
+        name="vouchers"
+        path="vouchers/" />
 </paths>

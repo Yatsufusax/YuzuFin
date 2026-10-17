@@ -29,16 +29,16 @@ import kotlin.math.ceil
  */
 class StatementPdfWriter(private val context: Context) {
 
-    private val ink = Color.parseColor("#0B3D2E")
-    private val green = Color.parseColor("#1B8A4C")
-    private val leafLight = Color.parseColor("#5DB85C")
-    private val mint = Color.parseColor("#EAF4EF")
-    private val line = Color.parseColor("#D3E5DB")
-    private val gray = Color.parseColor("#5B6B65")
-    private val red = Color.parseColor("#D9304F")
-    private val pageBg = Color.parseColor("#FAFCFB")
+    internal val ink = Color.parseColor("#0B3D2E")
+    internal val green = Color.parseColor("#1B8A4C")
+    internal val leafLight = Color.parseColor("#5DB85C")
+    internal val mint = Color.parseColor("#EAF4EF")
+    internal val line = Color.parseColor("#D3E5DB")
+    internal val gray = Color.parseColor("#5B6B65")
+    internal val red = Color.parseColor("#D9304F")
+    internal val pageBg = Color.parseColor("#FAFCFB")
 
-    private fun paint(size: Float, color: Int, bold: Boolean = false, italic: Boolean = false, align: Paint.Align = Paint.Align.LEFT) =
+    internal fun paint(size: Float, color: Int, bold: Boolean = false, italic: Boolean = false, align: Paint.Align = Paint.Align.LEFT) =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = size
             this.color = color
@@ -54,8 +54,8 @@ class StatementPdfWriter(private val context: Context) {
             )
         }
 
-    private fun fill(color: Int) = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color; style = Paint.Style.FILL }
-    private fun stroke(color: Int, width: Float) = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    internal fun fill(color: Int) = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color; style = Paint.Style.FILL }
+    internal fun stroke(color: Int, width: Float) = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         this.color = color; style = Paint.Style.STROKE; strokeWidth = width
         strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND
     }
@@ -305,14 +305,14 @@ class StatementPdfWriter(private val context: Context) {
 
     // ---------- Dibujos ----------
 
-    private fun drawWordmark(canvas: Canvas, x: Float, baseline: Float, size: Float) {
+    internal fun drawWordmark(canvas: Canvas, x: Float, baseline: Float, size: Float) {
         val yuzu = paint(size, ink, bold = true)
         drawText(canvas, "Yuzu", x, baseline, yuzu)
         val width = yuzu.measureText("Yuzu")
         drawText(canvas, "Fin", x + width, baseline, paint(size, leafLight, bold = true))
     }
 
-    private fun drawLogo(canvas: Canvas, x: Float, y: Float, size: Float) = drawLeaves(canvas, x, y, size, soft = false)
+    internal fun drawLogo(canvas: Canvas, x: Float, y: Float, size: Float) = drawLeaves(canvas, x, y, size, soft = false)
 
     /** Dos hojas, la oscura delante de la clara. */
     private fun drawLeaves(canvas: Canvas, x: Float, y: Float, s: Float, soft: Boolean) {
@@ -372,7 +372,7 @@ class StatementPdfWriter(private val context: Context) {
         canvas.drawLine(x + 14f, y + 21f, x + 14f, y + 26f, stroke(Color.WHITE, 1.8f))
     }
 
-    private fun drawText(canvas: Canvas, text: String, x: Float, y: Float, paint: Paint) =
+    internal fun drawText(canvas: Canvas, text: String, x: Float, y: Float, paint: Paint) =
         canvas.drawText(text, x, y, paint)
 
     /** Recorta con “…” para que el texto no pise la columna siguiente. */

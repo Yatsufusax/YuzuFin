@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="backup_title">Copia de seguridad</string>
-    <string name="backup_body">Guardá una copia de todos tus datos (movimientos, ahorros, obligaciones, presupuestos y ajustes) en un archivo. No está cifrado: guardalo en un lugar de confianza.</string>
+    <string name="backup_body">Guardá una copia de todos tus datos (movimientos, ahorros, obligaciones, presupuestos, fotos adjuntas y ajustes) en un archivo. No está cifrado: guardalo en un lugar de confianza.</string>
     <string name="backup_create">Crear copia</string>
     <string name="backup_restore">Restaurar copia</string>
     <string name="backup_working">Trabajando…</string>
-    <string name="backup_export_ok">Copia guardada.</string>
+    <string name="backup_export_ok">Copia guardada (%1$s). Incluye tus datos y las fotos adjuntas.</string>
     <string name="backup_export_failed">No se pudo guardar la copia.</string>
     <string name="backup_restore_title">¿Restaurar esta copia?</string>
     <string name="backup_restore_body">Se reemplazan TODOS los datos actuales de la app por los de la copia. No se puede deshacer. Si tenés dudas, creá una copia de lo actual antes.</string>

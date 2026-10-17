@@ -1,5 +1,8 @@
 package com.yuzufin.app.ui.transaction
 
+import android.content.ActivityNotFoundException
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -37,11 +40,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.core.content.FileProvider
 import com.yuzufin.app.R
+import com.yuzufin.app.rememberAppContainer
+import com.yuzufin.app.ui.common.sharePdf
+import java.io.File
+import java.util.UUID
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.TransactionType
 import com.yuzufin.app.ui.common.categoryIcon
@@ -59,6 +68,28 @@ fun TransactionFormScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val container = rememberAppContainer()
+    var captureTarget by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val takePicture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+        val path = captureTarget
+        captureTarget = null
+        if (path != null) {
+            val file = File(path)
+            if (ok && file.length() > 0L) viewModel.addPhotoFromFile(file) else file.delete()
+        }
+    }
+    val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) viewModel.addPhoto(uri)
+    }
+
+    LaunchedEffect(state.voucherFile) {
+        state.voucherFile?.let {
+            sharePdf(context, it)
+            viewModel.voucherShared()
+        }
+    }
 
     LaunchedEffect(state.finished, state.notFound) {
         if (state.finished || state.notFound) onClose()
@@ -185,6 +216,32 @@ fun TransactionFormScreen(
                     text = stringResource(R.string.form_date_note),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(8.dp))
+
+                AttachmentsSection(
+                    state = state,
+                    files = container.attachmentFileStore,
+                    onTakePhoto = {
+                        try {
+                            val dir = File(context.cacheDir, "capture").apply { mkdirs() }
+                            val file = File(dir, "${UUID.randomUUID()}.jpg")
+                            captureTarget = file.path
+                            takePicture.launch(FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file))
+                        } catch (e: ActivityNotFoundException) {
+                            captureTarget = null
+                            viewModel.reportPhotoError()
+                        }
+                    },
+                    onPickPhoto = {
+                        try {
+                            pickPhoto.launch("image/*")
+                        } catch (e: ActivityNotFoundException) {
+                            viewModel.reportPhotoError()
+                        }
+                    },
+                    onRemove = viewModel::removePhoto,
+                    onVoucher = viewModel::generateVoucher,
                 )
                 Spacer(Modifier.height(8.dp))
             }

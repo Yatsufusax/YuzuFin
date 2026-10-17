@@ -39,7 +39,7 @@ fun BackupCard(modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var busy by remember { mutableStateOf(false) }
-    var message by remember { mutableStateOf<Int?>(null) }
+    var message by remember { mutableStateOf<String?>(null) }
     var pendingRestore by remember { mutableStateOf<Uri?>(null) }
     var restored by remember { mutableStateOf(false) }
 
@@ -47,7 +47,12 @@ fun BackupCard(modifier: Modifier = Modifier) {
         if (uri != null) {
             scope.launch {
                 busy = true
-                message = if (backup.export(uri)) R.string.backup_export_ok else R.string.backup_export_failed
+                val bytes = backup.export(uri)
+                message = if (bytes != null) {
+                    context.getString(R.string.backup_export_ok, formatSize(bytes))
+                } else {
+                    context.getString(R.string.backup_export_failed)
+                }
                 busy = false
             }
         }
@@ -78,10 +83,10 @@ fun BackupCard(modifier: Modifier = Modifier) {
                 },
             ) { Text(stringResource(R.string.backup_restore)) }
         }
-        val text = if (busy) R.string.backup_working else message
+        val text = if (busy) stringResource(R.string.backup_working) else message
         if (text != null) {
             Spacer(Modifier.height(8.dp))
-            Text(stringResource(text), style = MaterialTheme.typography.bodyMedium)
+            Text(text, style = MaterialTheme.typography.bodyMedium)
         }
     }
 
@@ -100,12 +105,14 @@ fun BackupCard(modifier: Modifier = Modifier) {
                         if (result == BackupManager.RestoreResult.OK) {
                             restored = true
                         } else {
-                            message = when (result) {
-                                BackupManager.RestoreResult.NOT_A_BACKUP -> R.string.backup_error_not_backup
-                                BackupManager.RestoreResult.TOO_NEW -> R.string.backup_error_too_new
-                                BackupManager.RestoreResult.CORRUPT -> R.string.backup_error_corrupt
-                                else -> R.string.backup_error_failed
-                            }
+                            message = context.getString(
+                                when (result) {
+                                    BackupManager.RestoreResult.NOT_A_BACKUP -> R.string.backup_error_not_backup
+                                    BackupManager.RestoreResult.TOO_NEW -> R.string.backup_error_too_new
+                                    BackupManager.RestoreResult.CORRUPT -> R.string.backup_error_corrupt
+                                    else -> R.string.backup_error_failed
+                                },
+                            )
                         }
                     }
                 }) { Text(stringResource(R.string.backup_restore_confirm), color = MaterialTheme.colorScheme.error) }
@@ -126,6 +133,10 @@ fun BackupCard(modifier: Modifier = Modifier) {
         )
     }
 }
+
+private fun formatSize(bytes: Long): String =
+    if (bytes >= 1024 * 1024) String.format(java.util.Locale.forLanguageTag("es"), "%.1f MB", bytes / (1024.0 * 1024.0))
+    else String.format(java.util.Locale.forLanguageTag("es"), "%d KB", (bytes / 1024).coerceAtLeast(1))
 
 private fun closeApp(context: Context) {
     val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)

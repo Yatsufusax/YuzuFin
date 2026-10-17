@@ -7,7 +7,12 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.yuzufin.app.AppContainer
 import com.yuzufin.app.core.money.AmountParser
 import com.yuzufin.app.core.money.CurrencyInfo
+import android.net.Uri
+import com.yuzufin.app.data.AttachmentRepository
 import com.yuzufin.app.data.FinanceRepository
+import com.yuzufin.app.domain.MAX_ATTACHMENTS
+import com.yuzufin.app.export.VoucherBuilder
+import java.io.File
 import com.yuzufin.app.data.SettingsRepository
 import com.yuzufin.app.domain.BalanceCalculator
 import com.yuzufin.app.domain.Category
@@ -21,6 +26,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+
+/** Foto del formulario. [attachmentId] = 0 si todavía no se guardó con el movimiento. */
+data class PhotoItem(val attachmentId: Long, val fileName: String)
 
 data class TransactionFormState(
     val loading: Boolean = true,
@@ -40,7 +48,18 @@ data class TransactionFormState(
     val showErrors: Boolean = false,
     val saving: Boolean = false,
     val finished: Boolean = false,
+    val photos: List<PhotoItem> = emptyList(),
+    /** Hay fotos agregadas o quitadas que todavía no se guardaron. */
+    val photosDirty: Boolean = false,
+    val photoBusy: Boolean = false,
+    val photoError: Boolean = false,
+    val voucherBusy: Boolean = false,
+    /** PDF recién generado, listo para compartir; la pantalla lo consume con [TransactionFormViewModel.voucherShared]. */
+    val voucherFile: File? = null,
+    val voucherError: Boolean = false,
 ) {
+    val photoLimitReached: Boolean get() = photos.size >= MAX_ATTACHMENTS
+
     val amountMinor: Long? get() = AmountParser.parseToMinorUnits(amountText, currency)
 
     val amountIsValid: Boolean get() = (amountMinor ?: 0L) > 0L
@@ -56,12 +75,16 @@ class TransactionFormViewModel(
     private val settings: SettingsRepository,
     private val editingId: Long,
     initialType: TransactionType,
+    private val attachments: AttachmentRepository,
+    private val voucherBuilder: VoucherBuilder,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TransactionFormState(type = initialType))
     val state: StateFlow<TransactionFormState> = _state.asStateFlow()
 
     private var allCategories: List<Category> = emptyList()
+    private val removedPhotoIds = mutableListOf<Long>()
+    private var saved = false
 
     init {
         viewModelScope.launch { load() }
@@ -90,6 +113,12 @@ class TransactionFormViewModel(
             0L
         }
 
+        val photos = if (existing != null) {
+            attachments.list(existing.id).map { PhotoItem(it.id, it.fileName) }
+        } else {
+            emptyList()
+        }
+
         _state.update {
             it.copy(
                 loading = false,
@@ -103,6 +132,7 @@ class TransactionFormViewModel(
                 date = existing?.date ?: today,
                 minDate = initial?.startDate ?: today,
                 baseBalance = baseBalance,
+                photos = photos,
             )
         }
     }
@@ -138,7 +168,7 @@ class TransactionFormViewModel(
         }
         _state.update { it.copy(saving = true) }
         viewModelScope.launch {
-            finance.saveTransaction(
+            val id = finance.saveTransaction(
                 FinanceTransaction(
                     id = editingId,
                     type = s.type,
@@ -148,7 +178,85 @@ class TransactionFormViewModel(
                     date = s.date,
                 ),
             )
+            attachments.apply(
+                transactionId = id,
+                addNames = _state.value.photos.filter { it.attachmentId == 0L }.map { it.fileName },
+                removeIds = removedPhotoIds.toList(),
+            )
+            saved = true
             _state.update { it.copy(saving = false, finished = true) }
+        }
+    }
+
+    fun addPhoto(uri: Uri) {
+        if (_state.value.photoLimitReached || _state.value.photoBusy) return
+        _state.update { it.copy(photoBusy = true, photoError = false) }
+        viewModelScope.launch {
+            val name = attachments.files.importFrom(uri)
+            _state.update {
+                if (name == null) {
+                    it.copy(photoBusy = false, photoError = true)
+                } else {
+                    it.copy(photoBusy = false, photos = it.photos + PhotoItem(0L, name), photosDirty = true)
+                }
+            }
+        }
+    }
+
+    /** Foto recién sacada con la cámara (archivo temporal): se importa y el temporal se borra. */
+    fun addPhotoFromFile(file: File) {
+        if (_state.value.photoLimitReached || _state.value.photoBusy) {
+            file.delete()
+            return
+        }
+        _state.update { it.copy(photoBusy = true, photoError = false) }
+        viewModelScope.launch {
+            val name = attachments.files.importFrom(Uri.fromFile(file))
+            file.delete()
+            _state.update {
+                if (name == null) {
+                    it.copy(photoBusy = false, photoError = true)
+                } else {
+                    it.copy(photoBusy = false, photos = it.photos + PhotoItem(0L, name), photosDirty = true)
+                }
+            }
+        }
+    }
+
+    fun reportPhotoError() = _state.update { it.copy(photoError = true) }
+
+    fun dismissPhotoError() = _state.update { it.copy(photoError = false, voucherError = false) }
+
+    fun removePhoto(item: PhotoItem) {
+        if (item.attachmentId == 0L) {
+            attachments.files.delete(listOf(item.fileName))
+        } else {
+            removedPhotoIds += item.attachmentId
+        }
+        _state.update { it.copy(photos = it.photos - item, photosDirty = true) }
+    }
+
+    /** Genera el comprobante del movimiento ya guardado (no incluye cambios sin guardar). */
+    fun generateVoucher() {
+        val s = _state.value
+        if (editingId == 0L || s.voucherBusy || s.photosDirty) return
+        _state.update { it.copy(voucherBusy = true, voucherError = false) }
+        viewModelScope.launch {
+            val file = try {
+                voucherBuilder.build(editingId)
+            } catch (e: Exception) {
+                null
+            }
+            _state.update { it.copy(voucherBusy = false, voucherFile = file, voucherError = file == null) }
+        }
+    }
+
+    fun voucherShared() = _state.update { it.copy(voucherFile = null) }
+
+    override fun onCleared() {
+        // Si se cerró sin guardar, las fotos nuevas que se habían importado no quedan huérfanas.
+        if (!saved) {
+            attachments.files.delete(_state.value.photos.filter { it.attachmentId == 0L }.map { it.fileName })
         }
     }
 
@@ -170,6 +278,8 @@ class TransactionFormViewModel(
                         container.settingsRepository,
                         editingId,
                         initialType,
+                        container.attachmentRepository,
+                        container.voucherBuilder,
                     )
                 }
             }

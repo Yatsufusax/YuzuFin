@@ -4,6 +4,8 @@ import android.app.Application
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import com.yuzufin.app.data.AttachmentFileStore
+import com.yuzufin.app.data.AttachmentRepository
 import com.yuzufin.app.data.BackupManager
 import com.yuzufin.app.data.BudgetRepository
 import com.yuzufin.app.data.CurrencyConverter
@@ -15,6 +17,7 @@ import com.yuzufin.app.data.SavingsRepository
 import com.yuzufin.app.data.SettingsRepository
 import com.yuzufin.app.data.db.AppDatabase
 import com.yuzufin.app.data.update.ApkDownloader
+import com.yuzufin.app.export.VoucherBuilder
 import com.yuzufin.app.data.update.AppVersion
 import com.yuzufin.app.data.update.UpdateChecker
 
@@ -24,11 +27,14 @@ class AppContainer(context: Context) {
 
     private val database: AppDatabase by lazy { AppDatabase.create(appContext) }
 
-    val financeRepository: FinanceRepository by lazy { FinanceRepository(database) }
+    val attachmentFileStore: AttachmentFileStore by lazy { AttachmentFileStore(appContext) }
+    val attachmentRepository: AttachmentRepository by lazy { AttachmentRepository(database, attachmentFileStore) }
+    val financeRepository: FinanceRepository by lazy { FinanceRepository(database, attachmentFileStore) }
     val incomeRepository: IncomeRepository by lazy { IncomeRepository(database) }
     val obligationsRepository: ObligationsRepository by lazy { ObligationsRepository(database) }
     val savingsRepository: SavingsRepository by lazy { SavingsRepository(database, financeRepository) }
-    val backupManager: BackupManager by lazy { BackupManager(appContext, database, settingsRepository) }
+    val voucherBuilder: VoucherBuilder by lazy { VoucherBuilder(appContext, financeRepository, attachmentRepository, settingsRepository) }
+    val backupManager: BackupManager by lazy { BackupManager(appContext, database, settingsRepository, attachmentFileStore) }
     val currencyConverter: CurrencyConverter by lazy { CurrencyConverter(database, settingsRepository) }
     val budgetRepository: BudgetRepository by lazy { BudgetRepository(database) }
     val notificationRepository: NotificationRepository by lazy { NotificationRepository(database) }
