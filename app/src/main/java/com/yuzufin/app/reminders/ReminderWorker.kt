@@ -55,6 +55,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 income.markNotified(due.map { it.occurrenceId })
             }
             remindIncomeSoon(container, today)
+            remindRecurring(container, today)
             remindSavings(container, today)
             remindBills(container, today)
             remindLoans(container, today)
@@ -219,6 +220,35 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
         }
     }
 
+    /** Gastos fijos: crea los pagos del mes, avisa de los vencidos y de los de mañana. */
+    private suspend fun remindRecurring(container: com.yuzufin.app.AppContainer, today: LocalDate) {
+        val recurring = container.recurringRepository
+        recurring.reconcile(today)
+        val settings = container.settingsRepository.settings.first()
+        val currency = CurrencyInfo.fromCode(settings.currencyCode)
+        val due = recurring.unnotifiedDue(today)
+        if (due.isNotEmpty()) {
+            val toShow = due.filter { it.remind }
+            if (settings.remindersEnabled && toShow.isNotEmpty()) {
+                post(
+                    container, today, NotificationHelper.ID_RECURRING,
+                    applicationContext.resources.getQuantityString(R.plurals.reminders_recurring_title, toShow.size, toShow.size),
+                    describe(toShow, settings.showAmountsInNotifications, currency),
+                )
+            }
+            // Se marcan como avisados aunque los avisos estén apagados (evita una avalancha al reactivarlos).
+            recurring.markNotified(due.map { it.occurrenceId })
+        }
+        val soon = recurring.dueTomorrow(today)
+        if (soon.isNotEmpty() && settings.remindersEnabled) {
+            post(
+                container, today, NotificationHelper.ID_RECURRING_SOON,
+                applicationContext.resources.getQuantityString(R.plurals.reminders_recurring_soon_title, soon.size, soon.size),
+                describe(soon, settings.showAmountsInNotifications, currency),
+            )
+        }
+    }
+
     /** Un día antes: cobros programados para mañana. */
     private suspend fun remindIncomeSoon(container: com.yuzufin.app.AppContainer, today: LocalDate) {
         val soon = container.incomeRepository.dueTomorrow(today)
@@ -249,6 +279,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             NotificationHelper.ID_INCOME_SOON -> NotificationKind.INCOME_SOON
             NotificationHelper.ID_SAVINGS -> NotificationKind.SAVINGS
             NotificationHelper.ID_BILLS -> NotificationKind.BILL
+            NotificationHelper.ID_RECURRING, NotificationHelper.ID_RECURRING_SOON -> NotificationKind.RECURRING
             NotificationHelper.ID_LOANS_OWED -> NotificationKind.LOAN_OWED
             NotificationHelper.ID_LOANS_OWE -> NotificationKind.LOAN_OWE
             else -> NotificationKind.OTHER

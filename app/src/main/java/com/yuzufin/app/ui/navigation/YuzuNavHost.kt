@@ -22,6 +22,7 @@ import com.yuzufin.app.ui.movements.MovementsScreen
 import com.yuzufin.app.ui.incomes.IncomeFormScreen
 import com.yuzufin.app.ui.incomes.IncomeFormViewModel
 import com.yuzufin.app.ui.incomes.IncomesScreen
+import com.yuzufin.app.ui.recurring.RecurringScreen
 import com.yuzufin.app.ui.notifications.NotificationsScreen
 import com.yuzufin.app.ui.obligations.BillFormScreen
 import com.yuzufin.app.ui.obligations.BillFormViewModel
@@ -100,6 +101,9 @@ fun YuzuNavHost(
                 onAddSource = { navController.navigate(IncomeFormRoute.create()) { launchSingleTop = true } },
                 onEditSource = { id -> navController.navigate(IncomeFormRoute.create(id)) { launchSingleTop = true } },
             )
+        }
+        composable(Destination.Recurring.route) {
+            RecurringScreen(contentPadding = contentPadding, onBack = goBack)
         }
         composable(Destination.Obligations.route) {
             ObligationsScreen(

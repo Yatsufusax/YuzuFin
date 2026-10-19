@@ -259,3 +259,42 @@ data class AttachmentEntity(
     val fileName: String,
     val createdAt: Long,
 )
+
+/** Gasto fijo mensual (por ejemplo internet o alquiler). Cada mes genera un pago pendiente de confirmar. */
+@Entity(tableName = "recurring_expenses")
+data class RecurringExpenseEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val amountMinor: Long,
+    val categoryId: Long,
+    val dayOfMonth: Int,
+    val startEpochDay: Long,
+    val active: Boolean,
+    val remind: Boolean,
+    val createdAt: Long,
+)
+
+/** Un pago concreto de un gasto fijo. El índice único (gasto, fecha) impide duplicarlo. */
+@Entity(
+    tableName = "recurring_occurrences",
+    foreignKeys = [
+        ForeignKey(
+            entity = RecurringExpenseEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["expenseId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index(value = ["expenseId", "dueEpochDay"], unique = true)],
+)
+data class RecurringOccurrenceEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val expenseId: Long,
+    val dueEpochDay: Long,
+    val amountMinor: Long,
+    /** Nombre de [com.yuzufin.app.domain.OccurrenceStatus]. */
+    val status: String,
+    val transactionId: Long?,
+    val notified: Boolean,
+    val createdAt: Long,
+)

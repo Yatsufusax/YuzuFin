@@ -3,7 +3,7 @@
 App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Room). Local-first, sin cuentas ni IA.
 *Tu dinero. Tus decisiones.*
 
-## Estado: Fase 6 + copias, cambio de moneda, borrado deslizando y fotos con comprobante PDF (listo para probar)
+## Estado: Fase 6 + copias, cambio de moneda, borrado deslizando, fotos con comprobante PDF y gastos fijos (listo para probar)
 
 **Hecho (escrito; pendiente de compilar en GitHub Actions)**
 - Configuración inicial: moneda (Gs. por defecto) y saldo inicial, desde hoy o con fecha anterior.
@@ -117,3 +117,8 @@ Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
 - Cada movimiento admite hasta 6 fotos (cámara o galería). Se guardan en `filesDir/attachments/` (privado), corregidas de rotación, a 1600 px máx. y JPEG. Tabla `attachments` (base de datos versión 7, migración 6→7 conserva los datos), borrado en cascada con el movimiento.
 - Las fotos se agregan o quitan al tocar "Guardar". El botón "Generar comprobante en PDF" (al editar un movimiento) arma un PDF A4 con los datos y las fotos (`export/VoucherPdfWriter`), independiente del extracto; se comparte desde el menú de Android.
 - La copia de seguridad incluye las fotos (`attachments/` dentro del zip). No es una factura ni tiene validez fiscal.
+
+## Gastos fijos mensuales
+- Menú → Gastos fijos. Cada gasto tiene nombre, importe, categoría, día del mes (si el mes es corto cae en su último día) y aviso opcional.
+- Cada mes se crea un pago pendiente; el saldo solo cambia cuando se confirma ("Ya pagué", con el importe editable), que crea el movimiento de gasto. También se puede omitir. Pausar un gasto no genera los pagos de la pausa.
+- Tablas `recurring_expenses` y `recurring_occurrences` (base de datos versión 8, migración 7→8; el cambio de moneda las convierte; entran en la copia de seguridad). Avisos diarios y de "mañana" desde `ReminderWorker`.

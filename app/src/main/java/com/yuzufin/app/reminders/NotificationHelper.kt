@@ -25,6 +25,8 @@ object NotificationHelper {
     const val ID_LOANS_OWED = 1005
     const val ID_LOANS_OWE = 1006
     const val ID_INCOME_SOON = 1007
+    const val ID_RECURRING = 1008
+    const val ID_RECURRING_SOON = 1009
     /** Presupuestos: 3000 + id de la categoría (módulo 1000), un aviso por categoría. */
     const val ID_BUDGET_BASE = 3000
 

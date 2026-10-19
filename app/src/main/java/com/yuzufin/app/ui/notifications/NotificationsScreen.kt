@@ -211,7 +211,7 @@ private fun NotificationRow(item: AppNotification, highlighted: Boolean, onDelet
 
 private fun kindIcon(kind: NotificationKind): ImageVector = when (kind) {
     NotificationKind.INCOME_PENDING, NotificationKind.INCOME_AUTO, NotificationKind.INCOME_SOON -> Icons.Rounded.Payments
-    NotificationKind.BILL -> Icons.Rounded.Receipt
+    NotificationKind.BILL, NotificationKind.RECURRING -> Icons.Rounded.Receipt
     NotificationKind.LOAN_OWED, NotificationKind.LOAN_OWE -> Icons.Rounded.SwapHoriz
     NotificationKind.SAVINGS -> Icons.Rounded.Savings
     NotificationKind.BUDGET -> Icons.Rounded.PieChart

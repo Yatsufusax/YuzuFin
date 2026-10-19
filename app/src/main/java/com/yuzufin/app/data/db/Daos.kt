@@ -299,3 +299,46 @@ interface AttachmentDao {
     @Query("DELETE FROM attachments WHERE id IN (:ids)")
     suspend fun deleteByIds(ids: List<Long>)
 }
+
+@Dao
+interface RecurringDao {
+    @Query("SELECT * FROM recurring_expenses ORDER BY active DESC, name COLLATE NOCASE")
+    fun observeExpenses(): Flow<List<RecurringExpenseEntity>>
+
+    @Query("SELECT * FROM recurring_expenses WHERE id = :id")
+    suspend fun getExpense(id: Long): RecurringExpenseEntity?
+
+    @Query("SELECT * FROM recurring_expenses")
+    suspend fun allExpenses(): List<RecurringExpenseEntity>
+
+    @Insert
+    suspend fun insertExpense(entity: RecurringExpenseEntity): Long
+
+    @Update
+    suspend fun updateExpense(entity: RecurringExpenseEntity)
+
+    @Query("DELETE FROM recurring_expenses WHERE id = :id")
+    suspend fun deleteExpense(id: Long)
+
+    @Query("SELECT * FROM recurring_occurrences ORDER BY dueEpochDay DESC, id DESC")
+    fun observeOccurrences(): Flow<List<RecurringOccurrenceEntity>>
+
+    @Query("SELECT * FROM recurring_occurrences WHERE id = :id")
+    suspend fun getOccurrence(id: Long): RecurringOccurrenceEntity?
+
+    @Query("SELECT dueEpochDay FROM recurring_occurrences WHERE expenseId = :expenseId")
+    suspend fun dueDays(expenseId: Long): List<Long>
+
+    /** Devuelve -1 si ya existía un pago de ese gasto en esa fecha. */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertOccurrence(entity: RecurringOccurrenceEntity): Long
+
+    @Update
+    suspend fun updateOccurrence(entity: RecurringOccurrenceEntity)
+
+    @Query("SELECT * FROM recurring_occurrences WHERE notified = 0 AND status = 'PENDING' AND dueEpochDay <= :todayEpochDay")
+    suspend fun unnotifiedDue(todayEpochDay: Long): List<RecurringOccurrenceEntity>
+
+    @Query("UPDATE recurring_occurrences SET notified = 1 WHERE id IN (:ids)")
+    suspend fun markNotified(ids: List<Long>)
+}

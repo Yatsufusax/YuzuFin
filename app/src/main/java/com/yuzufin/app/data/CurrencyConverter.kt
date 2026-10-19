@@ -55,6 +55,8 @@ class CurrencyConverter(private val database: AppDatabase, private val settings:
             "initial_balance" to "amountMinor",
             "income_sources" to "amountMinor",
             "income_occurrences" to "amountMinor",
+            "recurring_expenses" to "amountMinor",
+            "recurring_occurrences" to "amountMinor",
             "savings_goals" to "targetMinor",
             "savings_entries" to "amountMinor",
             "bills" to "amountMinor",

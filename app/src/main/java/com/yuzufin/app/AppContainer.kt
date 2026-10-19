@@ -11,6 +11,7 @@ import com.yuzufin.app.data.BudgetRepository
 import com.yuzufin.app.data.CurrencyConverter
 import com.yuzufin.app.data.FinanceRepository
 import com.yuzufin.app.data.IncomeRepository
+import com.yuzufin.app.data.RecurringRepository
 import com.yuzufin.app.data.NotificationRepository
 import com.yuzufin.app.data.ObligationsRepository
 import com.yuzufin.app.data.SavingsRepository
@@ -31,6 +32,7 @@ class AppContainer(context: Context) {
     val attachmentRepository: AttachmentRepository by lazy { AttachmentRepository(database, attachmentFileStore) }
     val financeRepository: FinanceRepository by lazy { FinanceRepository(database, attachmentFileStore) }
     val incomeRepository: IncomeRepository by lazy { IncomeRepository(database) }
+    val recurringRepository: RecurringRepository by lazy { RecurringRepository(database) }
     val obligationsRepository: ObligationsRepository by lazy { ObligationsRepository(database) }
     val savingsRepository: SavingsRepository by lazy { SavingsRepository(database, financeRepository) }
     val voucherBuilder: VoucherBuilder by lazy { VoucherBuilder(appContext, financeRepository, attachmentRepository, settingsRepository) }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="menu_recurring">Gastos fijos</string>
+    <string name="menu_recurring_desc">Internet, alquiler y otros pagos de cada mes</string>
+    <string name="recurring_add">Agregar gasto fijo</string>
+    <string name="recurring_edit">Editar gasto fijo</string>
+    <string name="recurring_empty_title">Todavía no tenés gastos fijos</string>
+    <string name="recurring_empty_body">Cargá lo que pagás todos los meses. Cuando llegue la fecha, la app te avisa y con un toque lo registrás.</string>
+    <string name="recurring_pending_title">Por pagar</string>
+    <string name="recurring_pending_line">%1$s · %2$s</string>
+    <string name="recurring_paid">Ya pagué</string>
+    <string name="recurring_skip">Omitir</string>
+    <string name="recurring_list_title">Tus gastos fijos</string>
+    <string name="recurring_next">Próximo: %1$s</string>
+    <string name="recurring_paused">En pausa</string>
+    <string name="recurring_confirm_body">Confirmá el importe de este mes. Si la factura vino distinta, cambialo.</string>
+    <string name="recurring_name">Nombre (ej. Internet)</string>
+    <string name="recurring_amount">Importe</string>
+    <string name="recurring_category">Categoría</string>
+    <string name="recurring_day">Día del mes</string>
+    <string name="recurring_day_note">Si el mes es más corto, se usa su último día.</string>
+    <string name="recurring_remind">Avisarme</string>
+    <string name="recurring_delete_title">¿Borrar este gasto fijo?</string>
+    <string name="recurring_delete_body">Los gastos que ya registraste se conservan. Solo se deja de generar el pago de cada mes.</string>
+    <plurals name="reminders_recurring_title">
+        <item quantity="one">Tenés un gasto fijo por pagar</item>
+        <item quantity="other">Tenés %1$d gastos fijos por pagar</item>
+    </plurals>
+    <plurals name="reminders_recurring_soon_title">
+        <item quantity="one">Mañana vence un gasto fijo</item>
+        <item quantity="other">Mañana vencen %1$d gastos fijos</item>
+    </plurals>
+</resources>

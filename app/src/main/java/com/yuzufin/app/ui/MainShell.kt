@@ -77,6 +77,7 @@ fun MainShell() {
         scope.launch {
             try {
                 container.incomeRepository.reconcile(LocalDate.now())
+                container.recurringRepository.reconcile(LocalDate.now())
             } catch (e: Exception) {
                 // Se reintenta la próxima vez; no se escribe ningún dato en el log.
             }

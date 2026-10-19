@@ -26,8 +26,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         AppNotificationEntity::class,
         BudgetEntity::class,
         AttachmentEntity::class,
+        RecurringExpenseEntity::class,
+        RecurringOccurrenceEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -41,6 +43,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun notificationDao(): NotificationDao
     abstract fun budgetDao(): BudgetDao
     abstract fun attachmentDao(): AttachmentDao
+    abstract fun recurringDao(): RecurringDao
 
     companion object {
         /** Fase 3: agrega las fuentes de ingreso y sus cobros. No toca las tablas existentes. */
@@ -229,9 +232,44 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Gastos fijos mensuales. No toca las tablas existentes. */
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `recurring_expenses` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`name` TEXT NOT NULL, " +
+                        "`amountMinor` INTEGER NOT NULL, " +
+                        "`categoryId` INTEGER NOT NULL, " +
+                        "`dayOfMonth` INTEGER NOT NULL, " +
+                        "`startEpochDay` INTEGER NOT NULL, " +
+                        "`active` INTEGER NOT NULL, " +
+                        "`remind` INTEGER NOT NULL, " +
+                        "`createdAt` INTEGER NOT NULL)",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `recurring_occurrences` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`expenseId` INTEGER NOT NULL, " +
+                        "`dueEpochDay` INTEGER NOT NULL, " +
+                        "`amountMinor` INTEGER NOT NULL, " +
+                        "`status` TEXT NOT NULL, " +
+                        "`transactionId` INTEGER, " +
+                        "`notified` INTEGER NOT NULL, " +
+                        "`createdAt` INTEGER NOT NULL, " +
+                        "FOREIGN KEY(`expenseId`) REFERENCES `recurring_expenses`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE)",
+                )
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS `index_recurring_occurrences_expenseId_dueEpochDay` " +
+                        "ON `recurring_occurrences` (`expenseId`, `dueEpochDay`)",
+                )
+            }
+        }
+
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "yuzufin.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                 .build()
     }
 }
