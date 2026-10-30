@@ -51,6 +51,9 @@ import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.components.DateField
 import com.yuzufin.app.ui.components.IconBadge
+import com.yuzufin.app.ui.components.Mascot
+import com.yuzufin.app.ui.components.MascotPose
+import com.yuzufin.app.ui.components.mascotForCurrency
 import com.yuzufin.app.ui.components.YuzuCard
 import com.yuzufin.app.ui.theme.Forest
 import com.yuzufin.app.ui.theme.MintTile
@@ -111,6 +114,8 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth(),
             )
 
+            MascotHeader(state)
+
             if (state.step == 0) {
                 CurrencyStep(state, viewModel)
             } else {
@@ -142,6 +147,44 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                     ),
                 )
             }
+        }
+    }
+}
+
+/** El monito reacciona a la moneda: tereré con la de Paraguay, mate con la de Argentina, café con las demás. */
+@Composable
+private fun MascotHeader(state: OnboardingState) {
+    val pose = if (state.step == 0) mascotForCurrency(state.currency.code) else MascotPose.PLANNING
+    val suffix = if (state.userName.isBlank()) "" else ", ${state.userName.trim()}"
+    val text = if (state.step == 0) {
+        stringResource(
+            when (state.currency.code) {
+                "PYG" -> R.string.onboarding_mascot_pyg
+                "ARS" -> R.string.onboarding_mascot_ars
+                else -> R.string.onboarding_mascot_other
+            },
+            suffix,
+        )
+    } else {
+        stringResource(R.string.onboarding_mascot_step2)
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Mascot(pose, size = 130.dp)
+        Surface(
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.weight(1f),
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.padding(14.dp),
+            )
         }
     }
 }

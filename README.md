@@ -3,7 +3,7 @@
 App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Room). Local-first, sin cuentas ni IA.
 *Tu dinero. Tus decisiones.*
 
-## Estado: Fase 6 + copias, cambio de moneda, borrado deslizando, fotos con comprobante PDF y gastos fijos (listo para probar)
+## Estado: Fase 6 + copias, cambio de moneda, borrado deslizando, fotos con comprobante PDF, gastos fijos y mascota (listo para probar)
 
 **Hecho (escrito; pendiente de compilar en GitHub Actions)**
 - Configuración inicial: moneda (Gs. por defecto) y saldo inicial, desde hoy o con fecha anterior.
@@ -122,3 +122,8 @@ Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
 - Menú → Gastos fijos. Cada gasto tiene nombre, importe, categoría, día del mes (si el mes es corto cae en su último día) y aviso opcional.
 - Cada mes se crea un pago pendiente; el saldo solo cambia cuando se confirma ("Ya pagué", con el importe editable), que crea el movimiento de gasto. También se puede omitir. Pausar un gasto no genera los pagos de la pausa.
 - Tablas `recurring_expenses` y `recurring_occurrences` (base de datos versión 8, migración 7→8; el cambio de moneda las convierte; entran en la copia de seguridad). Avisos diarios y de "mañana" desde `ReminderWorker`.
+
+## Mascota y animaciones
+- Imágenes en `res/drawable-nodpi/mascot_*.png` (recortadas con fondo transparente de las hojas de diseño). `ui/components/Mascot.kt`: `MascotPose` (28 poses), `Mascot(...)` (respira, cambia de pose con efecto y salta al tocarla) y `mascotForCurrency` (PYG tereré, ARS mate, otras café).
+- `ui/common/Effects.kt`: entrada escalonada (`entrance`), conteo del saldo (`rememberCountUp`), vibración (`rememberHaptic`) y confeti (`ConfettiBurst`).
+- Se usa en onboarding, Inicio (tarjeta de saludo y banner vacío), Movimientos, Ahorros (meta cumplida + confeti) y Notificaciones. Transiciones de navegación en `YuzuNavHost`.

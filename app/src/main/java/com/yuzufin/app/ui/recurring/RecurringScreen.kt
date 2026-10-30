@@ -50,6 +50,7 @@ import com.yuzufin.app.domain.RecurringExpense
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.common.categoryIcon
 import com.yuzufin.app.ui.common.formatShortDate
+import com.yuzufin.app.ui.common.rememberHaptic
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.ScreenHeader
 import com.yuzufin.app.ui.components.SectionHeader
@@ -70,6 +71,7 @@ fun RecurringScreen(
     // null = sin diálogo; id 0 = gasto nuevo.
     var editing by remember { mutableStateOf<RecurringExpense?>(null) }
     var confirming by remember { mutableStateOf<PendingRecurring?>(null) }
+    val haptic = rememberHaptic()
 
     val blank = {
         RecurringExpense(
@@ -217,6 +219,7 @@ fun RecurringScreen(
                     enabled = parsed != null && parsed > 0L,
                     onClick = {
                         viewModel.confirm(item.occurrenceId, parsed ?: return@TextButton)
+                        haptic()
                         confirming = null
                     },
                 ) { Text(stringResource(R.string.recurring_paid)) }

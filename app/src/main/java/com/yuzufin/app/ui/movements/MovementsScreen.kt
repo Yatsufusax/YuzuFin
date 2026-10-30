@@ -61,6 +61,8 @@ import com.yuzufin.app.R
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.TransactionType
 import com.yuzufin.app.rememberAppContainer
+import com.yuzufin.app.ui.components.Mascot
+import com.yuzufin.app.ui.components.MascotPose
 import com.yuzufin.app.ui.common.MovementItem
 import com.yuzufin.app.ui.common.categoryIcon
 import com.yuzufin.app.ui.common.dayLabel
@@ -413,6 +415,7 @@ private fun EmptyMovements(hasAnyMovements: Boolean, onNewMovement: () -> Unit) 
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        Mascot(if (hasAnyMovements) MascotPose.WONDER else MascotPose.INCOME, size = 130.dp)
         Text(
             text = stringResource(
                 if (hasAnyMovements) R.string.movements_empty_filtered else R.string.movements_empty,

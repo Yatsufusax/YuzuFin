@@ -45,6 +45,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.components.Mascot
+import com.yuzufin.app.ui.components.MascotPose
 import com.yuzufin.app.domain.AppNotification
 import com.yuzufin.app.domain.NotificationKind
 import com.yuzufin.app.rememberAppContainer
@@ -152,12 +154,7 @@ private fun EmptyState() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(
-            Icons.Rounded.Notifications,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(48.dp),
-        )
+        Mascot(MascotPose.CALM, size = 130.dp)
         Spacer(Modifier.height(12.dp))
         Text(stringResource(R.string.notif_empty_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(4.dp))

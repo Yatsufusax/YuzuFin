@@ -3,6 +3,7 @@ package com.yuzufin.app.ui.savings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +30,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +49,10 @@ import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.SavingsResult
 import com.yuzufin.app.rememberAppContainer
+import com.yuzufin.app.ui.common.ConfettiBurst
+import com.yuzufin.app.ui.common.rememberHaptic
+import com.yuzufin.app.ui.components.Mascot
+import com.yuzufin.app.ui.components.MascotPose
 import com.yuzufin.app.ui.common.formatShortDate
 import com.yuzufin.app.ui.components.DateField
 import com.yuzufin.app.ui.components.IconBadge
@@ -76,8 +82,25 @@ fun SavingsScreen(
     var entryTarget by remember { mutableStateOf<EntryTarget?>(null) }
     var deletingEntryId by remember { mutableStateOf<Long?>(null) }
 
+    // Confeti cuando una meta se completa mientras la pantalla está abierta (no al entrar a verla).
+    val haptic = rememberHaptic()
+    var confetti by remember { mutableStateOf(0) }
+    var lastCompleted by remember { mutableStateOf<Int?>(null) }
+    val completedNow = state.goals.count { it.complete }
+    LaunchedEffect(completedNow, state.loading) {
+        if (!state.loading) {
+            val before = lastCompleted
+            if (before != null && completedNow > before) {
+                confetti += 1
+                haptic()
+            }
+            lastCompleted = completedNow
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding() + 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -99,7 +122,7 @@ fun SavingsScreen(
         if (!state.loading && state.goals.isEmpty()) {
             item {
                 YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    IconBadge(Icons.Rounded.Savings)
+                    Mascot(MascotPose.PIGGY, size = 120.dp, modifier = Modifier.align(Alignment.CenterHorizontally))
                     Spacer(Modifier.height(12.dp))
                     Text(stringResource(R.string.savings_empty_title), style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(4.dp))
@@ -152,6 +175,8 @@ fun SavingsScreen(
                 }
             }
         }
+    }
+    ConfettiBurst(trigger = confetti)
     }
 
     entryTarget?.let { target ->
@@ -238,6 +263,16 @@ private fun GoalCard(
                 style = MaterialTheme.typography.titleSmall,
                 color = if (row.complete) MaterialTheme.yuzu.income else muted,
             )
+        }
+        if (row.complete) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Mascot(MascotPose.CELEBRATE, size = 56.dp)
+                Text(
+                    stringResource(R.string.savings_goal_reached),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.yuzu.income,
+                )
+            }
         }
         Spacer(Modifier.height(10.dp))
         LinearProgressIndicator(

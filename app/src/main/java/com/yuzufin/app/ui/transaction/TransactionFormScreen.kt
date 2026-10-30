@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.content.FileProvider
 import com.yuzufin.app.R
 import com.yuzufin.app.rememberAppContainer
+import com.yuzufin.app.ui.common.rememberHaptic
 import com.yuzufin.app.ui.common.sharePdf
 import java.io.File
 import java.util.UUID
@@ -91,7 +92,9 @@ fun TransactionFormScreen(
         }
     }
 
+    val haptic = rememberHaptic()
     LaunchedEffect(state.finished, state.notFound) {
+        if (state.finished) haptic()
         if (state.finished || state.notFound) onClose()
     }
 

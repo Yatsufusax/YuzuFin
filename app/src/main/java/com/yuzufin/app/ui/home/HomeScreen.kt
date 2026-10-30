@@ -51,6 +51,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
+import com.yuzufin.app.ui.common.entrance
+import com.yuzufin.app.ui.common.rememberCountUp
+import com.yuzufin.app.ui.common.rememberHaptic
+import com.yuzufin.app.ui.components.Mascot
+import com.yuzufin.app.ui.components.MascotPose
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -104,6 +109,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
 ) {
     var confirming by remember { mutableStateOf<PendingIncome?>(null) }
+    val haptic = rememberHaptic()
     var balanceVisible by rememberSaveable { mutableStateOf(true) }
     val headerTop = MaterialTheme.yuzu.headerTop
     val background = MaterialTheme.colorScheme.background
@@ -129,36 +135,51 @@ fun HomeScreen(
         HomeHeader(name = state.userName, unread = unreadNotifications, onNotificationsClick = onNotificationsClick)
 
         if (!state.loading) {
-            BalanceCard(
-                state = state,
-                visible = balanceVisible,
-                onToggleVisible = { balanceVisible = !balanceVisible },
-                onGoMovements = { onNavigate(Destination.Movements) },
-                onGoSavings = { onNavigate(Destination.Savings) },
-            )
-            if (state.pendingIncomes.isNotEmpty()) {
-                PendingIncomesCard(
+            Box(Modifier.entrance(0)) {
+                BalanceCard(
                     state = state,
-                    onConfirm = { confirming = it },
-                    onSkip = { onSkipIncome(it.occurrenceId) },
-                    onSeeAll = { onNavigate(Destination.Incomes) },
+                    visible = balanceVisible,
+                    onToggleVisible = { balanceVisible = !balanceVisible },
+                    onGoMovements = { onNavigate(Destination.Movements) },
+                    onGoSavings = { onNavigate(Destination.Savings) },
                 )
             }
-            ShortcutsCard(onQuickAction)
-            if (!state.hasMovements) {
-                EmptyBanner(onRegister = { onQuickAction(QuickAction.Expense) })
+            if (state.hasMovements) {
+                Box(Modifier.entrance(1)) { MascotCard(state) }
             }
-            MonthSummaryCard(state)
-            state.nextIncome?.let { NextIncomeCard(it, state, onClick = { onNavigate(Destination.Incomes) }) }
+            if (state.pendingIncomes.isNotEmpty()) {
+                Box(Modifier.entrance(2)) {
+                    PendingIncomesCard(
+                        state = state,
+                        onConfirm = { confirming = it },
+                        onSkip = { onSkipIncome(it.occurrenceId) },
+                        onSeeAll = { onNavigate(Destination.Incomes) },
+                    )
+                }
+            }
+            Box(Modifier.entrance(3)) { ShortcutsCard(onQuickAction) }
+            if (!state.hasMovements) {
+                Box(Modifier.entrance(4)) {
+                    EmptyBanner(onRegister = { onQuickAction(QuickAction.Expense) })
+                }
+            }
+            Box(Modifier.entrance(5)) { MonthSummaryCard(state) }
+            state.nextIncome?.let {
+                Box(Modifier.entrance(6)) { NextIncomeCard(it, state, onClick = { onNavigate(Destination.Incomes) }) }
+            }
             if (state.upcomingBills.isNotEmpty()) {
-                UpcomingBillsCard(state, onClick = { onNavigate(Destination.Obligations) })
+                Box(Modifier.entrance(7)) {
+                    UpcomingBillsCard(state, onClick = { onNavigate(Destination.Obligations) })
+                }
             }
             if (state.recent.isNotEmpty()) {
-                RecentMovementsCard(
-                    state = state,
-                    onSeeAll = { onNavigate(Destination.Movements) },
-                    onEdit = onEditMovement,
-                )
+                Box(Modifier.entrance(8)) {
+                    RecentMovementsCard(
+                        state = state,
+                        onSeeAll = { onNavigate(Destination.Movements) },
+                        onEdit = onEditMovement,
+                    )
+                }
             }
         }
         Spacer(Modifier.height(contentPadding.calculateBottomPadding()))
@@ -169,6 +190,7 @@ fun HomeScreen(
             item = item,
             currency = state.currency,
             onConfirm = { amount ->
+                haptic()
                 onConfirmIncome(item.occurrenceId, amount)
                 confirming = null
             },
@@ -352,6 +374,7 @@ private fun BalanceCard(
     val currency = state.currency
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val negative = state.balance < 0
+    val shownBalance = rememberCountUp(state.balance)
     val amountColor = if (negative) MaterialTheme.yuzu.expense else MaterialTheme.colorScheme.onSurface
 
     YuzuCard {
@@ -376,7 +399,7 @@ private fun BalanceCard(
         Text(
             text = buildAnnotatedString {
                 withStyle(SpanStyle(fontSize = 22.sp, color = muted)) { append("${currency.symbol} ") }
-                append(if (visible) MoneyFormatter.formatNumber(state.balance, currency) else "••••••")
+                append(if (visible) MoneyFormatter.formatNumber(shownBalance, currency) else "••••••")
             },
             style = MaterialTheme.typography.displaySmall,
             color = amountColor,
@@ -524,18 +547,48 @@ private fun EmptyBanner(onRegister: () -> Unit) {
                     Text(stringResource(R.string.home_empty_action))
                 }
             }
-            Box(modifier = Modifier.size(96.dp), contentAlignment = Alignment.Center) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val r = size.minDimension / 2f
-                    drawCircle(color = colors.onBanner.copy(alpha = 0.08f), radius = r)
-                    drawCircle(color = colors.onBanner.copy(alpha = 0.10f), radius = r * 0.72f)
-                    drawCircle(color = colors.onBanner.copy(alpha = 0.14f), radius = r * 0.44f)
-                }
-                Icon(
-                    Icons.Rounded.Payments,
-                    contentDescription = null,
-                    tint = colors.onBanner,
-                    modifier = Modifier.size(34.dp),
+            Mascot(MascotPose.PLANNING, size = 110.dp)
+        }
+    }
+}
+
+/** El monito saluda según la hora y comenta cómo viene el mes. */
+@Composable
+private fun MascotCard(state: HomeUiState) {
+    val hour = remember { java.time.LocalTime.now().hour }
+    val suffix = if (state.userName.isBlank()) "" else ", ${state.userName.trim()}"
+    val greeting = stringResource(
+        when (hour) {
+            in 5..11 -> R.string.mascot_greet_morning
+            in 12..19 -> R.string.mascot_greet_afternoon
+            else -> R.string.mascot_greet_night
+        },
+        suffix,
+    )
+    val (pose, messageRes) = when {
+        state.balance < 0 -> MascotPose.WONDER to R.string.mascot_msg_negative
+        state.pendingIncomes.isNotEmpty() -> MascotPose.NOTIFICATION to R.string.mascot_msg_pending
+        state.monthIncome == 0L && state.monthExpense == 0L -> MascotPose.GO to R.string.mascot_msg_empty_month
+        state.monthExpense <= state.monthIncome -> MascotPose.PROGRESS to R.string.mascot_msg_good
+        else -> MascotPose.CONTROL to R.string.mascot_msg_careful
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Mascot(pose, size = 96.dp)
+        Surface(
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.weight(1f),
+        ) {
+            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(greeting, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(messageRes),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

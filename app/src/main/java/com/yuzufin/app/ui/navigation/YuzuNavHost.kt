@@ -1,6 +1,11 @@
 package com.yuzufin.app.ui.navigation
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -60,6 +65,10 @@ fun YuzuNavHost(
         navController = navController,
         startDestination = Destination.Home.route,
         modifier = modifier,
+        enterTransition = { fadeIn(tween(240)) + slideInHorizontally(tween(280)) { it / 10 } },
+        exitTransition = { fadeOut(tween(160)) },
+        popEnterTransition = { fadeIn(tween(240)) },
+        popExitTransition = { fadeOut(tween(160)) + slideOutHorizontally(tween(240)) { it / 10 } },
     ) {
         composable(Destination.Home.route) {
             val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.factory(container))
