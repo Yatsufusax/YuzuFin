@@ -11,9 +11,12 @@ import com.yuzufin.app.data.SettingsRepository
 import com.yuzufin.app.domain.IncomeScheduler
 import com.yuzufin.app.domain.IncomeSource
 import com.yuzufin.app.domain.OccurrenceStatus
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -45,7 +48,11 @@ class IncomesViewModel(
     settings: SettingsRepository,
 ) : ViewModel() {
 
-    val uiState: StateFlow<IncomesUiState> = combine(
+    private val refresh = MutableStateFlow(0)
+    private val inFlight = HashSet<Long>()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<IncomesUiState> = refresh.flatMapLatest { combine(
         income.sources,
         income.occurrences,
         settings.settings,
@@ -67,14 +74,31 @@ class IncomesViewModel(
                 },
             remindersEnabled = appSettings.remindersEnabled,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), IncomesUiState())
+    } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), IncomesUiState())
 
+    /** Ignora toques repetidos sobre el mismo cobro y, al terminar, fuerza que la pantalla se actualice. */
     fun confirm(occurrenceId: Long, amountMinor: Long) {
-        viewModelScope.launch { runCatching { income.confirm(occurrenceId, amountMinor) } }
+        if (!inFlight.add(occurrenceId)) return
+        viewModelScope.launch {
+            try {
+                runCatching { income.confirm(occurrenceId, amountMinor) }
+            } finally {
+                inFlight.remove(occurrenceId)
+                refresh.value += 1
+            }
+        }
     }
 
     fun skip(occurrenceId: Long) {
-        viewModelScope.launch { runCatching { income.skip(occurrenceId) } }
+        if (!inFlight.add(occurrenceId)) return
+        viewModelScope.launch {
+            try {
+                runCatching { income.skip(occurrenceId) }
+            } finally {
+                inFlight.remove(occurrenceId)
+                refresh.value += 1
+            }
+        }
     }
 
     fun reopen(occurrenceId: Long) {

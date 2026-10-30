@@ -1,4 +1,5 @@
 ## Nuevo
+- Tu saldo disponible ahora se ve como una tarjeta bancaria: "MoneaCard", con chip, pago sin contacto, tu nombre y un brillo que la recorre de vez en cuando. Toma los colores del tema que elijas.
 - Elegí el color de la app desde el primer momento: en la configuración inicial podés probar cada color (y el modo claro u oscuro) y la pantalla cambia al instante.
 - Nuevo ícono de la app: el logo de Monea con el gráfico de crecimiento y las monedas.
 - Monitos nuevos y más expresivos. Ahora el monito reacciona a lo que pasa: te extraña si pasás una semana sin entrar, se pone triste si se acaba la plata, te aprieta si gastaste de más y festeja cuando tenés plata de sobra o cumplís una meta.
@@ -16,6 +17,7 @@
 - En Movimientos se ve un clip en los movimientos que tienen fotos.
 
 ## Mejorado
+- Al confirmar un cobro ("Ya cobré") o descartarlo, Inicio y la pantalla de Ingresos se actualizan al instante, y los toques repetidos ya no se procesan dos veces.
 - Se quitaron las imágenes del monito que ya no se usaban, así la app pesa menos.
 - Los monitos de la configuración inicial (tereré, mate y café) ahora tienen mejor calidad y un recorte limpio.
 - La copia de seguridad ahora incluye también las fotos adjuntas.

@@ -22,9 +22,12 @@ import com.yuzufin.app.ui.incomes.PendingIncome
 import com.yuzufin.app.ui.incomes.UpcomingIncome
 import com.yuzufin.app.ui.incomes.buildPending
 import com.yuzufin.app.ui.incomes.buildUpcoming
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -71,7 +74,12 @@ class HomeViewModel(
     settings: SettingsRepository,
 ) : ViewModel() {
 
-    val uiState: StateFlow<HomeUiState> = combine(
+    /** Cada vez que sube, se vuelven a consultar los datos (por si alguna emisión no llegó). */
+    private val refresh = MutableStateFlow(0)
+    private val inFlight = HashSet<Long>()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<HomeUiState> = refresh.flatMapLatest { combine(
         finance.initialBalance,
         finance.transactions,
         finance.categories,
@@ -113,14 +121,31 @@ class HomeViewModel(
                     .map { UpcomingBill(it, ObligationMath.status(it, today)) },
             )
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+    } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
+    /** Ignora toques repetidos sobre el mismo cobro y, al terminar, fuerza que Inicio se actualice. */
     fun confirmIncome(occurrenceId: Long, amountMinor: Long) {
-        viewModelScope.launch { runCatching { income.confirm(occurrenceId, amountMinor) } }
+        if (!inFlight.add(occurrenceId)) return
+        viewModelScope.launch {
+            try {
+                runCatching { income.confirm(occurrenceId, amountMinor) }
+            } finally {
+                inFlight.remove(occurrenceId)
+                refresh.value += 1
+            }
+        }
     }
 
     fun skipIncome(occurrenceId: Long) {
-        viewModelScope.launch { runCatching { income.skip(occurrenceId) } }
+        if (!inFlight.add(occurrenceId)) return
+        viewModelScope.launch {
+            try {
+                runCatching { income.skip(occurrenceId) }
+            } finally {
+                inFlight.remove(occurrenceId)
+                refresh.value += 1
+            }
+        }
     }
 
     companion object {

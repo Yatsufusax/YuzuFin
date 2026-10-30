@@ -138,3 +138,7 @@ Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
 
 ## Ícono de la app
 - Icono adaptativo: fondo azul marino (`ic_launcher_background`) y logo en `res/drawable-nodpi/ic_launcher_monea.webp`. No tiene versión monocromática (los íconos temáticos de Android 13 muestran el normal).
+
+## Tarjeta MoneaCard y refresco de cobros
+- `BankCard` en `ui/home/HomeScreen.kt`: el saldo disponible se dibuja como tarjeta bancaria (gradiente del tema, chip, pago sin contacto, nombre en mayúsculas, símbolo de dos círculos propio y brillo animado). El ojo oculta el saldo.
+- `HomeViewModel` e `IncomesViewModel` re-consultan los datos (`refresh` + `flatMapLatest`) al terminar de confirmar u omitir un cobro, y ignoran toques repetidos sobre el mismo cobro (`inFlight`).
