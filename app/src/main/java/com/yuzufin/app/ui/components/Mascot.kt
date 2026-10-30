@@ -76,7 +76,7 @@ fun mascotForCurrency(currencyCode: String): MascotPose = when (currencyCode) {
 }
 
 /**
- * El monito de YuzuFin. Respira suave todo el tiempo, cambia de pose con un efecto y, si se lo toca,
+ * El monito de Monea. Respira suave todo el tiempo, cambia de pose con un efecto y, si se lo toca,
  * pega un saltito con una vibración corta.
  */
 @Composable

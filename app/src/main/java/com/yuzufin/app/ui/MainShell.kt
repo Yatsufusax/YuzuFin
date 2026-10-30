@@ -37,7 +37,7 @@ import com.yuzufin.app.ui.navigation.Destination
 import com.yuzufin.app.ui.navigation.FloatingNavBar
 import com.yuzufin.app.ui.navigation.LoanFormRoute
 import com.yuzufin.app.ui.navigation.TransactionRoute
-import com.yuzufin.app.ui.navigation.YuzuNavHost
+import com.yuzufin.app.ui.navigation.MoneaNavHost
 import com.yuzufin.app.ui.navigation.isFullScreenRoute
 import com.yuzufin.app.ui.navigation.navigateTo
 import com.yuzufin.app.ui.update.UpdateEffects
@@ -109,7 +109,7 @@ fun MainShell() {
             }
         },
     ) { innerPadding ->
-        YuzuNavHost(
+        MoneaNavHost(
             navController = navController,
             contentPadding = innerPadding,
             updateViewModel = updateViewModel,

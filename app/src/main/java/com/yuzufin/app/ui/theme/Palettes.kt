@@ -86,11 +86,11 @@ fun paletteSwatch(palette: ThemePalette, dark: Boolean): Color {
 
 /** Color del banner de la paleta (segundo color de la muestra). */
 fun paletteSwatchAccent(palette: ThemePalette, dark: Boolean): Color {
-    val spec = specs[palette] ?: return if (dark) DarkYuzuColors.bannerStart else LightYuzuColors.bannerStart
+    val spec = specs[palette] ?: return if (dark) DarkMoneaColors.bannerStart else LightMoneaColors.bannerStart
     return if (dark) spec.bannerStartDark else spec.bannerStartLight
 }
 
-fun yuzuColorScheme(palette: ThemePalette, dark: Boolean): ColorScheme {
+fun moneaColorScheme(palette: ThemePalette, dark: Boolean): ColorScheme {
     val spec = specs[palette] ?: return if (dark) DarkColors else LightColors
     val h = spec.hue
     return if (dark) {
@@ -160,9 +160,9 @@ fun yuzuColorScheme(palette: ThemePalette, dark: Boolean): ColorScheme {
     }
 }
 
-fun yuzuExtraColors(palette: ThemePalette, dark: Boolean): YuzuColors {
-    val spec = specs[palette] ?: return if (dark) DarkYuzuColors else LightYuzuColors
-    val base = if (dark) DarkYuzuColors else LightYuzuColors
+fun moneaExtraColors(palette: ThemePalette, dark: Boolean): MoneaColors {
+    val spec = specs[palette] ?: return if (dark) DarkMoneaColors else LightMoneaColors
+    val base = if (dark) DarkMoneaColors else LightMoneaColors
     return if (dark) {
         base.copy(
             headerTop = spec.headerDark,

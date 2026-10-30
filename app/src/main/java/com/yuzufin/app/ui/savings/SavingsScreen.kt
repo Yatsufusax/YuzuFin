@@ -58,8 +58,8 @@ import com.yuzufin.app.ui.components.DateField
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.ScreenHeader
 import com.yuzufin.app.ui.components.SectionHeader
-import com.yuzufin.app.ui.components.YuzuCard
-import com.yuzufin.app.ui.theme.yuzu
+import com.yuzufin.app.ui.components.MoneaCard
+import com.yuzufin.app.ui.theme.monea
 import java.time.LocalDate
 
 /** Un aporte o retiro en curso: de qué meta y de qué tipo. */
@@ -121,7 +121,7 @@ fun SavingsScreen(
 
         if (!state.loading && state.goals.isEmpty()) {
             item {
-                YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+                MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Mascot(MascotPose.PIGGY, size = 120.dp, modifier = Modifier.align(Alignment.CenterHorizontally))
                     Spacer(Modifier.height(12.dp))
                     Text(stringResource(R.string.savings_empty_title), style = MaterialTheme.typography.titleMedium)
@@ -167,7 +167,7 @@ fun SavingsScreen(
                 )
             }
             item {
-                YuzuCard(modifier = Modifier.padding(horizontal = 16.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
+                MoneaCard(modifier = Modifier.padding(horizontal = 16.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
                     state.history.forEachIndexed { index, item ->
                         if (index > 0) HorizontalDivider()
                         HistoryRow(item, state.currency, onDelete = { deletingEntryId = item.entry.id })
@@ -217,14 +217,14 @@ fun SavingsScreen(
 @Composable
 private fun SummaryCard(state: SavingsUiState) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+    MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.savings_available), style = MaterialTheme.typography.bodySmall, color = muted)
                 Text(
                     MoneyFormatter.format(state.available, state.currency),
                     style = MaterialTheme.typography.titleLarge,
-                    color = if (state.available < 0) MaterialTheme.yuzu.expense else MaterialTheme.colorScheme.onSurface,
+                    color = if (state.available < 0) MaterialTheme.monea.expense else MaterialTheme.colorScheme.onSurface,
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
@@ -232,7 +232,7 @@ private fun SummaryCard(state: SavingsUiState) {
                 Text(
                     MoneyFormatter.format(state.totalSaved, state.currency),
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.yuzu.income,
+                    color = MaterialTheme.monea.income,
                 )
             }
         }
@@ -251,7 +251,7 @@ private fun GoalCard(
 ) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val goal = row.goal
-    YuzuCard(
+    MoneaCard(
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .clickable(onClick = onEdit),
@@ -261,7 +261,7 @@ private fun GoalCard(
             Text(
                 stringResource(R.string.savings_percent, row.percent),
                 style = MaterialTheme.typography.titleSmall,
-                color = if (row.complete) MaterialTheme.yuzu.income else muted,
+                color = if (row.complete) MaterialTheme.monea.income else muted,
             )
         }
         if (row.complete) {
@@ -270,7 +270,7 @@ private fun GoalCard(
                 Text(
                     stringResource(R.string.savings_goal_reached),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.yuzu.income,
+                    color = MaterialTheme.monea.income,
                 )
             }
         }
@@ -295,10 +295,10 @@ private fun GoalCard(
 
         val deadline = goal.deadline
         when {
-            row.complete -> InfoLine(stringResource(R.string.savings_complete), MaterialTheme.yuzu.income)
+            row.complete -> InfoLine(stringResource(R.string.savings_complete), MaterialTheme.monea.income)
             row.overdue && deadline != null -> InfoLine(
                 stringResource(R.string.savings_overdue, formatShortDate(deadline), MoneyFormatter.format(row.remaining, currency)),
-                MaterialTheme.yuzu.expense,
+                MaterialTheme.monea.expense,
             )
             deadline != null -> {
                 InfoLine(
@@ -360,7 +360,7 @@ private fun HistoryRow(item: EntryRow, currency: CurrencyInfo, onDelete: () -> U
         Text(
             (if (positive) "+ " else "- ") + MoneyFormatter.format(kotlin.math.abs(entry.amountMinor), currency),
             style = MaterialTheme.typography.titleSmall,
-            color = if (positive) MaterialTheme.yuzu.income else MaterialTheme.yuzu.expense,
+            color = if (positive) MaterialTheme.monea.income else MaterialTheme.monea.expense,
         )
         IconButton(onClick = onDelete) {
             Icon(

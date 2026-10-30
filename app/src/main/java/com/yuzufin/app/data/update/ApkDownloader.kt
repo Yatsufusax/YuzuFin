@@ -21,14 +21,14 @@ class ApkDownloader(private val context: Context) {
         withContext(Dispatchers.IO) {
             val dir = File(context.cacheDir, "updates").apply { mkdirs() }
             dir.listFiles()?.forEach { it.delete() }
-            val target = File(dir, "YuzuFin-${info.buildNumber}.apk")
+            val target = File(dir, "Monea-${info.buildNumber}.apk")
 
             val connection = URL(info.downloadUrl).openConnection() as HttpURLConnection
             var completed = false
             try {
                 connection.connectTimeout = 15_000
                 connection.readTimeout = 30_000
-                connection.setRequestProperty("User-Agent", "YuzuFin-Android")
+                connection.setRequestProperty("User-Agent", "Monea-Android")
                 if (connection.responseCode != HttpURLConnection.HTTP_OK) {
                     throw IOException("Descarga rechazada (${connection.responseCode})")
                 }

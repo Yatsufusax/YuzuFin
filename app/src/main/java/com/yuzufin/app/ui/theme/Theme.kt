@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import com.yuzufin.app.domain.ThemePalette
 
 /** Esquinas generosas, como las tarjetas de la referencia bancaria. */
-internal val YuzuShapes = Shapes(
+internal val MoneaShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(12.dp),
     medium = RoundedCornerShape(20.dp),
@@ -20,19 +20,19 @@ internal val YuzuShapes = Shapes(
 )
 
 @Composable
-fun YuzuFinTheme(
+fun MoneaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     palette: ThemePalette = ThemePalette.GREEN,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = remember(palette, darkTheme) { yuzuColorScheme(palette, darkTheme) }
-    val yuzuColors = remember(palette, darkTheme) { yuzuExtraColors(palette, darkTheme) }
+    val colorScheme = remember(palette, darkTheme) { moneaColorScheme(palette, darkTheme) }
+    val moneaColors = remember(palette, darkTheme) { moneaExtraColors(palette, darkTheme) }
 
-    CompositionLocalProvider(LocalYuzuColors provides yuzuColors) {
+    CompositionLocalProvider(LocalMoneaColors provides moneaColors) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = YuzuTypography,
-            shapes = YuzuShapes,
+            typography = MoneaTypography,
+            shapes = MoneaShapes,
             content = content,
         )
     }

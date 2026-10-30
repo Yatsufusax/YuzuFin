@@ -28,14 +28,14 @@ import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.CurrencyConversion
 import com.yuzufin.app.rememberAppContainer
-import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.components.MoneaCard
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
 @Composable
 fun CurrencyCard(currency: CurrencyInfo, modifier: Modifier = Modifier) {
     var open by remember { mutableStateOf(false) }
-    YuzuCard(modifier = modifier) {
+    MoneaCard(modifier = modifier) {
         Text(stringResource(R.string.settings_currency_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
         Text(text = "${currency.symbol} · ${currency.code}", style = MaterialTheme.typography.bodyLarge)

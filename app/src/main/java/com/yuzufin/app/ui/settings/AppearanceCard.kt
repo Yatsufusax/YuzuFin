@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.yuzufin.app.R
 import com.yuzufin.app.domain.ThemeMode
 import com.yuzufin.app.domain.ThemePalette
-import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.components.MoneaCard
 import com.yuzufin.app.ui.theme.paletteSwatch
 import com.yuzufin.app.ui.theme.paletteSwatchAccent
 import androidx.compose.foundation.selection.selectable
@@ -49,7 +49,7 @@ fun AppearanceCard(
         ThemeMode.LIGHT -> false
         ThemeMode.DARK -> true
     }
-    YuzuCard(modifier = modifier) {
+    MoneaCard(modifier = modifier) {
         Text(stringResource(R.string.settings_appearance_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(12.dp))
         Text(stringResource(R.string.settings_mode_label), style = MaterialTheme.typography.labelLarge)

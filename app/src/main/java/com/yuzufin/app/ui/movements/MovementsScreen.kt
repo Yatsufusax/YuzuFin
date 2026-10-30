@@ -69,9 +69,9 @@ import com.yuzufin.app.ui.common.dayLabel
 import com.yuzufin.app.ui.common.formatMonthYear
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.ScreenHeader
-import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.components.MoneaCard
 import com.yuzufin.app.ui.statement.StatementExportDialog
-import com.yuzufin.app.ui.theme.yuzu
+import com.yuzufin.app.ui.theme.monea
 
 @Composable
 fun MovementsScreen(
@@ -192,7 +192,7 @@ fun MovementsScreen(
                             MoneyFormatter.format(state.totalIncome, state.currency),
                         ),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.yuzu.income,
+                        color = MaterialTheme.monea.income,
                     )
                     Text(
                         text = stringResource(
@@ -200,7 +200,7 @@ fun MovementsScreen(
                             MoneyFormatter.format(state.totalExpense, state.currency),
                         ),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.yuzu.expense,
+                        color = MaterialTheme.monea.expense,
                     )
                 }
             }
@@ -226,7 +226,7 @@ fun MovementsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 4.dp),
                 )
-                YuzuCard(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
+                MoneaCard(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
                     group.items.forEachIndexed { index, item ->
                         if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         SwipeableMovementRow(
@@ -291,7 +291,7 @@ private fun SwipeableMovementRow(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(if (swiping) MaterialTheme.yuzu.expense else Color.Transparent)
+                    .background(if (swiping) MaterialTheme.monea.expense else Color.Transparent)
                     .padding(end = 24.dp),
                 contentAlignment = Alignment.CenterEnd,
             ) {
@@ -350,7 +350,7 @@ private fun MonthSelector(state: MovementsUiState, viewModel: MovementsViewModel
 
 @Composable
 private fun MovementListRow(item: MovementItem, state: MovementsUiState, hasPhoto: Boolean, onClick: () -> Unit) {
-    val colors = MaterialTheme.yuzu
+    val colors = MaterialTheme.monea
     val isIncome = item.type == TransactionType.INCOME
     Row(
         modifier = Modifier

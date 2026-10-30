@@ -51,8 +51,8 @@ import com.yuzufin.app.ui.common.categoryIcon
 import com.yuzufin.app.ui.common.formatMonthYear
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.ScreenHeader
-import com.yuzufin.app.ui.components.YuzuCard
-import com.yuzufin.app.ui.theme.yuzu
+import com.yuzufin.app.ui.components.MoneaCard
+import com.yuzufin.app.ui.theme.monea
 import java.util.Locale
 
 @Composable
@@ -108,18 +108,18 @@ private fun MonthSelector(state: StatsUiState, onPrevious: () -> Unit, onNext: (
 @Composable
 private fun SummaryCard(state: StatsUiState, modifier: Modifier) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    YuzuCard(modifier = modifier) {
+    MoneaCard(modifier = modifier) {
         Text(stringResource(R.string.stats_summary_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(12.dp))
-        AmountLine(stringResource(R.string.stats_income), state.point.income, state.currency, MaterialTheme.yuzu.income)
+        AmountLine(stringResource(R.string.stats_income), state.point.income, state.currency, MaterialTheme.monea.income)
         Spacer(Modifier.height(6.dp))
-        AmountLine(stringResource(R.string.stats_expense), state.point.expense, state.currency, MaterialTheme.yuzu.expense)
+        AmountLine(stringResource(R.string.stats_expense), state.point.expense, state.currency, MaterialTheme.monea.expense)
         Spacer(Modifier.height(6.dp))
         AmountLine(
             stringResource(R.string.stats_net),
             state.point.net,
             state.currency,
-            if (state.point.net >= 0) MaterialTheme.yuzu.income else MaterialTheme.yuzu.expense,
+            if (state.point.net >= 0) MaterialTheme.monea.income else MaterialTheme.monea.expense,
         )
         Spacer(Modifier.height(10.dp))
         Text(deltaText(state), style = MaterialTheme.typography.bodyMedium)
@@ -168,11 +168,11 @@ private fun AmountLine(label: String, amount: Long, currency: CurrencyInfo, colo
 
 @Composable
 private fun ChartCard(state: StatsUiState, modifier: Modifier) {
-    val incomeColor = MaterialTheme.yuzu.income
-    val expenseColor = MaterialTheme.yuzu.expense
+    val incomeColor = MaterialTheme.monea.income
+    val expenseColor = MaterialTheme.monea.expense
     val track = MaterialTheme.colorScheme.outlineVariant
     val description = stringResource(R.string.stats_chart_desc)
-    YuzuCard(modifier = modifier) {
+    MoneaCard(modifier = modifier) {
         Text(stringResource(R.string.stats_chart_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -234,7 +234,7 @@ private fun Legend(color: Color, label: String) {
 
 @Composable
 private fun CategoriesCard(state: StatsUiState, modifier: Modifier) {
-    YuzuCard(modifier = modifier) {
+    MoneaCard(modifier = modifier) {
         Text(stringResource(R.string.stats_categories_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(12.dp))
         if (state.categoryRows.isEmpty()) {
@@ -243,7 +243,7 @@ private fun CategoriesCard(state: StatsUiState, modifier: Modifier) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            return@YuzuCard
+            return@MoneaCard
         }
         state.categoryRows.forEachIndexed { index, row ->
             if (index > 0) Spacer(Modifier.height(14.dp))
@@ -280,8 +280,8 @@ private fun CategoriesCard(state: StatsUiState, modifier: Modifier) {
                         }
                         val color = when {
                             percent == null || percent == 0 -> MaterialTheme.colorScheme.onSurfaceVariant
-                            percent > 0 -> MaterialTheme.yuzu.expense
-                            else -> MaterialTheme.yuzu.income
+                            percent > 0 -> MaterialTheme.monea.expense
+                            else -> MaterialTheme.monea.income
                         }
                         Text(text, style = MaterialTheme.typography.bodySmall, color = color)
                     }
@@ -321,12 +321,12 @@ internal fun ProgressBar(fraction: Float, color: Color, modifier: Modifier = Mod
 internal fun budgetColor(level: BudgetLevel): Color = when (level) {
     BudgetLevel.OK -> MaterialTheme.colorScheme.primary
     BudgetLevel.WARNING -> MaterialTheme.colorScheme.tertiary
-    BudgetLevel.OVER -> MaterialTheme.yuzu.expense
+    BudgetLevel.OVER -> MaterialTheme.monea.expense
 }
 
 @Composable
 private fun BudgetsCard(state: StatsUiState, onManage: () -> Unit, modifier: Modifier) {
-    YuzuCard(modifier = modifier) {
+    MoneaCard(modifier = modifier) {
         Text(stringResource(R.string.stats_budgets_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(12.dp))
         if (state.budgets.isEmpty()) {
@@ -383,7 +383,7 @@ private fun BudgetLine(progress: BudgetProgress, state: StatsUiState) {
 @Composable
 private fun RecommendationsCard(state: StatsUiState, modifier: Modifier) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    YuzuCard(modifier = modifier) {
+    MoneaCard(modifier = modifier) {
         Text(stringResource(R.string.stats_reco_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(12.dp))
         if (state.recommendations.isEmpty()) {
@@ -439,7 +439,7 @@ private fun recommendationText(rec: Recommendation, state: StatsUiState): Pair<S
 @Composable
 private fun ExtrasCard(state: StatsUiState, modifier: Modifier) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    YuzuCard(modifier = modifier) {
+    MoneaCard(modifier = modifier) {
         AmountLine(stringResource(R.string.stats_saved_title), state.totalSaved, state.currency, MaterialTheme.colorScheme.onSurface)
         Spacer(Modifier.height(12.dp))
         AmountLine(stringResource(R.string.stats_committed_title), state.committedNext30, state.currency, MaterialTheme.colorScheme.onSurface)

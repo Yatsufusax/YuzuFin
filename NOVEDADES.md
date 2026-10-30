@@ -1,5 +1,7 @@
 ## Nuevo
-- ¡Llegó el monito de YuzuFin! Te saluda en Inicio según la hora y te comenta cómo viene el mes. Tocalo y pega un salto. Al empezar, aparece con tereré (guaraníes), mate (pesos) o café (otras monedas).
+- ¡YuzuFin ahora se llama Monea! Nuevo nombre y nuevo logo. Tus datos, tus copias de seguridad y las actualizaciones siguen funcionando igual.
+- Al abrir la app, el logo de Monea aparece con un rebote suave sobre un brillo verde, flota despacio y debajo se revela el lema.
+- ¡Llegó el monito de Monea! Te saluda en Inicio según la hora y te comenta cómo viene el mes. Tocalo y pega un salto. Al empezar, aparece con tereré (guaraníes), mate (pesos) o café (otras monedas).
 - Inicio más vivo: el saldo cuenta hasta su valor, las tarjetas aparecen con animación y las pantallas se deslizan suave.
 - Festejos: confeti y vibración al cumplir una meta de ahorro, y vibración corta al guardar un movimiento o confirmar un cobro o gasto fijo.
 - Gastos fijos (Menú → Gastos fijos): cargá lo que pagás todos los meses (internet, alquiler…). Cuando llega la fecha la app te avisa y con "Ya pagué" lo registrás, pudiendo cambiar el importe si la factura vino distinta.
@@ -8,4 +10,5 @@
 - En Movimientos se ve un clip en los movimientos que tienen fotos.
 
 ## Mejorado
+- Los monitos de la configuración inicial (tereré, mate y café) ahora tienen mejor calidad y un recorte limpio.
 - La copia de seguridad ahora incluye también las fotos adjuntas.

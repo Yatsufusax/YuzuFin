@@ -1,4 +1,6 @@
-# YuzuFin
+# Monea
+
+> Antes se llamaba YuzuFin. El nombre visible cambió, pero por dentro se conservan el paquete `com.yuzufin.app`, la base `yuzufin.db` y el repositorio `Yatsufusax/YuzuFin`, para que la app instalada se actualice sola y no pierda datos. Las copias de seguridad hechas como YuzuFin se siguen pudiendo restaurar.
 
 App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Room). Local-first, sin cuentas ni IA.
 *Tu dinero. Tus decisiones.*
@@ -108,7 +110,7 @@ Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
 - Sin verificar: no se compiló en el entorno donde se escribió.
 
 ## Copia de seguridad, cambio de moneda y borrado deslizando
-- **Copia de seguridad** (`data/BackupManager.kt`): un `.zip` con `yuzufin.db` (después de un checkpoint del WAL), `settings.json` y `manifest.json`. Se guarda y se lee con el selector de archivos de Android (sin permisos de almacenamiento). **No está cifrado.** Al restaurar se valida: manifiesto de YuzuFin, versión de la base no mayor a la actual, `integrity_check`, y las tablas principales. La base actual se renombra a `.pre-restore` hasta que la copia queda bien puesta; si algo falla se vuelve a poner. Una copia de una versión anterior se migra sola al abrir. Tras restaurar la app se reinicia.
+- **Copia de seguridad** (`data/BackupManager.kt`): un `.zip` con `yuzufin.db` (después de un checkpoint del WAL), `settings.json` y `manifest.json`. Se guarda y se lee con el selector de archivos de Android (sin permisos de almacenamiento). **No está cifrado.** Al restaurar se valida: manifiesto de Monea, versión de la base no mayor a la actual, `integrity_check`, y las tablas principales. La base actual se renombra a `.pre-restore` hasta que la copia queda bien puesta; si algo falla se vuelve a poner. Una copia de una versión anterior se migra sola al abrir. Tras restaurar la app se reinicia.
 - **Cambio de moneda** (`domain/CurrencyConversion.kt`, `data/CurrencyConverter.kt`): factor = tipo de cambio × 10^(decimales nuevos − decimales viejos), todo con BigDecimal. Se convierten las 10 columnas de dinero en una sola transacción y después se guarda la moneda. Redondeo al más cercano; un importe distinto de cero nunca queda en cero. Los totales pueden variar por centavos y volver atrás no devuelve los números exactos. El tipo de cambio se pregunta como "1 USD = X Gs." (si interviene el guaraní) o "1 [actual] = X [nueva]". "Mantener los números" solo cambia la moneda y sus decimales. Los avisos ya guardados en la campanilla conservan su texto original.
 - **Borrado deslizando:** en Movimientos, deslizar a la izquierda abre la misma confirmación del formulario; los movimientos internos de préstamos no se deslizan (se gestionan desde Obligaciones).
 - Sin verificar: no se compiló en el entorno donde se escribió.
@@ -126,4 +128,4 @@ Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
 ## Mascota y animaciones
 - Imágenes en `res/drawable-nodpi/mascot_*.png` (recortadas con fondo transparente de las hojas de diseño). `ui/components/Mascot.kt`: `MascotPose` (28 poses), `Mascot(...)` (respira, cambia de pose con efecto y salta al tocarla) y `mascotForCurrency` (PYG tereré, ARS mate, otras café).
 - `ui/common/Effects.kt`: entrada escalonada (`entrance`), conteo del saldo (`rememberCountUp`), vibración (`rememberHaptic`) y confeti (`ConfettiBurst`).
-- Se usa en onboarding, Inicio (tarjeta de saludo y banner vacío), Movimientos, Ahorros (meta cumplida + confeti) y Notificaciones. Transiciones de navegación en `YuzuNavHost`.
+- Se usa en onboarding, Inicio (tarjeta de saludo y banner vacío), Movimientos, Ahorros (meta cumplida + confeti) y Notificaciones. Transiciones de navegación en `MoneaNavHost`.

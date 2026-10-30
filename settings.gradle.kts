@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "YuzuFin"
+rootProject.name = "Monea"
 include(":app")

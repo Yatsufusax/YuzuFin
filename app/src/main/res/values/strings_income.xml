@@ -87,7 +87,7 @@
     </plurals>
     <string name="reminders_savings_item_amount">%1$s · faltan %2$s</string>
     <string name="reminders_permission_title">Activá los avisos</string>
-    <string name="reminders_permission_body">Android no deja mostrar avisos de YuzuFin. Activalos para que te recordemos cobros y aportes.</string>
+    <string name="reminders_permission_body">Android no deja mostrar avisos de Monea. Activalos para que te recordemos cobros y aportes.</string>
     <string name="reminders_enable">Activar avisos</string>
     <string name="reminders_open_settings">Abrir ajustes de notificaciones</string>
 

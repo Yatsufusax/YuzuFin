@@ -53,7 +53,7 @@ import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.common.formatShortDate
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.ScreenHeader
-import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.components.MoneaCard
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
@@ -168,7 +168,7 @@ private fun EmptyState() {
 
 @Composable
 private fun NotificationRow(item: AppNotification, highlighted: Boolean, onDelete: () -> Unit) {
-    YuzuCard {
+    MoneaCard {
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             IconBadge(icon = kindIcon(item.kind))
             Column(modifier = Modifier.weight(1f)) {

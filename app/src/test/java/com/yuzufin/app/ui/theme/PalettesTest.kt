@@ -21,16 +21,16 @@ class PalettesTest {
     fun everyPaletteHasDistinctLightAndDarkBackground() {
         ThemePalette.entries.forEach { palette ->
             assertNotEquals(
-                yuzuColorScheme(palette, dark = false).background,
-                yuzuColorScheme(palette, dark = true).background,
+                moneaColorScheme(palette, dark = false).background,
+                moneaColorScheme(palette, dark = true).background,
             )
         }
     }
 
     @Test
     fun greenKeepsOriginalColors() {
-        assertEquals(LightColors, yuzuColorScheme(ThemePalette.GREEN, dark = false))
-        assertEquals(DarkYuzuColors, yuzuExtraColors(ThemePalette.GREEN, dark = true))
+        assertEquals(LightColors, moneaColorScheme(ThemePalette.GREEN, dark = false))
+        assertEquals(DarkMoneaColors, moneaExtraColors(ThemePalette.GREEN, dark = true))
     }
 
     @Test

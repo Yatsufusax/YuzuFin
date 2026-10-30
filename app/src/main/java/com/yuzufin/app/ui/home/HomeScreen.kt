@@ -85,11 +85,11 @@ import com.yuzufin.app.ui.incomes.UpcomingIncome
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.QuickAction
 import com.yuzufin.app.ui.components.SectionHeader
-import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.components.MoneaCard
 import com.yuzufin.app.ui.navigation.Destination
 import com.yuzufin.app.ui.theme.Forest
 import com.yuzufin.app.ui.theme.MintTile
-import com.yuzufin.app.ui.theme.yuzu
+import com.yuzufin.app.ui.theme.monea
 
 /**
  * Pantalla de Inicio con datos reales: saldo disponible, atajos, resumen del mes y últimos
@@ -111,7 +111,7 @@ fun HomeScreen(
     var confirming by remember { mutableStateOf<PendingIncome?>(null) }
     val haptic = rememberHaptic()
     var balanceVisible by rememberSaveable { mutableStateOf(true) }
-    val headerTop = MaterialTheme.yuzu.headerTop
+    val headerTop = MaterialTheme.monea.headerTop
     val background = MaterialTheme.colorScheme.background
 
     Column(
@@ -207,7 +207,7 @@ private fun PendingIncomesCard(
     onSkip: (PendingIncome) -> Unit,
     onSeeAll: () -> Unit,
 ) {
-    YuzuCard {
+    MoneaCard {
         SectionHeader(
             title = stringResource(R.string.incomes_pending_title),
             actionLabel = stringResource(R.string.home_see_all),
@@ -237,7 +237,7 @@ private fun PendingIncomesCard(
 /** Próximo cobro previsto. Está marcado como previsión: no forma parte del saldo. */
 @Composable
 private fun NextIncomeCard(item: UpcomingIncome, state: HomeUiState, onClick: () -> Unit) {
-    YuzuCard(modifier = Modifier.clickable(onClick = onClick)) {
+    MoneaCard(modifier = Modifier.clickable(onClick = onClick)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 stringResource(R.string.home_next_income_title),
@@ -273,7 +273,7 @@ private fun NextIncomeCard(item: UpcomingIncome, state: HomeUiState, onClick: ()
 @Composable
 private fun UpcomingBillsCard(state: HomeUiState, onClick: () -> Unit) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    YuzuCard(modifier = Modifier.clickable(onClick = onClick)) {
+    MoneaCard(modifier = Modifier.clickable(onClick = onClick)) {
         Text(stringResource(R.string.home_bills_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
         state.upcomingBills.forEachIndexed { index, item ->
@@ -284,7 +284,7 @@ private fun UpcomingBillsCard(state: HomeUiState, onClick: () -> Unit) {
                     Text(
                         formatFullDate(item.bill.dueDate),
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (item.status == BillStatus.OVERDUE) MaterialTheme.yuzu.expense else muted,
+                        color = if (item.status == BillStatus.OVERDUE) MaterialTheme.monea.expense else muted,
                     )
                 }
                 if (item.status == BillStatus.OVERDUE) {
@@ -375,9 +375,9 @@ private fun BalanceCard(
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val negative = state.balance < 0
     val shownBalance = rememberCountUp(state.balance)
-    val amountColor = if (negative) MaterialTheme.yuzu.expense else MaterialTheme.colorScheme.onSurface
+    val amountColor = if (negative) MaterialTheme.monea.expense else MaterialTheme.colorScheme.onSurface
 
-    YuzuCard {
+    MoneaCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = stringResource(R.string.home_balance_label),
@@ -414,7 +414,7 @@ private fun BalanceCard(
                     if (state.saved > 0L) R.string.home_reserved_warning else R.string.home_negative_warning,
                 ),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.yuzu.expense,
+                color = MaterialTheme.monea.expense,
             )
         }
 
@@ -431,7 +431,7 @@ private fun BalanceCard(
                 Icon(
                     Icons.Rounded.Savings,
                     contentDescription = null,
-                    tint = MaterialTheme.yuzu.income,
+                    tint = MaterialTheme.monea.income,
                     modifier = Modifier.size(20.dp),
                 )
                 Text(
@@ -449,7 +449,7 @@ private fun BalanceCard(
                 text = stringResource(R.string.home_free) + ": " +
                     if (visible) MoneyFormatter.format(state.freeEstimate, currency) else "••••••",
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (state.freeEstimate < 0) MaterialTheme.yuzu.expense else muted,
+                color = if (state.freeEstimate < 0) MaterialTheme.monea.expense else muted,
             )
         }
 
@@ -468,7 +468,7 @@ private fun BalanceCard(
 
 @Composable
 private fun ShortcutsCard(onQuickAction: (QuickAction) -> Unit) {
-    YuzuCard(contentPadding = PaddingValues(horizontal = 12.dp, vertical = 20.dp)) {
+    MoneaCard(contentPadding = PaddingValues(horizontal = 12.dp, vertical = 20.dp)) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -513,7 +513,7 @@ private fun ShortcutsCard(onQuickAction: (QuickAction) -> Unit) {
 /** Invitación a registrar el primer movimiento, con el estilo del banner verde de la referencia. */
 @Composable
 private fun EmptyBanner(onRegister: () -> Unit) {
-    val colors = MaterialTheme.yuzu
+    val colors = MaterialTheme.monea
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -597,14 +597,14 @@ private fun MascotCard(state: HomeUiState) {
 
 @Composable
 private fun MonthSummaryCard(state: HomeUiState) {
-    val colors = MaterialTheme.yuzu
+    val colors = MaterialTheme.monea
     val currency = state.currency
     val income = state.monthIncome
     val expense = state.monthExpense
     // La proporción solo sirve para dibujar la barra y el porcentaje; los importes son enteros.
     val percent = if (income > 0) ((expense * 100) / income).toInt().coerceIn(0, 100) else 0
 
-    YuzuCard {
+    MoneaCard {
         Text(
             text = stringResource(R.string.home_month_title),
             style = MaterialTheme.typography.titleMedium,
@@ -710,7 +710,7 @@ private fun RecentMovementsCard(
     onSeeAll: () -> Unit,
     onEdit: (Long) -> Unit,
 ) {
-    YuzuCard {
+    MoneaCard {
         SectionHeader(
             title = stringResource(R.string.home_recent_title),
             actionLabel = stringResource(R.string.home_see_all),
@@ -725,7 +725,7 @@ private fun RecentMovementsCard(
 
 @Composable
 private fun RecentRow(item: MovementItem, state: HomeUiState, onClick: () -> Unit) {
-    val colors = MaterialTheme.yuzu
+    val colors = MaterialTheme.monea
     val isIncome = item.type == TransactionType.INCOME
     val subtitle = if (item.isInternal) {
         "${stringResource(R.string.home_internal_transfer)} · ${dayLabel(item.date)}"

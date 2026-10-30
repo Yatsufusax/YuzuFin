@@ -26,5 +26,5 @@
     <string name="voucher_row_user">Registrado por</string>
     <string name="voucher_attachments">Comprobantes adjuntos (%1$d)</string>
     <string name="voucher_no_attachments">Sin fotos adjuntas</string>
-    <string name="voucher_footer_note">Comprobante personal generado por YuzuFin a partir de tus propios registros.\nNo es una factura ni tiene validez fiscal.</string>
+    <string name="voucher_footer_note">Comprobante personal generado por Monea a partir de tus propios registros.\nNo es una factura ni tiene validez fiscal.</string>
 </resources>

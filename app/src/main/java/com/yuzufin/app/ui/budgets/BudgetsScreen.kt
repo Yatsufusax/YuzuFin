@@ -39,7 +39,7 @@ import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.common.categoryIcon
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.ScreenHeader
-import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.components.MoneaCard
 import com.yuzufin.app.ui.stats.ProgressBar
 import com.yuzufin.app.ui.stats.budgetColor
 import kotlinx.coroutines.flow.combine
@@ -104,7 +104,7 @@ fun BudgetsScreen(contentPadding: PaddingValues, onBack: () -> Unit, modifier: M
             current.categories.forEach { category ->
                 val limit = current.limits[category.id]
                 val spent = current.spent[category.id] ?: 0L
-                YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+                MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         IconBadge(icon = categoryIcon(category.iconKey), size = 40.dp)
                         Column(modifier = Modifier.weight(1f)) {

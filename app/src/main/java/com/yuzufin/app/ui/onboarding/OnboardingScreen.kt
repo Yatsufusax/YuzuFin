@@ -54,7 +54,7 @@ import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.Mascot
 import com.yuzufin.app.ui.components.MascotPose
 import com.yuzufin.app.ui.components.mascotForCurrency
-import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.components.MoneaCard
 import com.yuzufin.app.ui.theme.Forest
 import com.yuzufin.app.ui.theme.MintTile
 import java.time.LocalDate
@@ -101,7 +101,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                         .background(MintTile),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("Y", color = Forest, style = MaterialTheme.typography.titleMedium)
+                    Text("M", color = Forest, style = MaterialTheme.typography.titleMedium)
                 }
                 Text(
                     text = stringResource(R.string.onboarding_step, state.step + 1, 2),
@@ -207,7 +207,7 @@ private fun CurrencyStep(state: OnboardingState, viewModel: OnboardingViewModel)
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    YuzuCard(contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 8.dp)) {
+    MoneaCard(contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 8.dp)) {
         CurrencyInfo.supported.forEach { currency ->
             val selected = currency.code == state.currency.code
             Row(

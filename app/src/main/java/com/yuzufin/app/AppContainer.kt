@@ -46,7 +46,7 @@ class AppContainer(context: Context) {
     val appVersion: AppVersion by lazy { AppVersion.read(appContext) }
 }
 
-class YuzuFinApplication : Application() {
+class MoneaApplication : Application() {
     lateinit var container: AppContainer
         private set
 
@@ -58,4 +58,4 @@ class YuzuFinApplication : Application() {
 
 @Composable
 fun rememberAppContainer(): AppContainer =
-    (LocalContext.current.applicationContext as YuzuFinApplication).container
+    (LocalContext.current.applicationContext as MoneaApplication).container

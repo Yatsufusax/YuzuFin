@@ -13,8 +13,8 @@
     <string name="backup_restored_title">Copia restaurada</string>
     <string name="backup_restored_body">La app se va a reiniciar para cargar los datos. Si no se vuelve a abrir sola, abrila de nuevo.</string>
     <string name="backup_restored_action">Reiniciar</string>
-    <string name="backup_error_not_backup">Ese archivo no es una copia de YuzuFin.</string>
-    <string name="backup_error_too_new">Esa copia es de una versión más nueva de la app. Actualizá YuzuFin y probá de nuevo.</string>
+    <string name="backup_error_not_backup">Ese archivo no es una copia de Monea.</string>
+    <string name="backup_error_too_new">Esa copia es de una versión más nueva de la app. Actualizá Monea y probá de nuevo.</string>
     <string name="backup_error_corrupt">La copia está dañada: no se restauró nada.</string>
     <string name="backup_error_failed">No se pudo restaurar. Cerrá y volvé a abrir la app; tus datos anteriores se conservan.</string>
 

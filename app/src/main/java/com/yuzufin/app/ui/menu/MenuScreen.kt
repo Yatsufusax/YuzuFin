@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.yuzufin.app.R
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.ScreenHeader
-import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.components.MoneaCard
 import com.yuzufin.app.ui.navigation.Destination
 
 private data class MenuEntry(
@@ -70,7 +70,7 @@ fun MenuScreen(
     ) {
         ScreenHeader(title = stringResource(R.string.menu_title))
 
-        YuzuCard(
+        MoneaCard(
             modifier = Modifier.padding(horizontal = 16.dp),
             contentPadding = PaddingValues(vertical = 8.dp),
         ) {

@@ -59,7 +59,7 @@ object NotificationHelper {
             PendingIntent.getActivity(context, id, it, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         }
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_stat_yuzu)
+            .setSmallIcon(R.drawable.ic_stat_monea)
             .setContentTitle(title)
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))

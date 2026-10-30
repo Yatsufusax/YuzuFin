@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.yuzufin.app.R
-import com.yuzufin.app.YuzuFinApplication
+import com.yuzufin.app.MoneaApplication
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.data.DueNotice
@@ -24,7 +24,7 @@ import java.time.YearMonth
 class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val container = (applicationContext as YuzuFinApplication).container
+        val container = (applicationContext as MoneaApplication).container
         return try {
             val income = container.incomeRepository
             val today = LocalDate.now()

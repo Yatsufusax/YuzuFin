@@ -19,15 +19,15 @@ class UpdateCheckerTest {
 
     @Test fun lee_una_release_con_apk() {
         val json = """
-            {"tag_name":"build-15","name":"YuzuFin 0.2.15","body":" Mejoras \n",
+            {"tag_name":"build-15","name":"Monea 0.2.15","body":" Mejoras \n",
              "assets":[
                {"name":"notas.txt","browser_download_url":"https://x/notas.txt","size":10},
-               {"name":"YuzuFin-0.2.15.apk","browser_download_url":"https://x/app.apk","size":4096}
+               {"name":"Monea-0.2.15.apk","browser_download_url":"https://x/app.apk","size":4096}
              ]}
         """.trimIndent()
         val info = UpdateChecker.parseRelease(json)!!
         assertEquals(15L, info.buildNumber)
-        assertEquals("YuzuFin 0.2.15", info.versionName)
+        assertEquals("Monea 0.2.15", info.versionName)
         assertEquals("Mejoras", info.notes)
         assertEquals("https://x/app.apk", info.downloadUrl)
         assertEquals(4096L, info.sizeBytes)
@@ -50,7 +50,7 @@ class UpdateCheckerTest {
         assertEquals("0.2.7", info.versionName)
         assertEquals(7L, info.buildNumber)
         assertEquals(
-            "https://github.com/Yatsufusax/YuzuFin/releases/download/build-7/YuzuFin-0.2.7.apk",
+            "https://github.com/Yatsufusax/YuzuFin/releases/download/build-7/Monea-0.2.7.apk",
             info.downloadUrl,
         )
         assertEquals("0.2.9", UpdateChecker.fallbackInfo("a/b", "0.2.0-local", 9L).versionName)

@@ -48,7 +48,7 @@ import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.data.update.ApkInstaller
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.components.ScreenHeader
-import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.components.MoneaCard
 import com.yuzufin.app.ui.update.UpdateState
 import com.yuzufin.app.ui.update.UpdateViewModel
 import androidx.compose.ui.platform.LocalContext
@@ -108,7 +108,7 @@ fun SettingsScreen(
 
         BackupCard(modifier = Modifier.padding(horizontal = 16.dp))
 
-        YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+        MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text(stringResource(R.string.settings_app_title), style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
             Text(
@@ -191,7 +191,7 @@ fun SettingsScreen(
             )
         }
 
-        YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+        MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
             Text(stringResource(R.string.coming_soon_features_title), style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
             stringArrayResource(R.array.settings_features).forEach { feature ->
@@ -226,7 +226,7 @@ private fun NameCard(
     var text by remember(savedName, loaded) { mutableStateOf(savedName) }
     var justSaved by remember { mutableStateOf(false) }
 
-    YuzuCard(modifier = modifier) {
+    MoneaCard(modifier = modifier) {
         Text(stringResource(R.string.settings_name_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -268,7 +268,7 @@ private fun RemindersCard(
 ) {
     val permission = rememberNotificationPermission()
 
-    YuzuCard(modifier = modifier) {
+    MoneaCard(modifier = modifier) {
         Text(stringResource(R.string.settings_reminders_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
 

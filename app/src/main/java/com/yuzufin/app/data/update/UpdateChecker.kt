@@ -51,7 +51,7 @@ class UpdateChecker(private val repo: String = UpdateConfig.GITHUB_REPO) {
             connection.connectTimeout = 10_000
             connection.readTimeout = 15_000
             connection.setRequestProperty("Accept", "application/vnd.github+json")
-            connection.setRequestProperty("User-Agent", "YuzuFin-Android")
+            connection.setRequestProperty("User-Agent", "Monea-Android")
             when (val code = connection.responseCode) {
                 HttpURLConnection.HTTP_OK ->
                     parseRelease(connection.inputStream.bufferedReader().use { it.readText() })
@@ -76,7 +76,7 @@ class UpdateChecker(private val repo: String = UpdateConfig.GITHUB_REPO) {
             connection.requestMethod = "HEAD"
             connection.connectTimeout = 10_000
             connection.readTimeout = 15_000
-            connection.setRequestProperty("User-Agent", "YuzuFin-Android")
+            connection.setRequestProperty("User-Agent", "Monea-Android")
             when (val code = connection.responseCode) {
                 301, 302, 303, 307, 308 ->
                     connection.getHeaderField("Location")?.let(::parseBuildFromLocation)
@@ -121,7 +121,7 @@ class UpdateChecker(private val repo: String = UpdateConfig.GITHUB_REPO) {
                 versionName = name,
                 buildNumber = build,
                 notes = "",
-                downloadUrl = "https://github.com/$repo/releases/download/build-$build/YuzuFin-$name.apk",
+                downloadUrl = "https://github.com/$repo/releases/download/build-$build/Monea-$name.apk",
                 sizeBytes = 0L,
             )
         }

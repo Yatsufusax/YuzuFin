@@ -55,7 +55,7 @@ import com.yuzufin.app.ui.common.categoryIcon
 import com.yuzufin.app.ui.common.categoryIconKeys
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.ScreenHeader
-import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.components.MoneaCard
 import kotlinx.coroutines.launch
 
 /** Gestión de categorías: crear, renombrar, cambiar ícono, archivar/restaurar y eliminar si no se usan. */
@@ -180,7 +180,7 @@ fun CategoriesScreen(contentPadding: PaddingValues, onBack: () -> Unit, modifier
 
 @Composable
 private fun CategoryRow(category: Category, onEdit: () -> Unit, onToggleArchive: () -> Unit, onDelete: () -> Unit) {
-    YuzuCard(
+    MoneaCard(
         modifier = Modifier.padding(horizontal = 16.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
     ) {

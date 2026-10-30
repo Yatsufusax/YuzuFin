@@ -2,7 +2,7 @@
 <resources>
 
     <!-- Tema base (claro). La interfaz real se pinta con Compose / Material 3. -->
-    <style name="Theme.YuzuFin" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.Monea" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/window_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
@@ -10,12 +10,12 @@
 
     <!--
         Splash del sistema: solo el fondo verde oscuro, sin icono.
-        Así el paso a la splash animada de Compose (billetera que se abre) es continuo.
+        Así el paso a la splash animada de Compose (el logo de Monea que aparece) es continuo.
     -->
-    <style name="Theme.YuzuFin.Starting" parent="Theme.SplashScreen">
+    <style name="Theme.Monea.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_empty</item>
-        <item name="postSplashScreenTheme">@style/Theme.YuzuFin</item>
+        <item name="postSplashScreenTheme">@style/Theme.Monea</item>
     </style>
 
 </resources>

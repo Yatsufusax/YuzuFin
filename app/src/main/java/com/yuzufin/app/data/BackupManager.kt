@@ -116,7 +116,7 @@ class BackupManager(
 
             val meta = manifest
             val prefsText = settingsJson
-            if (meta == null || meta.optString("app") != APP_ID || !haveDb || prefsText == null) {
+            if (meta == null || meta.optString("app") !in setOf(APP_ID, LEGACY_APP_ID) || !haveDb || prefsText == null) {
                 return@withContext RestoreResult.NOT_A_BACKUP
             }
             runCatching { JSONObject(prefsText) }.getOrNull() ?: return@withContext RestoreResult.NOT_A_BACKUP
@@ -227,7 +227,9 @@ class BackupManager(
 
     companion object {
         const val DB_NAME = "yuzufin.db"
-        private const val APP_ID = "YuzuFin"
+        private const val APP_ID = "Monea"
+        /** Las copias hechas cuando la app se llamaba YuzuFin se siguen aceptando. */
+        private const val LEGACY_APP_ID = "YuzuFin"
         private const val FORMAT = 1
         private const val MANIFEST = "manifest.json"
         private const val SETTINGS = "settings.json"

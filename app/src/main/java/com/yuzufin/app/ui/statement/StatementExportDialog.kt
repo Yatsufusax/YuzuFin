@@ -197,7 +197,7 @@ private suspend fun generate(
     dir.mkdirs()
     dir.listFiles()?.forEach { it.delete() }
     val stamp = DateTimeFormatter.ofPattern("yyyyMMdd")
-    val file = File(dir, "Extracto-YuzuFin-${statement.from.format(stamp)}-${statement.to.format(stamp)}.pdf")
+    val file = File(dir, "Extracto-Monea-${statement.from.format(stamp)}-${statement.to.format(stamp)}.pdf")
 
     StatementPdfWriter(context).write(
         statement = statement,

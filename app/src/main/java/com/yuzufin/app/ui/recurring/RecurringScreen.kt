@@ -54,7 +54,7 @@ import com.yuzufin.app.ui.common.rememberHaptic
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.ScreenHeader
 import com.yuzufin.app.ui.components.SectionHeader
-import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.components.MoneaCard
 import java.time.LocalDate
 
 /** Gastos fijos mensuales: la app te avisa cuando toca pagarlos y vos confirmás. */
@@ -99,7 +99,7 @@ fun RecurringScreen(
 
         if (!state.loading && state.rows.isEmpty()) {
             item {
-                YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+                MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
                     IconBadge(Icons.Rounded.Repeat)
                     Spacer(Modifier.height(12.dp))
                     Text(stringResource(R.string.recurring_empty_title), style = MaterialTheme.typography.titleMedium)
@@ -123,7 +123,7 @@ fun RecurringScreen(
                 )
             }
             item {
-                YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+                MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
                     state.pending.forEachIndexed { index, item ->
                         if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                         Text(item.name, style = MaterialTheme.typography.titleSmall)
@@ -156,7 +156,7 @@ fun RecurringScreen(
                 )
             }
             item {
-                YuzuCard(modifier = Modifier.padding(horizontal = 16.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
+                MoneaCard(modifier = Modifier.padding(horizontal = 16.dp), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
                     state.rows.forEachIndexed { index, row ->
                         if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Row(

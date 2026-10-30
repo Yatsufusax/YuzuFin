@@ -62,8 +62,8 @@ import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.PillLabel
 import com.yuzufin.app.ui.components.ScreenHeader
 import com.yuzufin.app.ui.components.SectionHeader
-import com.yuzufin.app.ui.components.YuzuCard
-import com.yuzufin.app.ui.theme.yuzu
+import com.yuzufin.app.ui.components.MoneaCard
+import com.yuzufin.app.ui.theme.monea
 import java.time.LocalDate
 
 /**
@@ -205,8 +205,8 @@ private fun SummaryFigure(label: Int, value: Long, currency: CurrencyInfo, color
 private fun SummaryCard(state: ObligationsUiState) {
     val currency = state.currency
     val onSurface = MaterialTheme.colorScheme.onSurface
-    val negative = MaterialTheme.yuzu.expense
-    YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+    val negative = MaterialTheme.monea.expense
+    MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             SummaryFigure(R.string.obl_available, state.spendable, currency, if (state.spendable < 0) negative else onSurface, Modifier.weight(1f))
             SummaryFigure(R.string.obl_committed, state.committed, currency, onSurface, Modifier.weight(1f))
@@ -217,7 +217,7 @@ private fun SummaryCard(state: ObligationsUiState) {
                 R.string.obl_free,
                 state.freeEstimate,
                 currency,
-                if (state.freeEstimate < 0) negative else MaterialTheme.yuzu.income,
+                if (state.freeEstimate < 0) negative else MaterialTheme.monea.income,
                 Modifier.weight(1f),
             )
             SummaryFigure(R.string.obl_net_worth, state.netWorth, currency, if (state.netWorth < 0) negative else onSurface, Modifier.weight(1f))
@@ -244,7 +244,7 @@ private fun LazyListScope.billsSection(
 ) {
     if (state.pendingBills.isEmpty()) {
         item {
-            YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+            MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
                 IconBadge(Icons.Rounded.CalendarMonth)
                 Spacer(Modifier.height(12.dp))
                 Text(stringResource(R.string.obl_bills_empty_title), style = MaterialTheme.typography.titleMedium)
@@ -268,7 +268,7 @@ private fun LazyListScope.billsSection(
             )
         }
         item {
-            YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+            MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
                 state.pendingBills.forEachIndexed { index, row ->
                     if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                     PendingBillRow(row, state.currency, onEdit = { onEditBill(row.bill.id) }, onPay = { onPay(row) })
@@ -285,7 +285,7 @@ private fun LazyListScope.billsSection(
             )
         }
         item {
-            YuzuCard(modifier = Modifier.padding(horizontal = 16.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
+            MoneaCard(modifier = Modifier.padding(horizontal = 16.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
                 state.paidBills.forEachIndexed { index, row ->
                     if (index > 0) HorizontalDivider()
                     Row(
@@ -345,7 +345,7 @@ private fun PendingBillRow(row: BillRow, currency: CurrencyInfo, onEdit: () -> U
                 Text(
                     dueText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (row.status == BillStatus.OVERDUE) MaterialTheme.yuzu.expense else muted,
+                    color = if (row.status == BillStatus.OVERDUE) MaterialTheme.monea.expense else muted,
                 )
                 if (bill.repeatDay > 0) {
                     Text(stringResource(R.string.obl_bill_repeats), style = MaterialTheme.typography.bodySmall, color = muted)
@@ -366,7 +366,7 @@ private fun LazyListScope.loansSection(
 ) {
     if (state.lent.isEmpty() && state.borrowed.isEmpty()) {
         item {
-            YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+            MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
                 IconBadge(Icons.Rounded.SwapHoriz)
                 Spacer(Modifier.height(12.dp))
                 Text(stringResource(R.string.obl_loans_empty_title), style = MaterialTheme.typography.titleMedium)
@@ -421,7 +421,7 @@ private fun LoanCard(
     val loan = row.loan
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     var expanded by rememberSaveable(loan.id) { mutableStateOf(false) }
-    YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+    MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

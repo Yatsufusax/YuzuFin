@@ -306,10 +306,10 @@ class StatementPdfWriter(private val context: Context) {
     // ---------- Dibujos ----------
 
     internal fun drawWordmark(canvas: Canvas, x: Float, baseline: Float, size: Float) {
-        val yuzu = paint(size, ink, bold = true)
-        drawText(canvas, "Yuzu", x, baseline, yuzu)
-        val width = yuzu.measureText("Yuzu")
-        drawText(canvas, "Fin", x + width, baseline, paint(size, leafLight, bold = true))
+        val first = paint(size, ink, bold = true)
+        drawText(canvas, "Mon", x, baseline, first)
+        val width = first.measureText("Mon")
+        drawText(canvas, "ea", x + width, baseline, paint(size, leafLight, bold = true))
     }
 
     internal fun drawLogo(canvas: Canvas, x: Float, y: Float, size: Float) = drawLeaves(canvas, x, y, size, soft = false)

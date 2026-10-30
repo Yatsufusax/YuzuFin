@@ -46,8 +46,8 @@ import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.PillLabel
 import com.yuzufin.app.ui.components.ScreenHeader
 import com.yuzufin.app.ui.components.SectionHeader
-import com.yuzufin.app.ui.components.YuzuCard
-import com.yuzufin.app.ui.theme.yuzu
+import com.yuzufin.app.ui.components.MoneaCard
+import com.yuzufin.app.ui.theme.monea
 
 /**
  * Cobros e ingresos fijos. Separa claramente lo real (cobrado), lo que falta confirmar y lo
@@ -65,7 +65,7 @@ fun IncomesScreen(
     val viewModel: IncomesViewModel = viewModel(factory = IncomesViewModel.factory(container))
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var confirming by remember { mutableStateOf<PendingIncome?>(null) }
-    val colors = MaterialTheme.yuzu
+    val colors = MaterialTheme.monea
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -86,7 +86,7 @@ fun IncomesScreen(
 
         if (!state.loading && state.sources.isEmpty()) {
             item {
-                YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+                MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
                     IconBadge(Icons.Rounded.AccountBalanceWallet)
                     Spacer(Modifier.height(12.dp))
                     Text(stringResource(R.string.incomes_empty_title), style = MaterialTheme.typography.titleMedium)
@@ -114,7 +114,7 @@ fun IncomesScreen(
                 )
             }
             item {
-                YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+                MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
                     state.pending.forEachIndexed { index, item ->
                         if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                         PendingIncomeRow(
@@ -144,7 +144,7 @@ fun IncomesScreen(
                 }
             }
             item {
-                YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+                MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
                     state.upcoming.forEachIndexed { index, item ->
                         if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -183,7 +183,7 @@ fun IncomesScreen(
                 )
             }
             item {
-                YuzuCard(modifier = Modifier.padding(horizontal = 16.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
+                MoneaCard(modifier = Modifier.padding(horizontal = 16.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
                     state.sources.forEachIndexed { index, row ->
                         if (index > 0) HorizontalDivider()
                         Row(
@@ -242,7 +242,7 @@ fun IncomesScreen(
                 )
             }
             item {
-                YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+                MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
                     state.history.forEachIndexed { index, row ->
                         if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -295,7 +295,7 @@ fun IncomesScreen(
 private fun NotificationPermissionCard() {
     val permission = rememberNotificationPermission()
     if (permission.granted) return
-    YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+    MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             IconBadge(Icons.Rounded.NotificationsActive, size = 40.dp)
             Column(modifier = Modifier.weight(1f)) {

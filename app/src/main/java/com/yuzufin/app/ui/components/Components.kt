@@ -44,7 +44,7 @@ import com.yuzufin.app.R
 
 /** Tarjeta blanca de esquinas redondeadas, base visual de toda la app. */
 @Composable
-fun YuzuCard(
+fun MoneaCard(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(20.dp),
     content: @Composable ColumnScope.() -> Unit,
@@ -201,7 +201,7 @@ fun ComingSoonScreen(
     ) {
         ScreenHeader(title = stringResource(titleRes), onBack = onBack)
 
-        YuzuCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+        MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
             IconBadge(icon = icon, size = 64.dp)
             Spacer(Modifier.height(16.dp))
             PillLabel(

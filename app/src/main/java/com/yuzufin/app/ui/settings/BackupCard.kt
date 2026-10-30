@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.yuzufin.app.R
 import com.yuzufin.app.data.BackupManager
 import com.yuzufin.app.rememberAppContainer
-import com.yuzufin.app.ui.components.YuzuCard
+import com.yuzufin.app.ui.components.MoneaCard
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -61,7 +61,7 @@ fun BackupCard(modifier: Modifier = Modifier) {
         if (uri != null) pendingRestore = uri
     }
 
-    YuzuCard(modifier = modifier) {
+    MoneaCard(modifier = modifier) {
         Text(stringResource(R.string.backup_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
         Text(
@@ -73,7 +73,7 @@ fun BackupCard(modifier: Modifier = Modifier) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
                 enabled = !busy,
-                onClick = { message = null; exportLauncher.launch("YuzuFin-copia-${LocalDate.now()}.zip") },
+                onClick = { message = null; exportLauncher.launch("Monea-copia-${LocalDate.now()}.zip") },
             ) { Text(stringResource(R.string.backup_create)) }
             OutlinedButton(
                 enabled = !busy,

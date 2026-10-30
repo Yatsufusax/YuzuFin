@@ -26,7 +26,7 @@
     <string name="onboarding_name_note">Es opcional. Aparece en el encabezado de tus extractos en PDF y no sale del teléfono.</string>
     <string name="onboarding_currency_title">¿Qué moneda usás?</string>
     <string name="onboarding_currency_body">Elegí la moneda con la que llevás tus cuentas.</string>
-    <string name="onboarding_currency_note">Los importes se guardan en esta moneda. YuzuFin no convierte entre monedas.</string>
+    <string name="onboarding_currency_note">Los importes se guardan en esta moneda. Monea no convierte entre monedas.</string>
     <string name="onboarding_start_title">¿Desde dónde empezamos?</string>
     <string name="onboarding_mode_today">Empezar desde hoy</string>
     <string name="onboarding_mode_today_body">Contanos cuánto dinero tenés ahora. Lo anotamos como tu saldo inicial.</string>
@@ -93,7 +93,7 @@
     <string name="settings_update_install">Instalar</string>
     <string name="settings_update_privacy">Solo consulta para ver si hay una versión nueva. No se envía ningún dato de tus finanzas.</string>
     <string name="update_forced_title">Hay una versión nueva</string>
-    <string name="update_forced_body">Para seguir usando YuzuFin tenés que actualizar a la versión %1$s. Tus datos se conservan.</string>
+    <string name="update_forced_body">Para seguir usando Monea tenés que actualizar a la versión %1$s. Tus datos se conservan.</string>
     <string name="update_whats_new">Qué hay de nuevo</string>
     <string name="update_forced_preparing">Preparando la descarga…</string>
     <string name="update_forced_ready">Listo. Android te pide confirmar la instalación; la primera vez también te pide permiso. Si no se abrió, tocá el botón.</string>

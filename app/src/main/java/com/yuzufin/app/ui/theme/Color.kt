@@ -90,7 +90,7 @@ internal val DarkColors = darkColorScheme(
 // Colores propios de la app que Material 3 no cubre.
 // ---------------------------------------------------------------------------
 @Immutable
-data class YuzuColors(
+data class MoneaColors(
     /** Verde de los ingresos y saldos positivos. */
     val income: Color,
     /** Rojo moderado de gastos, alertas y saldos negativos. */
@@ -106,7 +106,7 @@ data class YuzuColors(
     val onStrongButton: Color,
 )
 
-internal val LightYuzuColors = YuzuColors(
+internal val LightMoneaColors = MoneaColors(
     income = Color(0xFF0F8A5A),
     expense = Color(0xFFD14343),
     headerTop = Color(0xFF30DA8B),
@@ -117,7 +117,7 @@ internal val LightYuzuColors = YuzuColors(
     onStrongButton = Color.White,
 )
 
-internal val DarkYuzuColors = YuzuColors(
+internal val DarkMoneaColors = MoneaColors(
     income = Color(0xFF3DDC97),
     expense = Color(0xFFFF8A84),
     headerTop = Color(0xFF0F3D2E),
@@ -128,10 +128,10 @@ internal val DarkYuzuColors = YuzuColors(
     onStrongButton = Color(0xFF0B1714),
 )
 
-internal val LocalYuzuColors = staticCompositionLocalOf { LightYuzuColors }
+internal val LocalMoneaColors = staticCompositionLocalOf { LightMoneaColors }
 
-/** Acceso cómodo: `MaterialTheme.yuzu.income`. */
-val MaterialTheme.yuzu: YuzuColors
+/** Acceso cómodo: `MaterialTheme.monea.income`. */
+val MaterialTheme.monea: MoneaColors
     @Composable
     @ReadOnlyComposable
-    get() = LocalYuzuColors.current
+    get() = LocalMoneaColors.current

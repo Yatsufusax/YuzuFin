@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.sp
  * Tipografía del sistema (legible y sin descargas). Solo se ajustan los estilos
  * que más se usan: cifras grandes, títulos de sección y etiquetas.
  */
-internal val YuzuTypography = Typography(
+internal val MoneaTypography = Typography(
     displaySmall = TextStyle(
         fontWeight = FontWeight.SemiBold,
         fontSize = 38.sp,

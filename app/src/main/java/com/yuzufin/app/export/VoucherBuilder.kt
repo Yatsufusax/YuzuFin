@@ -32,7 +32,7 @@ class VoucherBuilder(
             dir.mkdirs()
             dir.listFiles()?.forEach { it.delete() }
             val stamp = DateTimeFormatter.ofPattern("yyyyMMdd").format(transaction.date)
-            val file = File(dir, "Comprobante-YuzuFin-$stamp-$transactionId.pdf")
+            val file = File(dir, "Comprobante-Monea-$stamp-$transactionId.pdf")
             VoucherPdfWriter(context, attachments.files).write(
                 VoucherData(
                     transactionId = transactionId,
