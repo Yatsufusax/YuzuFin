@@ -49,6 +49,9 @@ import com.yuzufin.app.R
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.rememberAppContainer
+import com.yuzufin.app.ui.settings.AppearanceCard
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import com.yuzufin.app.ui.components.DateField
 import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.Mascot
@@ -117,9 +120,13 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
             MascotHeader(state)
 
             if (state.step == 0) {
+                // Quien viene de otro teléfono puede restaurar su copia antes de completar nada.
+                RestoreBackupCard()
                 CurrencyStep(state, viewModel)
+                ThemeStep()
             } else {
                 StartStep(state, viewModel)
+                RestoreBackupCard()
             }
         }
 
@@ -235,6 +242,31 @@ private fun CurrencyStep(state: OnboardingState, viewModel: OnboardingViewModel)
         stringResource(R.string.onboarding_currency_note),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+/**
+ * Elegir el color (y claro u oscuro) de la app desde el principio. Se guarda al tocar, así que
+ * toda la pantalla cambia de color en el momento y se ve cómo queda.
+ */
+@Composable
+private fun ThemeStep() {
+    val repository = rememberAppContainer().settingsRepository
+    val settings by repository.settings.collectAsStateWithLifecycle(initialValue = null)
+    val scope = rememberCoroutineScope()
+    val current = settings ?: return
+
+    Text(stringResource(R.string.onboarding_theme_title), style = MaterialTheme.typography.headlineSmall)
+    Text(
+        stringResource(R.string.onboarding_theme_body),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    AppearanceCard(
+        palette = current.themePalette,
+        mode = current.themeMode,
+        onPaletteChange = { value -> scope.launch { repository.setThemePalette(value) } },
+        onModeChange = { value -> scope.launch { repository.setThemeMode(value) } },
     )
 }
 

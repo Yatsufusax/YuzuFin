@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.domain.AppSettings
@@ -30,6 +32,7 @@ class SettingsRepository(private val context: Context) {
             showAmountsInNotifications = prefs[SHOW_AMOUNTS] ?: false,
             themePalette = ThemePalette.fromName(prefs[THEME_PALETTE]),
             themeMode = ThemeMode.fromName(prefs[THEME_MODE]),
+            dismissedHints = prefs[DISMISSED_HINTS] ?: emptySet(),
         )
     }
 
@@ -92,6 +95,29 @@ class SettingsRepository(private val context: Context) {
         }
     }
 
+    /** Marca un consejo del monito como visto, para que no vuelva a aparecer. */
+    suspend fun dismissHint(id: String) {
+        context.settingsDataStore.edit { prefs -> prefs[DISMISSED_HINTS] = (prefs[DISMISSED_HINTS] ?: emptySet()) + id }
+    }
+
+    /** Vuelve a mostrar todos los consejos. */
+    suspend fun resetHints() {
+        context.settingsDataStore.edit { prefs -> prefs.remove(DISMISSED_HINTS) }
+    }
+
+    /**
+     * Guarda el día (epoch day) en que se abrió la app y devuelve el día de la vez anterior,
+     * o 0 si es la primera. Sirve para saber cuántos días pasaron sin entrar.
+     */
+    suspend fun markOpened(epochDay: Long): Long {
+        var previous = 0L
+        context.settingsDataStore.edit { prefs ->
+            previous = prefs[LAST_OPEN_DAY] ?: 0L
+            prefs[LAST_OPEN_DAY] = epochDay
+        }
+        return previous
+    }
+
     suspend fun setThemePalette(palette: ThemePalette) {
         context.settingsDataStore.edit { prefs -> prefs[THEME_PALETTE] = palette.name }
     }
@@ -111,5 +137,7 @@ class SettingsRepository(private val context: Context) {
         private val SHOW_AMOUNTS = booleanPreferencesKey("show_amounts_in_notifications")
         private val THEME_PALETTE = stringPreferencesKey("theme_palette")
         private val THEME_MODE = stringPreferencesKey("theme_mode")
+        private val DISMISSED_HINTS = stringSetPreferencesKey("dismissed_hints")
+        private val LAST_OPEN_DAY = longPreferencesKey("last_open_day")
     }
 }

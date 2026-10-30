@@ -138,7 +138,7 @@ private fun formatSize(bytes: Long): String =
     if (bytes >= 1024 * 1024) String.format(java.util.Locale.forLanguageTag("es"), "%.1f MB", bytes / (1024.0 * 1024.0))
     else String.format(java.util.Locale.forLanguageTag("es"), "%d KB", (bytes / 1024).coerceAtLeast(1))
 
-private fun closeApp(context: Context) {
+internal fun closeApp(context: Context) {
     val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)
         ?.apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK) }
     if (launch != null) context.startActivity(launch)

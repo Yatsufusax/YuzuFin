@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.components.MascotPose
+import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.OccurrenceStatus
 import com.yuzufin.app.rememberAppContainer
@@ -81,6 +83,15 @@ fun IncomesScreen(
                         Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.income_add))
                     }
                 },
+            )
+        }
+        item {
+            HintCard(
+                hintId = "incomes",
+                titleRes = R.string.hint_incomes_title,
+                bodyRes = R.string.hint_incomes_body,
+                pose = MascotPose.COIN_HUG,
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
 

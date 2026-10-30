@@ -41,6 +41,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.components.MascotPose
+import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.BudgetLevel
@@ -74,6 +76,13 @@ fun StatsScreen(
         ScreenHeader(title = stringResource(R.string.menu_stats), onBack = onBack)
         if (state.loading) return@Column
         val side = Modifier.padding(horizontal = 16.dp)
+        HintCard(
+            hintId = "stats",
+            titleRes = R.string.hint_stats_title,
+            bodyRes = R.string.hint_stats_body,
+            pose = MascotPose.PROGRESS,
+            modifier = side,
+        )
 
         MonthSelector(state, onPreviousMonth, onNextMonth, side)
         SummaryCard(state, side)

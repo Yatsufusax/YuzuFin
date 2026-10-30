@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.TransactionType
 import com.yuzufin.app.rememberAppContainer
@@ -106,6 +107,15 @@ fun MovementsScreen(
                         )
                     }
                 },
+            )
+        }
+        item {
+            HintCard(
+                hintId = "movements",
+                titleRes = R.string.hint_movements_title,
+                bodyRes = R.string.hint_movements_body,
+                pose = MascotPose.WONDER,
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
 
@@ -415,7 +425,7 @@ private fun EmptyMovements(hasAnyMovements: Boolean, onNewMovement: () -> Unit) 
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Mascot(if (hasAnyMovements) MascotPose.WONDER else MascotPose.INCOME, size = 130.dp)
+        Mascot(if (hasAnyMovements) MascotPose.WONDER else MascotPose.COIN_HUG, size = 130.dp)
         Text(
             text = stringResource(
                 if (hasAnyMovements) R.string.movements_empty_filtered else R.string.movements_empty,

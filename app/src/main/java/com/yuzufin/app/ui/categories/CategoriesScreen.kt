@@ -46,6 +46,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.components.MascotPose
+import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.data.CategorySaveResult
 import com.yuzufin.app.domain.Category
 import com.yuzufin.app.domain.LOAN_ICON_KEY
@@ -81,6 +83,13 @@ fun CategoriesScreen(contentPadding: PaddingValues, onBack: () -> Unit, modifier
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         ScreenHeader(title = stringResource(R.string.categories_title), onBack = onBack)
+        HintCard(
+            hintId = "categories",
+            titleRes = R.string.hint_categories_title,
+            bodyRes = R.string.hint_categories_body,
+            pose = MascotPose.CONTROL,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
         Text(
             stringResource(R.string.categories_intro),
             style = MaterialTheme.typography.bodyMedium,

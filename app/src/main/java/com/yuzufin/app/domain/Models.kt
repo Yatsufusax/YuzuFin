@@ -56,4 +56,6 @@ data class AppSettings(
     val themePalette: ThemePalette = ThemePalette.GREEN,
     /** Claro, oscuro o el del teléfono. */
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    /** Consejos del monito que la persona ya cerró con “Entendido”. */
+    val dismissedHints: Set<String> = emptySet(),
 )

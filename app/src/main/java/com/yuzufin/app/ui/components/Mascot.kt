@@ -36,36 +36,51 @@ import androidx.compose.ui.unit.dp
 import com.yuzufin.app.R
 import kotlinx.coroutines.launch
 
-/** Las poses del monito. Cada una es una imagen con fondo transparente en res/drawable-nodpi. */
+/**
+ * Las poses del monito. Cada una es una imagen con fondo transparente en res/drawable-nodpi.
+ * El comentario de cada una dice cuándo aparece.
+ */
 enum class MascotPose(@DrawableRes val res: Int) {
-    SAVING(R.drawable.mascot_ahorrando),
-    PIGGY(R.drawable.mascot_guarda_dinero),
-    INCOME(R.drawable.mascot_registrando_ingreso),
-    EXPENSES(R.drawable.mascot_sumando_gastos),
-    PROGRESS(R.drawable.mascot_viendo_progreso),
-    PLANNING(R.drawable.mascot_planificando),
-    GOALS(R.drawable.mascot_organizando_metas),
-    CELEBRATE(R.drawable.mascot_lo_lograste),
-    WALLET(R.drawable.mascot_cargando_billetera),
-    NOTIFICATION(R.drawable.mascot_notificaciones),
-    WONDER(R.drawable.mascot_en_que_gasto),
-    CALM(R.drawable.mascot_respiro),
-    TARGET(R.drawable.mascot_cumpliendo_objetivos),
-    COINS(R.drawable.mascot_sumando_ahorros),
-    MONEY_RAIN(R.drawable.mascot_ingresos),
-    SAVINGS_GOAL(R.drawable.mascot_metas_ahorro),
-    PAYING(R.drawable.mascot_pagando_cuentas),
-    CONTROL(R.drawable.mascot_controlando_gastos),
-    MOTIVATION(R.drawable.mascot_motivacion),
-    FUTURE(R.drawable.mascot_futuro),
-    ADVANCING(R.drawable.mascot_avanzando),
-    AUTO_SAVING(R.drawable.mascot_ahorro_automatico),
-    GO(R.drawable.mascot_vamos),
-    SMALL_STEPS(R.drawable.mascot_pequenos_esfuerzos),
-    DREAMS(R.drawable.mascot_suenos),
-    MATE(R.drawable.mascot_mate_argentina),
-    COFFEE(R.drawable.mascot_cafe),
-    TERERE(R.drawable.mascot_terere_paraguay),
+    /** Al entrar a la app sin novedades: arranque del mes. */
+    WELCOME(R.drawable.monito_bienvenida),
+    /** Hace muchos días que no abrías la app. */
+    MISSED_YOU(R.drawable.monito_te_extrana),
+    /** Se te acabó la plata (saldo negativo). */
+    BROKE(R.drawable.monito_sin_plata),
+    /** Tenés plata de sobra este mes. */
+    RICH(R.drawable.monito_con_plata),
+    /** Gastaste más de lo que ingresó. */
+    OVERSPENT(R.drawable.monito_gasto_de_mas),
+    /** Meta cumplida. */
+    GOAL_DONE(R.drawable.monito_objetivo),
+    /** Estás ahorrando. */
+    SAVING(R.drawable.monito_ahorrando),
+    /** Alcancía: metas de ahorro vacías. */
+    PIGGY(R.drawable.monito_alcancia),
+    /** Abrazando una moneda: primer ingreso o pantalla vacía. */
+    COIN_HUG(R.drawable.monito_moneda),
+    /** ¿En qué gasto? Movimientos sin resultados. */
+    WONDER(R.drawable.monito_en_que_gasto),
+    /** Controlando gastos. */
+    CONTROL(R.drawable.monito_control),
+    /** Billetera junto al presupuesto. */
+    BUDGET(R.drawable.monito_presupuesto),
+    /** Pagando cuentas. */
+    PAYING(R.drawable.monito_pagando),
+    /** Aviso de la campanita. */
+    NOTIFICATION(R.drawable.monito_notificaciones),
+    /** Planificando con la compu. */
+    PLANNING(R.drawable.monito_planificando),
+    /** Progreso del mes. */
+    PROGRESS(R.drawable.monito_progreso),
+    /** Consejo del día. */
+    TIP(R.drawable.monito_sugerencias),
+    /** Preguntas: centro de ayuda. */
+    QUESTION(R.drawable.monito_preguntas),
+    /** Configuración inicial según la moneda. */
+    MATE(R.drawable.monito_mate),
+    COFFEE(R.drawable.monito_cafe),
+    TERERE(R.drawable.monito_terere),
 }
 
 /** Guaraníes: tereré con la camiseta de Paraguay. Pesos: mate con la de Argentina. Otras monedas: café. */

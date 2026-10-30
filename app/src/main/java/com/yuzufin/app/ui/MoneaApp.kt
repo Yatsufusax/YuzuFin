@@ -5,6 +5,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.time.LocalDate
 import com.yuzufin.app.domain.ThemeMode
 import com.yuzufin.app.domain.ThemePalette
 import com.yuzufin.app.rememberAppContainer
@@ -33,6 +35,17 @@ fun MoneaApp() {
     val systemDark = isSystemInDarkTheme()
     val container = rememberAppContainer()
     val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
+
+    // Cuántos días pasaron desde la última vez que se abrió la app (para el monito de Inicio).
+    // Se calcula una sola vez por proceso: al rotar la pantalla no se pisa.
+    LaunchedEffect(Unit) {
+        if (!container.sessionInfo.checked) {
+            container.sessionInfo.checked = true
+            val today = LocalDate.now().toEpochDay()
+            val previous = container.settingsRepository.markOpened(today)
+            container.sessionInfo.daysAway = if (previous > 0L) (today - previous).toInt().coerceAtLeast(0) else 0
+        }
+    }
     val darkTheme = when (settings?.themeMode ?: ThemeMode.SYSTEM) {
         ThemeMode.SYSTEM -> systemDark
         ThemeMode.LIGHT -> false

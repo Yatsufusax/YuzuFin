@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.PieChart
 import androidx.compose.material.icons.rounded.Repeat
@@ -54,6 +55,7 @@ private val menuEntries = listOf(
     MenuEntry(Destination.Stats, R.string.menu_stats, R.string.menu_stats_desc, Icons.Rounded.BarChart),
     MenuEntry(Destination.Budgets, R.string.menu_budgets, R.string.menu_budgets_desc, Icons.Rounded.PieChart),
     MenuEntry(Destination.Categories, R.string.menu_categories, R.string.menu_categories_desc, Icons.Rounded.Category),
+    MenuEntry(Destination.Help, R.string.menu_help, R.string.menu_help_desc, Icons.Rounded.Info),
     MenuEntry(Destination.Settings, R.string.menu_settings, R.string.menu_settings_desc, Icons.Rounded.Settings),
 )
 

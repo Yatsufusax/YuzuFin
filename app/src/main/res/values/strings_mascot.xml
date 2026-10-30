@@ -3,10 +3,12 @@
     <string name="mascot_greet_morning">¡Buen día%1$s!</string>
     <string name="mascot_greet_afternoon">¡Buenas tardes%1$s!</string>
     <string name="mascot_greet_night">¡Buenas noches%1$s!</string>
-    <string name="mascot_msg_negative">Ojo, tu saldo está en negativo. ¿Revisamos en qué se fue?</string>
+    <string name="mascot_msg_negative">Se acabó la plata: tu saldo está en negativo. ¿Revisamos en qué se fue?</string>
     <string name="mascot_msg_pending">Tenés un cobro esperando tu confirmación.</string>
     <string name="mascot_msg_empty_month">Todavía no anotaste nada este mes. ¡Empecemos!</string>
     <string name="mascot_msg_good">Vas bien: este mes gastaste menos de lo que ingresó.</string>
+    <string name="mascot_msg_away">¡Te extrañé! Hace %1$d días que no pasabas. ¿Ponemos al día tus gastos?</string>
+    <string name="mascot_msg_rich">¡Vas de lujo! Este mes te está sobrando bastante de lo que ingresó.</string>
     <string name="mascot_msg_careful">Este mes gastaste más de lo que ingresó. Ojo con los gastos.</string>
 
     <string name="onboarding_mascot_pyg">¡Hola%1$s! Un tereré y a ordenar la plata.</string>

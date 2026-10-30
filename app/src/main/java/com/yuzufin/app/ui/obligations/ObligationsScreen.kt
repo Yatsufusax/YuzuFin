@@ -49,6 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.components.MascotPose
+import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.core.money.AmountParser
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.core.money.MoneyFormatter
@@ -106,6 +108,15 @@ fun ObligationsScreen(
                         )
                     }
                 },
+            )
+        }
+        item {
+            HintCard(
+                hintId = "obligations",
+                titleRes = R.string.hint_obligations_title,
+                bodyRes = R.string.hint_obligations_body,
+                pose = MascotPose.PAYING,
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
 

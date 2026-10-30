@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Consejos del monito (aparecen una vez por pantalla y se cierran con «Entendido») -->
+    <string name="hint_dismiss">Entendido</string>
+
+    <string name="hint_home_title">Cómo leer tus números</string>
+    <string name="hint_home_body">El saldo disponible es la plata que realmente podés usar: lo que tenés menos lo que apartaste para tus metas. «Comprometido» son las facturas que todavía no pagaste, y «Libre estimado» es lo que te queda después de eso.</string>
+
+    <string name="hint_movements_title">Tus movimientos</string>
+    <string name="hint_movements_body">Tocá un movimiento para editarlo, agregarle fotos o sacar su comprobante en PDF. Deslizalo hacia la izquierda para borrarlo. Con el botón PDF de arriba sacás el extracto de un período.</string>
+
+    <string name="hint_savings_title">Apartar no es gastar</string>
+    <string name="hint_savings_body">Cuando apartás plata para una meta, sale de tu saldo disponible pero sigue siendo tuya: no cuenta como gasto. Si la necesitás, podés retirarla de la meta cuando quieras.</string>
+
+    <string name="hint_incomes_title">Ingresos que se repiten</string>
+    <string name="hint_incomes_body">Cargá tu sueldo u otros cobros fijos una sola vez. Cuando llega la fecha, Monea te avisa y vos confirmás cuánto cobraste. Hasta que no confirmás, tu saldo no cambia.</string>
+
+    <string name="hint_recurring_title">Gastos que se repiten</string>
+    <string name="hint_recurring_body">Alquiler, internet, suscripciones: cargalos una vez y cada mes aparece un pago pendiente. Tocá «Ya pagué» cuando lo hagas (podés corregir el importe) o salteá el mes. Tu saldo baja recién al confirmar.</string>
+
+    <string name="hint_obligations_title">Facturas y préstamos</string>
+    <string name="hint_obligations_body">Las facturas son lo que tenés que pagar; no bajan tu saldo hasta que las marcás como pagadas. Los préstamos (dados o recibidos) mueven tu saldo pero no cuentan como ingreso ni gasto en tus estadísticas.</string>
+
+    <string name="hint_budgets_title">Poné un tope a cada categoría</string>
+    <string name="hint_budgets_body">Elegí cuánto querés gastar como máximo en una categoría por mes. Te avisamos cuando llegás al 80 por ciento y cuando te pasás.</string>
+
+    <string name="hint_stats_title">Mirá tu mes de un vistazo</string>
+    <string name="hint_stats_body">Acá ves en qué se va tu plata, cómo vas contra tus presupuestos y qué categorías pesan más. Los préstamos y lo que apartás para metas no se cuentan como gasto.</string>
+
+    <string name="hint_categories_title">Armá tus categorías</string>
+    <string name="hint_categories_body">Creá categorías nuevas y cambiá nombres e íconos a tu gusto. Si una categoría ya no la usás, archivala: desaparece de las listas pero tus movimientos viejos no se pierden.</string>
+
+    <string name="hint_backup_title">Cuidá tus datos</string>
+    <string name="hint_backup_body">Todo se guarda solo en tu teléfono, sin cuenta ni internet. Por eso, hacé una copia de seguridad de vez en cuando: es la única forma de recuperar todo si cambiás de celular o lo perdés.</string>
+
+    <!-- Centro de ayuda -->
+    <string name="menu_help">Ayuda</string>
+    <string name="menu_help_desc">Cómo funciona Monea, paso a paso</string>
+    <string name="help_title">Ayuda</string>
+    <string name="help_intro_title">¿Qué querés saber?</string>
+    <string name="help_intro_body">Tocá una pregunta para ver la respuesta.</string>
+    <string name="help_reset_hints">Volver a mostrar los consejos</string>
+    <string name="help_reset_hints_done">Listo, los consejos vuelven a aparecer en cada pantalla.</string>
+
+    <string name="help_q_balance">¿Qué es el saldo disponible?</string>
+    <string name="help_a_balance">Es la plata que realmente podés usar hoy: tu saldo inicial, más tus ingresos, menos tus gastos, y menos lo que apartaste para tus metas de ahorro. Solo cambia cuando existe un movimiento real.</string>
+
+    <string name="help_q_free">¿Qué significan «Comprometido» y «Libre estimado»?</string>
+    <string name="help_a_free">«Comprometido» es lo que tenés que pagar pronto (facturas pendientes). «Libre estimado» es tu saldo disponible menos eso: te muestra cuánto te queda de verdad si pagás todo. Son una guía; tu saldo no baja hasta que marcás cada pago.</string>
+
+    <string name="help_q_add">¿Cómo anoto un gasto o un ingreso?</string>
+    <string name="help_a_add">Tocá el botón «Registrar» de la barra de abajo, elegí si es gasto o ingreso, poné el importe y la categoría. Si querés, agregale hasta 6 fotos (por ejemplo, del ticket).</string>
+
+    <string name="help_q_incomes">¿Para qué sirven los ingresos fijos?</string>
+    <string name="help_a_incomes">Para tu sueldo u otros cobros que se repiten (mensual, quincenal o fechas sueltas). Monea te recuerda cuando toca cobrar y vos confirmás el importe. Podés dejar que se confirmen solos si siempre cobrás lo mismo.</string>
+
+    <string name="help_q_recurring">¿Y los gastos fijos?</string>
+    <string name="help_a_recurring">Son gastos mensuales que se repiten, como el alquiler o las suscripciones. Cada mes se crea un pago pendiente: tocás «Ya pagué» (con el importe que corresponda) o lo salteás. Te avisamos el día anterior y el día del pago.</string>
+
+    <string name="help_q_savings">¿Cómo funcionan las metas de ahorro?</string>
+    <string name="help_a_savings">Creás una meta con un monto objetivo y vas apartando plata. Lo apartado se resta de tu disponible pero no es un gasto. También podés apartar automáticamente un porcentaje de cada ingreso. Al llegar a la meta, ¡hay festejo!</string>
+
+    <string name="help_q_obligations">¿Qué diferencia hay entre facturas y préstamos?</string>
+    <string name="help_a_obligations">Una factura es algo que tenés que pagar en una fecha. Un préstamo es plata que le diste a alguien o que alguien te dio. Los préstamos mueven tu saldo pero no cuentan como ingreso ni gasto en las estadísticas.</string>
+
+    <string name="help_q_budgets">¿Para qué sirven los presupuestos?</string>
+    <string name="help_a_budgets">Para ponerle un tope mensual a una categoría (por ejemplo, salidas o transporte). Te avisamos cuando llegás al 80 por ciento del tope y cuando lo superás, y lo ves reflejado en las estadísticas.</string>
+
+    <string name="help_q_vouchers">¿Cómo saco un comprobante o un extracto?</string>
+    <string name="help_a_vouchers">Abrí un movimiento y tocá «Generar comprobante en PDF»: sale un PDF de ese movimiento con sus fotos. Para un extracto de varios movimientos, usá el botón PDF de la pantalla Movimientos.</string>
+
+    <string name="help_q_backup">¿Cómo hago una copia de seguridad?</string>
+    <string name="help_a_backup">Andá a Menú, Ajustes y tocá «Crear copia». Se guarda un archivo con tus datos, ajustes y fotos. Para recuperarla en otro teléfono, instalá Monea y, en la configuración inicial o en Ajustes, tocá «Restaurar copia».</string>
+
+    <string name="help_q_currency">¿Puedo cambiar de moneda?</string>
+    <string name="help_a_currency">Sí, desde Ajustes. Monea convierte todos tus importes a la moneda nueva. Hacé una copia de seguridad antes, por si querés volver atrás.</string>
+
+    <string name="help_q_privacy">¿Mis datos están seguros?</string>
+    <string name="help_a_privacy">Todo queda en tu teléfono. Monea no pide cuenta, no usa servidores, no usa inteligencia artificial y no se conecta a tus bancos.</string>
+
+    <!-- Configuración inicial: restaurar una copia -->
+    <string name="onboarding_restore_title">¿Ya usabas Monea?</string>
+    <string name="onboarding_restore_body">Si tenés una copia de seguridad, restaurala y seguí donde lo dejaste. Se cargan tus movimientos, ahorros, ajustes y fotos.</string>
+    <string name="onboarding_restore_action">Restaurar mi copia</string>
+    <string name="onboarding_restore_confirm_body">Se van a cargar en Monea los datos de esta copia: movimientos, ahorros, ajustes y fotos.</string>
+    <string name="onboarding_theme_title">Elegí tu color</string>
+    <string name="onboarding_theme_body">Probá los colores: la app cambia al instante. Después lo podés cambiar cuando quieras desde Ajustes.</string>
+</resources>

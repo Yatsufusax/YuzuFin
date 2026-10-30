@@ -44,6 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.components.MascotPose
+import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.core.money.AmountParser
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.RecurringExpense
@@ -94,6 +96,15 @@ fun RecurringScreen(
                         Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.recurring_add))
                     }
                 },
+            )
+        }
+        item {
+            HintCard(
+                hintId = "recurring",
+                titleRes = R.string.hint_recurring_title,
+                bodyRes = R.string.hint_recurring_body,
+                pose = MascotPose.PLANNING,
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
 

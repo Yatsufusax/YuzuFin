@@ -39,6 +39,7 @@ import com.yuzufin.app.ui.savings.SavingsGoalFormViewModel
 import com.yuzufin.app.ui.savings.SavingsScreen
 import com.yuzufin.app.ui.budgets.BudgetsScreen
 import com.yuzufin.app.ui.categories.CategoriesScreen
+import com.yuzufin.app.ui.help.HelpScreen
 import com.yuzufin.app.ui.stats.StatsScreen
 import com.yuzufin.app.ui.stats.StatsViewModel
 import com.yuzufin.app.ui.settings.SettingsScreen
@@ -123,6 +124,9 @@ fun MoneaNavHost(
                 onAddLoan = { direction -> navController.navigate(LoanFormRoute.create(direction = direction)) { launchSingleTop = true } },
                 onEditLoan = { id -> navController.navigate(LoanFormRoute.create(id)) { launchSingleTop = true } },
             )
+        }
+        composable(Destination.Help.route) {
+            HelpScreen(contentPadding = contentPadding, onBack = goBack)
         }
         composable(Destination.Notifications.route) {
             NotificationsScreen(contentPadding = contentPadding, onBack = goBack)

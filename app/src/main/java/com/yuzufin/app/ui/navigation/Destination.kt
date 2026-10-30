@@ -21,6 +21,7 @@ sealed class Destination(val route: String, val isTopLevel: Boolean) {
     data object Categories : Destination("categories", false)
     data object Settings : Destination("settings", false)
     data object Notifications : Destination("notifications", false)
+    data object Help : Destination("help", false)
 }
 
 /** Formulario para crear o editar un movimiento. Oculta la barra inferior. */
@@ -92,6 +93,7 @@ fun isMenuGroupRoute(route: String?): Boolean = when (route) {
     Destination.Budgets.route,
     Destination.Categories.route,
     Destination.Settings.route,
+    Destination.Help.route,
     -> true
     else -> false
 }

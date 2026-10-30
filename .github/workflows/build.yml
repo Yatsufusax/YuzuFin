@@ -18,17 +18,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # El cambio de nombre a Monea renombró estos archivos. Si al copiar el zip quedaron los viejos
-      # al lado de los nuevos, rompen la compilación (recursos duplicados / clases viejas).
-      # Se puede quitar este paso cuando ya no existan en el repo.
-      - name: Quitar archivos viejos del cambio de nombre
+      # Al copiar un zip encima del repo, los archivos que se renombraron o se quitaron no se borran
+      # solos. Si quedaron los viejos al lado de los nuevos, rompen la compilación (recursos
+      # duplicados o clases viejas). Se puede quitar este paso cuando ya no existan en el repo.
+      - name: Quitar archivos viejos
         run: |
-          rm -f app/src/main/res/drawable-nodpi/mascot_terere_paraguay.png
-          rm -f app/src/main/res/drawable-nodpi/mascot_mate_argentina.png
-          rm -f app/src/main/res/drawable-nodpi/mascot_cafe.png
+          rm -f app/src/main/res/drawable-nodpi/mascot_*
           rm -f app/src/main/java/com/yuzufin/app/ui/YuzuFinApp.kt
           rm -f app/src/main/java/com/yuzufin/app/ui/navigation/YuzuNavHost.kt
           rm -f app/src/main/res/drawable/ic_stat_yuzu.xml
+          rm -f app/src/main/res/drawable/ic_launcher_foreground.xml
 
       - uses: actions/setup-java@v4
         with:

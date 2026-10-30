@@ -44,6 +44,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.components.MascotPose
+import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.data.update.ApkInstaller
 import com.yuzufin.app.rememberAppContainer
@@ -74,6 +76,13 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         ScreenHeader(title = stringResource(R.string.menu_settings), onBack = onBack)
+        HintCard(
+            hintId = "backup",
+            titleRes = R.string.hint_backup_title,
+            bodyRes = R.string.hint_backup_body,
+            pose = MascotPose.TIP,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
 
         NameCard(
             savedName = settings?.userName.orEmpty(),

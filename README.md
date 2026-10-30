@@ -126,6 +126,15 @@ Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
 - Tablas `recurring_expenses` y `recurring_occurrences` (base de datos versión 8, migración 7→8; el cambio de moneda las convierte; entran en la copia de seguridad). Avisos diarios y de "mañana" desde `ReminderWorker`.
 
 ## Mascota y animaciones
-- Imágenes en `res/drawable-nodpi/mascot_*.png` (recortadas con fondo transparente de las hojas de diseño). `ui/components/Mascot.kt`: `MascotPose` (28 poses), `Mascot(...)` (respira, cambia de pose con efecto y salta al tocarla) y `mascotForCurrency` (PYG tereré, ARS mate, otras café).
-- `ui/common/Effects.kt`: entrada escalonada (`entrance`), conteo del saldo (`rememberCountUp`), vibración (`rememberHaptic`) y confeti (`ConfettiBurst`).
-- Se usa en onboarding, Inicio (tarjeta de saludo y banner vacío), Movimientos, Ahorros (meta cumplida + confeti) y Notificaciones. Transiciones de navegación en `MoneaNavHost`.
+- Imágenes en `res/drawable-nodpi/monito_*.webp` (fondo transparente, recortadas a su contorno, máx. 640 px). `ui/components/Mascot.kt`: `MascotPose` (21 poses; el comentario de cada una dice cuándo aparece) y `Mascot(...)` (respira, cambia de pose con efecto y salta con vibración al tocarlo).
+- Inicio elige la pose según el estado: `MISSED_YOU` (7 días o más sin abrir la app; se calcula una vez por proceso con `SessionInfo` y `SettingsRepository.markOpened`), `BROKE` (saldo negativo), `NOTIFICATION` (cobro pendiente), `WELCOME` (mes vacío), `OVERSPENT` (gastos > ingresos), `RICH` (gastos ≤ 70 % de los ingresos y saldo positivo) y `PROGRESS`.
+- Transiciones de navegación en `MoneaNavHost`.
+
+## Didáctica
+- `ui/components/HintCard.kt`: consejo del monito por pantalla. Se cierra con «Entendido» y se guarda en DataStore (`dismissedHints`). Para agregar uno nuevo: textos `hint_<clave>_title/body` en `strings_help.xml` y `HintCard(hintId = ...)` en la pantalla.
+- `ui/help/HelpScreen.kt` (Menú → Ayuda): preguntas frecuentes desplegables y botón «Volver a mostrar los consejos». Textos `help_q_*` / `help_a_*` en `strings_help.xml`.
+- Onboarding paso 1: `ThemeStep` reusa `AppearanceCard` de Ajustes; guarda paleta y modo al tocar (`SettingsRepository`), por lo que toda la pantalla se recolorea en vivo.
+- `ui/onboarding/RestoreBackupCard.kt`: restaurar una copia desde la configuración inicial (pasos 1 y 2). Usa el mismo `BackupManager` que Ajustes.
+
+## Ícono de la app
+- Icono adaptativo: fondo azul marino (`ic_launcher_background`) y logo en `res/drawable-nodpi/ic_launcher_monea.webp`. No tiene versión monocromática (los íconos temáticos de Android 13 muestran el normal).

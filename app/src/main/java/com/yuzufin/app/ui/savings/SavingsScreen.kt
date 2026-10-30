@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.core.money.AmountParser
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.core.money.MoneyFormatter
@@ -112,6 +113,15 @@ fun SavingsScreen(
                         Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.savings_add_goal))
                     }
                 },
+            )
+        }
+        item {
+            HintCard(
+                hintId = "savings",
+                titleRes = R.string.hint_savings_title,
+                bodyRes = R.string.hint_savings_body,
+                pose = MascotPose.SAVING,
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
 
@@ -266,7 +276,7 @@ private fun GoalCard(
         }
         if (row.complete) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Mascot(MascotPose.CELEBRATE, size = 56.dp)
+                Mascot(MascotPose.GOAL_DONE, size = 56.dp)
                 Text(
                     stringResource(R.string.savings_goal_reached),
                     style = MaterialTheme.typography.titleSmall,

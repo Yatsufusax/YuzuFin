@@ -23,6 +23,15 @@ import com.yuzufin.app.data.update.AppVersion
 import com.yuzufin.app.data.update.UpdateChecker
 
 /** Crea y comparte las piezas de la app (base de datos, repositorios). Sin librerías de inyección. */
+/** Datos que viven mientras el proceso de la app está vivo (no se guardan). */
+class SessionInfo {
+    /** Si ya se calculó cuántos días pasaron desde la última vez que se abrió la app. */
+    @Volatile var checked: Boolean = false
+
+    /** Días sin abrir la app antes de esta sesión (0 si es la primera vez o se abrió hoy). */
+    @Volatile var daysAway: Int = 0
+}
+
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
 
@@ -41,6 +50,7 @@ class AppContainer(context: Context) {
     val budgetRepository: BudgetRepository by lazy { BudgetRepository(database) }
     val notificationRepository: NotificationRepository by lazy { NotificationRepository(database) }
     val settingsRepository: SettingsRepository by lazy { SettingsRepository(appContext) }
+    val sessionInfo = SessionInfo()
     val updateChecker: UpdateChecker by lazy { UpdateChecker() }
     val apkDownloader: ApkDownloader by lazy { ApkDownloader(appContext) }
     val appVersion: AppVersion by lazy { AppVersion.read(appContext) }

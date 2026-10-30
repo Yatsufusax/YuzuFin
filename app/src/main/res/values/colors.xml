@@ -4,6 +4,6 @@
     <color name="splash_background">#0F2A24</color>
     <!-- Fondo de la ventana (evita destellos blancos mientras carga). -->
     <color name="window_background">#EDF3EF</color>
-    <!-- Icono de la app: mosaico menta con billetera oscura. -->
-    <color name="ic_launcher_background">#BCF2D0</color>
+    <!-- Icono de la app: logo de Monea sobre azul marino. -->
+    <color name="ic_launcher_background">#0A1E46</color>
 </resources>

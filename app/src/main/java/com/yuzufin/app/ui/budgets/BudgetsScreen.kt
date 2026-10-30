@@ -30,6 +30,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.components.MascotPose
+import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.core.money.AmountParser
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.core.money.MoneyFormatter
@@ -87,6 +89,13 @@ fun BudgetsScreen(contentPadding: PaddingValues, onBack: () -> Unit, modifier: M
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         ScreenHeader(title = stringResource(R.string.budgets_title), onBack = onBack)
+        HintCard(
+            hintId = "budgets",
+            titleRes = R.string.hint_budgets_title,
+            bodyRes = R.string.hint_budgets_body,
+            pose = MascotPose.BUDGET,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
         Text(
             stringResource(R.string.budgets_intro),
             style = MaterialTheme.typography.bodyMedium,

@@ -154,7 +154,7 @@ private fun EmptyState() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Mascot(MascotPose.CALM, size = 130.dp)
+        Mascot(MascotPose.NOTIFICATION, size = 130.dp)
         Spacer(Modifier.height(12.dp))
         Text(stringResource(R.string.notif_empty_title), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(4.dp))

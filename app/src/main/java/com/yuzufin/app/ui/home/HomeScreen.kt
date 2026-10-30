@@ -70,6 +70,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.unit.sp
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.components.HintCard
+import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.BillStatus
 import com.yuzufin.app.domain.TransactionType
@@ -144,6 +146,12 @@ fun HomeScreen(
                     onGoSavings = { onNavigate(Destination.Savings) },
                 )
             }
+            HintCard(
+                hintId = "home_numbers",
+                titleRes = R.string.hint_home_title,
+                bodyRes = R.string.hint_home_body,
+                pose = MascotPose.TIP,
+            )
             if (state.hasMovements) {
                 Box(Modifier.entrance(1)) { MascotCard(state) }
             }
@@ -565,12 +573,39 @@ private fun MascotCard(state: HomeUiState) {
         },
         suffix,
     )
-    val (pose, messageRes) = when {
-        state.balance < 0 -> MascotPose.WONDER to R.string.mascot_msg_negative
-        state.pendingIncomes.isNotEmpty() -> MascotPose.NOTIFICATION to R.string.mascot_msg_pending
-        state.monthIncome == 0L && state.monthExpense == 0L -> MascotPose.GO to R.string.mascot_msg_empty_month
-        state.monthExpense <= state.monthIncome -> MascotPose.PROGRESS to R.string.mascot_msg_good
-        else -> MascotPose.CONTROL to R.string.mascot_msg_careful
+    val daysAway = rememberAppContainer().sessionInfo.daysAway
+    val comfortable = state.balance > 0 && state.monthIncome > 0 && state.monthExpense * 10 <= state.monthIncome * 7
+    val pose: MascotPose
+    val message: String
+    when {
+        daysAway >= 7 -> {
+            pose = MascotPose.MISSED_YOU
+            message = stringResource(R.string.mascot_msg_away, daysAway)
+        }
+        state.balance < 0 -> {
+            pose = MascotPose.BROKE
+            message = stringResource(R.string.mascot_msg_negative)
+        }
+        state.pendingIncomes.isNotEmpty() -> {
+            pose = MascotPose.NOTIFICATION
+            message = stringResource(R.string.mascot_msg_pending)
+        }
+        state.monthIncome == 0L && state.monthExpense == 0L -> {
+            pose = MascotPose.WELCOME
+            message = stringResource(R.string.mascot_msg_empty_month)
+        }
+        state.monthExpense > state.monthIncome -> {
+            pose = MascotPose.OVERSPENT
+            message = stringResource(R.string.mascot_msg_careful)
+        }
+        comfortable -> {
+            pose = MascotPose.RICH
+            message = stringResource(R.string.mascot_msg_rich)
+        }
+        else -> {
+            pose = MascotPose.PROGRESS
+            message = stringResource(R.string.mascot_msg_good)
+        }
     }
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -586,7 +621,7 @@ private fun MascotCard(state: HomeUiState) {
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(greeting, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 Text(
-                    stringResource(messageRes),
+                    message,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
