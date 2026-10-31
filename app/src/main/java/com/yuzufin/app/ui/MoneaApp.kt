@@ -22,7 +22,7 @@ import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.navigation.QuickLaunch
 import com.yuzufin.app.ui.onboarding.OnboardingScreen
 import com.yuzufin.app.ui.common.ProvideTextScale
-import com.yuzufin.app.ui.splash.AnimatedSplash
+import com.yuzufin.app.ui.splash.VideoSplash
 import com.yuzufin.app.ui.theme.MoneaTheme
 
 private enum class Stage { Splash, Onboarding, Main }
@@ -34,7 +34,8 @@ private enum class Stage { Splash, Onboarding, Main }
 @Composable
 fun MoneaApp(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {}) {
     // rememberSaveable: al rotar la pantalla no se repite la splash.
-    var showSplash by rememberSaveable { mutableStateOf(true) }
+    // Si se abre desde el widget "+ Gasto" no hay intro: la persona quiere anotar ya.
+    var showSplash by rememberSaveable { mutableStateOf(!openExpense) }
     val systemDark = isSystemInDarkTheme()
     val container = rememberAppContainer()
     val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
@@ -80,7 +81,7 @@ fun MoneaApp(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {}
                 label = "stage",
             ) { current ->
                 when (current) {
-                    Stage.Splash -> AnimatedSplash(onFinished = { showSplash = false })
+                    Stage.Splash -> VideoSplash(onFinished = { showSplash = false })
                     Stage.Onboarding -> OnboardingScreen()
                     Stage.Main -> MainShell(openExpense = openExpense, onOpenExpenseHandled = onOpenExpenseHandled)
                 }

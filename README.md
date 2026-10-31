@@ -189,3 +189,7 @@ Ver `PLAN_DISENO.md` (estado de cada punto y lo que falta) y `MONEA_HANDOFF.md` 
 ## Pantallas completas sin Dialog (v44)
 - `FirstUseTour` y `UpdateNotesWindow` ya no usan `Dialog`: en Samsung con gestos el diálogo no recibía el margen de la barra de navegación y el botón quedaba tapado. Ahora son un `Surface` a pantalla completa dentro de la composición (con `BackHandler` y bloqueo de toques), igual que la configuración inicial. `UpdateNotesWindow` recibe `bottomPadding` (el de la barra flotante).
 
+## Intro en video (v48)
+- `res/raw/monea_intro.mp4` (4 s, 1280x720, H.264 + AAC, ~0,7 MB): el video que subió el usuario, con el fondo de cuadritos "transparentes" eliminado y reemplazado por el verde oscuro de la splash del sistema (`#0F2A24`) con un brillo suave. Script: `tools/key_checkerboard_video.py` (Python + ffmpeg + scipy; flood-fill de los píxeles neutros y claros que tocan el borde).
+- `ui/splash/VideoSplash.kt`: `VideoView` dentro de `MoneaApp` (etapa Splash). Se salta tocando; sin sonido si el teléfono está en silencio o vibración; no pide foco de audio; si falla, cae a `AnimatedSplash`. No se muestra si la app se abre desde el widget "+ Gasto".
+

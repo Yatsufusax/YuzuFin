@@ -79,3 +79,9 @@ Reglas de trabajo (importantes):
 
 ## Ideas sueltas (no elegidas todavía)
 Detección de gastos desde notificaciones (necesita ejemplos reales y lista "Detectados para confirmar"), versión Google Play con Billing, exportar CSV (descartado por ahora), monito en mayor resolución.
+
+## Intro en video (pedido del usuario, v48)
+- Hecho: `VideoSplash` reproduce `res/raw/monea_intro.mp4` como intro; `AnimatedSplash` queda de respaldo. Sin probar.
+- A mirar en el teléfono: que no haya un destello negro antes del primer cuadro (hay una tapa verde que se desvanece), que el borde superior/inferior del video no se note contra el fondo, que se salte con un toque y que no suene con el teléfono en silencio.
+- Si llega otro video con fondo de cuadritos, repetir con `tools/key_checkerboard_video.py <entrada.mp4> <salida.mp4>`. Si el nuevo es vertical, quitar el ajuste `VIDEO_ASPECT` y el fundido de 40 px arriba/abajo del script.
+
