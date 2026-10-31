@@ -80,8 +80,7 @@ Reglas de trabajo (importantes):
 ## Ideas sueltas (no elegidas todavía)
 Detección de gastos desde notificaciones (necesita ejemplos reales y lista "Detectados para confirmar"), versión Google Play con Billing, exportar CSV (descartado por ahora), monito en mayor resolución.
 
-## Intro en video (pedido del usuario, v48)
-- Hecho: `VideoSplash` reproduce `res/raw/monea_intro.mp4` como intro; `AnimatedSplash` queda de respaldo. Sin probar.
-- A mirar en el teléfono: que no haya un destello negro antes del primer cuadro (hay una tapa verde que se desvanece), que el borde superior/inferior del video no se note contra el fondo, que se salte con un toque y que no suene con el teléfono en silencio.
-- Si llega otro video con fondo de cuadritos, repetir con `tools/key_checkerboard_video.py <entrada.mp4> <salida.mp4>`. Si el nuevo es vertical, quitar el ajuste `VIDEO_ASPECT` y el fundido de 40 px arriba/abajo del script.
-
+## Intro en video (pedido del usuario, v48; video nuevo y frase en v49)
+- Hecho: `VideoSplash` reproduce `res/raw/monea_intro.mp4` como intro; `AnimatedSplash` queda de respaldo. En v49 el usuario cambió el video (vertical, 720x1280, con su propio fondo verde) porque el anterior "no se veía tan bien", y pidió **mantener la frase** de la intro anterior: ahora "Tu dinero. Tus decisiones." aparece debajo del logo, con fundido, dibujada con Compose. Sin probar.
+- A mirar en el teléfono: que el video se vea entero sin franjas visibles arriba y abajo (el fondo es `#112825`, el color de los bordes del video), que la frase quede justo debajo de las banderas y no tape nada, que el destello previo al primer cuadro no se note, que se salte con un toque y que no suene con el teléfono en silencio.
+- Si cambia otra vez el video: revisar `VIDEO_ASPECT`, `VideoBackground` (color de los bordes del video), `TAGLINE_TOP_FRACTION` y `TAGLINE_DELAY_MS` en `VideoSplash.kt`. Si llega uno horizontal con cuadritos, usar `tools/key_checkerboard_video.py`.

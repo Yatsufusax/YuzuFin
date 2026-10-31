@@ -189,7 +189,10 @@ Ver `PLAN_DISENO.md` (estado de cada punto y lo que falta) y `MONEA_HANDOFF.md` 
 ## Pantallas completas sin Dialog (v44)
 - `FirstUseTour` y `UpdateNotesWindow` ya no usan `Dialog`: en Samsung con gestos el diálogo no recibía el margen de la barra de navegación y el botón quedaba tapado. Ahora son un `Surface` a pantalla completa dentro de la composición (con `BackHandler` y bloqueo de toques), igual que la configuración inicial. `UpdateNotesWindow` recibe `bottomPadding` (el de la barra flotante).
 
-## Intro en video (v48)
-- `res/raw/monea_intro.mp4` (4 s, 1280x720, H.264 + AAC, ~0,7 MB): el video que subió el usuario, con el fondo de cuadritos "transparentes" eliminado y reemplazado por el verde oscuro de la splash del sistema (`#0F2A24`) con un brillo suave. Script: `tools/key_checkerboard_video.py` (Python + ffmpeg + scipy; flood-fill de los píxeles neutros y claros que tocan el borde).
-- `ui/splash/VideoSplash.kt`: `VideoView` dentro de `MoneaApp` (etapa Splash). Se salta tocando; sin sonido si el teléfono está en silencio o vibración; no pide foco de audio; si falla, cae a `AnimatedSplash`. No se muestra si la app se abre desde el widget "+ Gasto".
+## Intro en video (v48, video nuevo en v49)
+- `res/raw/monea_intro.mp4` (4 s, **720x1280 vertical**, H.264 + AAC, ~2 MB): el video que subió el usuario (el monito tomando mate; el título y las banderas entran deslizándose desde la derecha). Ya viene con fondo verde oscuro propio, sin cuadritos: se usa tal cual, sin procesar.
+- `ui/splash/VideoSplash.kt`: `VideoView` dentro de `MoneaApp` (etapa Splash). El video se muestra **entero** (al ancho de la pantalla; al alto si la pantalla es más ancha que 9:16), centrado sobre `VideoBackground` (`#112825`, el color de sus bordes superior e inferior, que es parejo; así no se nota dónde termina en pantallas más altas). Hasta que sale el primer cuadro hay una tapa del mismo color.
+- **La frase** (`R.string.tagline`, "Tu dinero. Tus decisiones.") se dibuja con Compose, no está en el video: aparece con fundido a los 1,6 s del primer cuadro, a 0,78 del alto del video (justo debajo de las banderas del logo, que terminan en 0,74). Si cambia el video, revisar `TAGLINE_TOP_FRACTION` y `TAGLINE_DELAY_MS`.
+- Se salta tocando; sin sonido si el teléfono está en silencio o vibración; no pide foco de audio; si falla, cae a `AnimatedSplash` (que también lleva la frase). No se muestra si la app se abre desde el widget "+ Gasto".
+- `tools/key_checkerboard_video.py` quedó para cuando llegue un video **horizontal** con fondo de cuadritos "transparente" (Python + ffmpeg + scipy; flood-fill de los píxeles neutros y claros que tocan el borde). El video actual no lo necesita.
 
