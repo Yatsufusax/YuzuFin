@@ -12,5 +12,8 @@
     <string name="tour_2_body">Arriba está tu saldo disponible. Debajo ves una sola cosa para resolver (un cobro, una factura o un gasto fijo) y cuánto gastaste de lo que ingresó este mes.</string>
     <string name="tour_3_title">Ayuda cuando la necesites</string>
     <string name="tour_3_body">En cada pantalla el monito te deja un consejo. Y en Menú, Ayuda, están las respuestas a las dudas más comunes. Podés volver a ver este recorrido desde ahí.</string>
+    <string name="first_expense_title">¡Anotaste tu primer gasto!</string>
+    <string name="first_expense_body">Así de rápido. Cada gasto que anotás te acerca a tener la plata ordenada.</string>
+    <string name="first_expense_ok">¡Genial!</string>
     <string name="help_tour_again">Ver el recorrido de nuevo</string>
 </resources>

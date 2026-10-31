@@ -62,4 +62,6 @@ data class AppSettings(
     val textScale: TextScale = TextScale.NORMAL,
     /** Verdadero hasta que la persona termina o saltea el recorrido del primer uso. */
     val tourPending: Boolean = false,
+    /** Verdadero justo después de anotar el primer gasto, hasta que se cierra el festejo del monito. */
+    val firstExpensePending: Boolean = false,
 )
