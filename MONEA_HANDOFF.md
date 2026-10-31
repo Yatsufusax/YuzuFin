@@ -64,7 +64,7 @@ Kotlin 2.0.21 · Jetpack Compose (BOM 2024.12.01, Material 3 1.3.x) · Room · D
 | Refresco de cobros (otra cuenta) | `HomeViewModel` e `IncomesViewModel`: `refresh` + `flatMapLatest` e `inFlight` para que al confirmar un cobro Inicio se actualice y los toques repetidos no se procesen dos veces. |
 | **Inicio en 2 segundos (Punto 2)** | Orden: saldo → **una sola cosa para resolver** (`AttentionCard`: cobro por confirmar, factura vencida o que vence en ≤ 3 días, gasto fijo pendiente; "Ver N más"; si no hay nada, el monito) → consejo → atajos → resumen del mes (barra gastado vs. ingresado) → movimientos recientes → próximo cobro y vencimientos. |
 | **Aviso de novedades (v40)** | La campanilla muestra "Actualización v0.2.N" + "Tocá para ver las novedades"; al tocar abre `UpdateNotesWindow` con el texto completo. |
-| **Punto 4 en curso (v40)** | `dropIn` para el movimiento recién guardado, `rememberFillAnimation` en las barras de progreso, monito `OVERSPENT` en Presupuestos. Falta el monito del primer gasto. |
+| **Punto 4 (v40, v43)** | `dropIn` para el movimiento recién guardado, `rememberFillAnimation` en las barras de progreso, monito `OVERSPENT` en Presupuestos y festejo del primer gasto (`FirstExpenseCelebration`). Falta solo la identidad visual coherente en el resto de pantallas. |
 | **Menú y deshacer (Punto 3)** | Menú agrupado en Dinero / Planificar y analizar / Ayuda. Borrar un movimiento no pregunta: se oculta (`FinanceRepository.hideTransaction`) y `DeleteUndo` muestra "Deshacer" 5 s antes del borrado real. |
 | **Punto 5 (v41)** | Contraste AA en todas las paletas (con test), tamaño del texto Normal/Grande/Muy grande (`TextScale`, `ProvideTextScale`, `CapFontScale`), zonas táctiles de 48 dp y recorrido de 3 pasos del primer uso (`FirstUseTour`, `AppSettings.tourPending`; repetible desde Ayuda). |
 | **Barra inferior (v38)** | Inicio, Movimientos, **+**, **Ajustes**, Menú. Ajustes salió de la pantalla Menú. |
@@ -135,32 +135,26 @@ Revisar a mano (los scripts que se usaron fallaron alguna vez). Lo que se hizo y
 
 Errores que ya encontró el CI: un import faltante, un bug al importar fotos (`BitmapFactory.decodeStream` con `inJustDecodeBounds` siempre devuelve `null`) y "Duplicate resources" por archivos viejos.
 
-## 9. Sin probar todavía (estado honesto)
-No hay confirmación de que los últimos zips hayan compilado ni de que se hayan probado en el teléfono. Sin probar:
-- Gastos fijos (pantalla, avisos, migración 7→8), mascota, animaciones, confeti y vibraciones.
-- Renombre a Monea, splash animado, monitos nuevos, ícono nuevo.
-- Consejos, pantalla Ayuda, restaurar desde el onboarding, color al empezar, `MISSED_YOU`.
-- Anotar rápido (`QuickEntry`) y tarjeta `BankCard` (otra cuenta).
-- Punto 2 (`AttentionCard`, resumen del mes simplificado).
-- **v44:** el recorrido (`FirstUseTour`) y `UpdateNotesWindow` dejaron de ser `Dialog` y se dibujan dentro de la app con `statusBarsPadding`/`navigationBarsPadding` (en el teléfono del usuario el `Dialog` no recibía el margen de la barra de gestos y los botones quedaban tapados; la notas reciben `bottomPadding` para no quedar bajo la barra flotante). Regla: para pantallas completas, no usar `Dialog`.
+## 9. Estado de pruebas
+**El usuario confirmó (v44) que todo lo hecho hasta v44 funciona en el teléfono y compila**: anotar rápido, Inicio, menú y deshacer, animaciones, tamaño de texto, contraste, recorrido de 3 pasos, monito del primer gasto, toques repetidos en Gastos fijos y Facturas, fotos y comprobante PDF. No hay nada pendiente de probar de las versiones anteriores.
+
+**Pendiente de probar (v45, sin compilar):** widget "+ Gasto" (`widget/ExpenseWidgetProvider.kt`, `ui/navigation/QuickLaunch.kt`, `MainActivity` ahora `singleTop` y con `openExpense`, recursos `widget_expense*`, `strings_widget.xml`, test `QuickLaunchTest`) y avisos "¿Anotaste hoy?" (`reminders/HabitReminderScheduler.kt`, `HabitReminderWorker.kt`, `domain/HabitReminder.kt`, tarjeta `HabitRemindersCard` en Ajustes, `strings_habit.xml`, `NotificationKind.HABIT`, test `HabitReminderTest`). Ajustes nuevos: `habitRemindersEnabled` y `habitHours`.
+
+Historial de entregas recientes (todas ya probadas):
+- **v44:** el recorrido (`FirstUseTour`) y `UpdateNotesWindow` dejaron de ser `Dialog` y se dibujan dentro de la app con `statusBarsPadding`/`navigationBarsPadding` (en el teléfono del usuario el `Dialog` no recibía el margen de la barra de gestos y los botones quedaban tapados; las notas reciben `bottomPadding` para no quedar bajo la barra flotante). **Regla: para pantallas completas, no usar `Dialog`.**
 - **v43:** monito del primer gasto (`FirstExpenseCelebration`, `AppSettings.firstExpensePending`), `inFlight` + `refresh` en `RecurringViewModel` y `ObligationsViewModel` (payBill y repay).
-- **v42:** títulos del onboarding en oscuro (`LocalContentColor`) y botones de diálogos con `navigationBarsPadding`.
+- **v42:** títulos del onboarding en oscuro (`LocalContentColor`).
 - **v41:** tamaño del texto, recorrido de 3 pasos, colores con más contraste, botones de 48 dp.
 - **v40:** aviso corto de actualización + ventana de novedades, animaciones del punto 4.
 - **v39:** Menú agrupado y borrar con Deshacer.
 - **v38:** Ajustes en la barra, Menú sin Ajustes, notas de versión en la campanilla.
-- Las fotos y el comprobante PDF sí fueron probados y funcionan.
 
-Si el build falla, el usuario pega el log y se corrige el error puntual.
+Si un build falla, el usuario pega el log y se corrige el error puntual.
 
-### Cosas a mirar en el teléfono
-- Que Ajustes en la barra se vea bien (5 elementos: 2 + "+" + 2) y que "Menú" ya no quede marcado al estar en Ajustes.
-- Que el aviso "Novedades de Monea 0.2.N" aparezca en la campanilla (con el contador de no leídos) después de que la app detecte una versión nueva, y que el texto se lea completo.
-- **Ojo con la ventana de actualización:** sigue pasando rápido (es obligatoria y descarga sola). Lo que se arregló es poder leer las notas después en la campanilla.
-- Que `budgets_intro` (y otros strings con `80%%`) muestren bien el porcentaje.
-- La tarjeta "Para resolver ahora" con 3 o más ítems desplegados.
-- Los garabatos negros de los monitos de tereré y café casi no se ven en tema oscuro.
+### Detalles menores conocidos
+- Los garabatos negros de los monitos de tereré y café casi no se ven en tema oscuro (es del arte).
 - Cuando se cierra un consejo dentro de una lista (LazyColumn) queda un hueco de 12 dp (cosmético).
+- TalkBack: falta auditar los íconos clickeables sin `contentDescription`.
 
 ## 10. Arte y cómo se procesó (por si llega arte nuevo)
 - Todo con Python/PIL en el contenedor. Los monitos vienen como PNG RGBA con transparencia real: se recortan al bounding box (`alpha > ~10`), se reducen a 640 px de lado mayor y se guardan como WebP (calidad ~90, `method=6`) con nombre `monito_<algo>.webp`.
@@ -169,7 +163,7 @@ Si el build falla, el usuario pega el log y se corrige el error puntual.
 - Siempre **nombres nuevos** para recursos nuevos.
 
 ## 11. Lo que sigue (en orden de prioridad)
-1. **Probar y arreglar** lo de la sección 9 con el log del CI y lo que vea el usuario en el teléfono.
+1. ~~Probar y arreglar~~ (todo confirmado hasta v44). Lo que sigue está en **`MONEA_IDEAS_PROXIMOS_PASOS.md`** (recordatorio nocturno, widget, CSV, filtros, resumen semanal, deshacer en más pantallas). Preguntar al usuario con cuál empezar; se recomendó la 1 y la 2.
 2. ~~Toques repetidos y refresco en Gastos fijos y Facturas~~ (hecho en v43, sin probar; los repositorios ya validaban el estado dentro de la transacción, así que no había duplicados reales, solo pantalla sin refrescar).
 3. ~~Punto 3 del plan~~ (hecho en v39, sin probar). Falta, si el usuario quiere, el mismo "Deshacer" para metas, facturas y fuentes de ingreso.
 4. **Punto 4** (en curso, ver `PLAN_DISENO.md`): el monito del primer gasto ya está (v43); falta la identidad visual coherente.

@@ -65,5 +65,11 @@ Reglas de trabajo (importantes):
 - [x] **Notas de actualización en la campanilla**: se guardan al detectar la versión nueva, para poder leerlas después (`UpdateViewModel.saveNotes`, `ReleaseNotes.toPlainText`, `NotificationKind.UPDATE`). Pendiente de revisar con el usuario: que el aviso aparezca con el contador de no leídos y que el texto se lea bien.
 - Cosas que el usuario reportó antes: confirmar un cobro dejaba Inicio con el saldo viejo (arreglado en v36 con `refresh` + `inFlight`; falta confirmar en el teléfono).
 
+## Avisos "¿Anotaste hoy?" (pedido del usuario, v45) — HECHO (sin compilar ni probar)
+- [x] Varias horas al día (13, 18 y 21 por defecto; elegibles en Ajustes), solo si hoy no se anotó nada. Pendiente de probar en el teléfono: que lleguen, que no lleguen si ya anotó, que los chips guarden.
+
+## Widget "+ Gasto" (idea 2, v45) — HECHO (sin compilar ni probar)
+- [x] Widget de pantalla de inicio que abre directo el formulario de gasto. Pendiente de probar en el teléfono: que aparezca en la lista de widgets, que abra el formulario con la app cerrada y abierta, que no se abra dos veces, que con la configuración inicial sin terminar abra la app normal.
+
 ## Ideas sueltas (no elegidas todavía)
-Widget "+ Gasto", recordatorio nocturno inteligente ("¿Anotaste hoy?"), resumen semanal, detección de gastos desde notificaciones (necesita ejemplos reales y lista "Detectados para confirmar"), versión Google Play con Billing, exportar CSV, filtros de movimientos, monito en mayor resolución.
+Resumen semanal, detección de gastos desde notificaciones (necesita ejemplos reales y lista "Detectados para confirmar"), versión Google Play con Billing, exportar CSV, filtros de movimientos, monito en mayor resolución.

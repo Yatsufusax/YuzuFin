@@ -50,6 +50,10 @@ data class AppSettings(
     val remindersEnabled: Boolean = true,
     /** Hora aproximada del aviso diario (0 a 23). */
     val reminderHour: Int = 9,
+    /** Avisos "¿Anotaste hoy?": solo llegan si ese día todavía no se anotó ningún movimiento. */
+    val habitRemindersEnabled: Boolean = true,
+    /** Horas (0 a 23) a las que puede llegar el aviso de hábito. */
+    val habitHours: Set<Int> = setOf(13, 18, 21),
     /** Si el texto de la notificación incluye el importe. Apagado por defecto: se ve en la pantalla bloqueada. */
     val showAmountsInNotifications: Boolean = false,
     /** Paleta de color elegida. */

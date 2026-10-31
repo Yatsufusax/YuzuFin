@@ -1,7 +1,3 @@
 ## Nuevo
-- El monito festeja cuando anotás tu primer gasto.
-
-## Mejorado
-- El recorrido del primer uso y la ventana de novedades ya no quedan tapados por la barra del teléfono: los botones se ven y se tocan bien.
-- "Ya pagué" en Gastos fijos y el pago de Facturas y préstamos se actualizan al instante, y si tocás dos veces seguidas no se registran dos veces.
-- La Ayuda explica bien cómo anotar con el botón "+".
+- Avisos "¿Anotaste hoy?": te recuerdan anotar a las horas que elijas (por defecto 13:00, 18:00 y 21:00), solo si ese día todavía no anotaste ningún gasto ni ingreso. Si ya anotaste, no llegan. Los configurás en Ajustes → ¿Anotaste hoy?.
+- Widget "+ Gasto" para la pantalla de inicio del teléfono: un toque y se abre directo la pantalla para anotar un gasto. Para ponerlo: mantené apretado un espacio vacío de la pantalla de inicio → Widgets → Monea.

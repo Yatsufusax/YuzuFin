@@ -19,6 +19,7 @@ import com.yuzufin.app.domain.TextScale
 import com.yuzufin.app.domain.ThemeMode
 import com.yuzufin.app.domain.ThemePalette
 import com.yuzufin.app.rememberAppContainer
+import com.yuzufin.app.ui.navigation.QuickLaunch
 import com.yuzufin.app.ui.onboarding.OnboardingScreen
 import com.yuzufin.app.ui.common.ProvideTextScale
 import com.yuzufin.app.ui.splash.AnimatedSplash
@@ -31,7 +32,7 @@ private enum class Stage { Splash, Onboarding, Main }
  * estructura principal.
  */
 @Composable
-fun MoneaApp() {
+fun MoneaApp(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {}) {
     // rememberSaveable: al rotar la pantalla no se repite la splash.
     var showSplash by rememberSaveable { mutableStateOf(true) }
     val systemDark = isSystemInDarkTheme()
@@ -62,6 +63,12 @@ fun MoneaApp() {
         else -> Stage.Main
     }
 
+    // Sin configuración inicial, el widget solo abre la app normal: el pedido se descarta.
+    LaunchedEffect(openExpense, loadedSettings?.onboardingDone) {
+        val done = loadedSettings?.onboardingDone
+        if (openExpense && done != null && QuickLaunch.shouldConsumeWithoutOpening(done)) onOpenExpenseHandled()
+    }
+
     MoneaTheme(darkTheme = darkTheme, palette = settings?.themePalette ?: ThemePalette.GREEN) {
         // La splash es oscura: iconos claros. En las demás pantallas, oscuros solo con tema claro.
         SystemBarIcons(darkIcons = stage != Stage.Splash && !darkTheme)
@@ -75,7 +82,7 @@ fun MoneaApp() {
                 when (current) {
                     Stage.Splash -> AnimatedSplash(onFinished = { showSplash = false })
                     Stage.Onboarding -> OnboardingScreen()
-                    Stage.Main -> MainShell()
+                    Stage.Main -> MainShell(openExpense = openExpense, onOpenExpenseHandled = onOpenExpenseHandled)
                 }
             }
         }

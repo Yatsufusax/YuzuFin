@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_habit_title">¿Anotaste hoy?</string>
+    <string name="settings_habit_switch">Recordarme anotar</string>
+    <string name="settings_habit_switch_body">Un aviso a las horas que elijas, solo si hoy todavía no anotaste ningún gasto ni ingreso.</string>
+    <string name="settings_habit_hours">Horas del aviso (podés elegir varias)</string>
+    <string name="settings_habit_note">Si anotás algo antes, los avisos que quedan ese día no llegan. No muestran importes. Android puede demorarlos unos minutos.</string>
+
+    <string name="habit_morning_title">Buen día, ¿anotaste algo?</string>
+    <string name="habit_morning_body">Si ya desayunaste o pagaste el colectivo, anotalo en 5 segundos.</string>
+    <string name="habit_midday_title">¿Almorzaste?</string>
+    <string name="habit_midday_body">Todavía no anotaste nada hoy. Si gastaste, anotalo ahora mientras te acordás.</string>
+    <string name="habit_afternoon_title">¿Algún gasto de la tarde?</string>
+    <string name="habit_afternoon_body">Hoy no hay movimientos anotados. Un toque en el + y listo.</string>
+    <string name="habit_evening_title">¿Anotaste hoy?</string>
+    <string name="habit_evening_body">Todavía no hay nada anotado hoy. Repasá tu día antes de que se te olvide.</string>
+    <string name="habit_night_title">Último aviso del día</string>
+    <string name="habit_night_body">Hoy no anotaste nada. Si no gastaste, está bien; si gastaste, anotalo ahora.</string>
+</resources>

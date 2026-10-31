@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.domain.AppSettings
+import com.yuzufin.app.domain.HabitReminder
 import com.yuzufin.app.domain.TextScale
 import com.yuzufin.app.domain.ThemeMode
 import com.yuzufin.app.domain.ThemePalette
@@ -30,6 +31,8 @@ class SettingsRepository(private val context: Context) {
             userName = prefs[USER_NAME] ?: "",
             remindersEnabled = prefs[REMINDERS_ENABLED] ?: true,
             reminderHour = (prefs[REMINDER_HOUR] ?: DEFAULT_REMINDER_HOUR).coerceIn(0, 23),
+            habitRemindersEnabled = prefs[HABIT_ENABLED] ?: true,
+            habitHours = HabitReminder.parseHours(prefs[HABIT_HOURS] ?: HabitReminder.DEFAULT_HOURS),
             showAmountsInNotifications = prefs[SHOW_AMOUNTS] ?: false,
             themePalette = ThemePalette.fromName(prefs[THEME_PALETTE]),
             themeMode = ThemeMode.fromName(prefs[THEME_MODE]),
@@ -86,6 +89,18 @@ class SettingsRepository(private val context: Context) {
         context.settingsDataStore.edit { prefs -> prefs[REMINDER_HOUR] = hour.coerceIn(0, 23) }
     }
 
+    suspend fun setHabitRemindersEnabled(enabled: Boolean) {
+        context.settingsDataStore.edit { prefs -> prefs[HABIT_ENABLED] = enabled }
+    }
+
+    /** Prende o apaga una hora del aviso "¿Anotaste hoy?". */
+    suspend fun setHabitHour(hour: Int, on: Boolean) {
+        context.settingsDataStore.edit { prefs ->
+            val current = HabitReminder.parseHours(prefs[HABIT_HOURS] ?: HabitReminder.DEFAULT_HOURS)
+            prefs[HABIT_HOURS] = HabitReminder.formatHours(if (on) current + hour else current - hour)
+        }
+    }
+
     suspend fun setShowAmountsInNotifications(show: Boolean) {
         context.settingsDataStore.edit { prefs -> prefs[SHOW_AMOUNTS] = show }
     }
@@ -103,6 +118,8 @@ class SettingsRepository(private val context: Context) {
             put("userName", prefs[USER_NAME] ?: "")
             put("remindersEnabled", prefs[REMINDERS_ENABLED] ?: true)
             put("reminderHour", prefs[REMINDER_HOUR] ?: DEFAULT_REMINDER_HOUR)
+            put("habitEnabled", prefs[HABIT_ENABLED] ?: true)
+            put("habitHours", prefs[HABIT_HOURS] ?: HabitReminder.DEFAULT_HOURS)
             put("showAmounts", prefs[SHOW_AMOUNTS] ?: false)
             put("themePalette", prefs[THEME_PALETTE] ?: ThemePalette.GREEN.name)
             put("themeMode", prefs[THEME_MODE] ?: ThemeMode.SYSTEM.name)
@@ -120,6 +137,10 @@ class SettingsRepository(private val context: Context) {
             prefs[USER_NAME] = json.optString("userName").trim().take(MAX_NAME_LENGTH)
             prefs[REMINDERS_ENABLED] = json.optBoolean("remindersEnabled", true)
             prefs[REMINDER_HOUR] = json.optInt("reminderHour", DEFAULT_REMINDER_HOUR).coerceIn(0, 23)
+            prefs[HABIT_ENABLED] = json.optBoolean("habitEnabled", true)
+            prefs[HABIT_HOURS] = HabitReminder.formatHours(
+                HabitReminder.parseHours(json.optString("habitHours", HabitReminder.DEFAULT_HOURS)),
+            )
             prefs[SHOW_AMOUNTS] = json.optBoolean("showAmounts", false)
             prefs[THEME_PALETTE] = ThemePalette.fromName(json.optString("themePalette")).name
             prefs[THEME_MODE] = ThemeMode.fromName(json.optString("themeMode")).name
@@ -170,6 +191,8 @@ class SettingsRepository(private val context: Context) {
         private val USER_NAME = stringPreferencesKey("user_name")
         private val REMINDERS_ENABLED = booleanPreferencesKey("reminders_enabled")
         private val REMINDER_HOUR = intPreferencesKey("reminder_hour")
+        private val HABIT_ENABLED = booleanPreferencesKey("habit_enabled")
+        private val HABIT_HOURS = stringPreferencesKey("habit_hours")
         private val SHOW_AMOUNTS = booleanPreferencesKey("show_amounts_in_notifications")
         private val THEME_PALETTE = stringPreferencesKey("theme_palette")
         private val THEME_MODE = stringPreferencesKey("theme_mode")

@@ -21,7 +21,7 @@ App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Ro
 - **Disponible vs. ahorrado:** Inicio muestra el **disponible** (saldo total − apartado) y debajo lo **ahorrado**. Apartar no es un gasto ni un ingreso: no aparece en Movimientos ni cambia el extracto PDF.
 - **Fase 5, obligaciones:** facturas con vencimiento (únicas o mensuales) que **no descuentan el saldo hasta que las pagás**; al pagar se crea el gasto real (importe y fecha editables) y, si es mensual, queda lista la del mes siguiente. Préstamos que hiciste o que te hicieron, con devoluciones parciales. Inicio muestra los próximos vencimientos y el **libre estimado** (disponible − facturas pendientes). La pantalla Obligaciones suma además lo que te deben, lo que debés y el **patrimonio**.
 - **Avisos de la Fase 5:** factura por vencer (desde el día anterior, o ya vencida; un aviso por vencimiento) y, los últimos dos días de cada mes, quién te debe y a quién le debés mientras quede saldo (una vez por mes y por préstamo). Todo se puede apagar por factura o préstamo.
-- Tests: `ObligationMathTest` (vencimientos mensuales y meses cortos, avisos, devoluciones, totales, fin de mes), `SavingsMathTest` (disponible, avance, meses que quedan, aporte mensual, aporte automático), `StatementBuilderTest`, `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`, `IncomeSchedulerTest` (fechas, meses cortos, años bisiestos, quincenas), `ReminderSchedulerTest`.
+- Tests: `ObligationMathTest` (vencimientos mensuales y meses cortos, avisos, devoluciones, totales, fin de mes), `SavingsMathTest` (disponible, avance, meses que quedan, aporte mensual, aporte automático), `StatementBuilderTest`, `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`, `IncomeSchedulerTest` (fechas, meses cortos, años bisiestos, quincenas), `ReminderSchedulerTest`, `HabitReminderTest`, `QuickLaunchTest`.
 
 **Sin verificar:** no se pudo compilar ni ejecutar donde se escribió (sin acceso al SDK de Android). Solo se revisaron recursos y XML con scripts. La compilación y los tests corren en GitHub Actions; si falla, pegá el error.
 
@@ -75,6 +75,12 @@ Por terminal (con el SDK instalado y `local.properties` con `sdk.dir=...`):
 ./gradlew testDebugUnitTest      # tests
 ./gradlew assembleDebug          # APK en app/build/outputs/apk/debug/
 ```
+
+## Widget "+ Gasto"
+`widget/ExpenseWidgetProvider` (`AppWidgetProvider` con `RemoteViews`, sin dependencias nuevas; recursos `widget_expense`, `widget_expense_bg`, `widget_expense_info`, `strings_widget.xml`). El toque lanza `MainActivity` (ahora `singleTop`) con el extra `open=expense` (`QuickLaunch`). `MainActivity` lo lee solo al crearse sin estado guardado o en `onNewIntent` (y lo borra, para que rotar no lo repita); `MoneaApp` lo descarta si falta la configuración inicial; `MainShell` abre el formulario de gasto cuando la navegación está lista y no hay otro formulario abierto. El widget no muestra ni guarda datos. Test: `QuickLaunchTest`.
+
+## Avisos "¿Anotaste hoy?"
+Un trabajo periódico diario de WorkManager por cada hora elegida (`HabitReminderScheduler`, `HabitReminderWorker`; hasta 7 horas ofrecidas en Ajustes, por defecto 13, 18 y 21). Avisa solo si hoy no hay ningún gasto ni ingreso propio (`HabitReminder.hasEntryOn`; los movimientos internos de préstamos no cuentan). Texto según el momento del día (`HabitSlot`), sin importes. Si Android demora el trabajo más de 2 horas no avisa. Un aviso por hora y por día en la campanilla (`NotificationKind.HABIT`, `dedupeKey = habit:<día>:<hora>`). Interruptor propio, independiente de los avisos de cobros. Ajustes: `habit_enabled` y `habit_hours` (también en la copia de seguridad). Test: `HabitReminderTest`.
 
 ## Recordatorios (Fase 3)
 WorkManager con una tarea periódica diaria a la hora elegida (revisa cobros, vencimientos de facturas, saldos de préstamos a fin de mes y, una vez al mes por meta, el aporte a ahorros); todo local, sin servicios externos. Necesita el permiso de notificaciones (Android 13+), que se pide al activar los recordatorios. Con ahorro de batería agresivo Android puede retrasar la hora. Las notificaciones son de visibilidad privada y no incluyen montos por defecto.

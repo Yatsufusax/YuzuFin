@@ -260,7 +260,7 @@ private fun kindIcon(kind: NotificationKind): ImageVector = when (kind) {
     NotificationKind.SAVINGS -> Icons.Rounded.Savings
     NotificationKind.BUDGET -> Icons.Rounded.PieChart
     NotificationKind.UPDATE -> Icons.Rounded.NewReleases
-    NotificationKind.OTHER -> Icons.Rounded.AccountBalanceWallet
+    NotificationKind.OTHER, NotificationKind.HABIT -> Icons.Rounded.AccountBalanceWallet
 }
 
 @Composable

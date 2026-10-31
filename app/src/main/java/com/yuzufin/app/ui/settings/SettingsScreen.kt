@@ -35,6 +35,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import com.yuzufin.app.data.SettingsRepository
 import com.yuzufin.app.domain.AppSettings
+import com.yuzufin.app.domain.HabitReminder
 import com.yuzufin.app.ui.common.rememberNotificationPermission
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
@@ -107,6 +108,12 @@ fun SettingsScreen(
                 onShowAmountsChange = { value ->
                     scope.launch { container.settingsRepository.setShowAmountsInNotifications(value) }
                 },
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            HabitRemindersCard(
+                settings = current,
+                onEnabledChange = { value -> scope.launch { container.settingsRepository.setHabitRemindersEnabled(value) } },
+                onHourChange = { hour, on -> scope.launch { container.settingsRepository.setHabitHour(hour, on) } },
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
@@ -313,6 +320,78 @@ private fun RemindersCard(
                 Switch(checked = settings.showAmountsInNotifications, onCheckedChange = onShowAmountsChange)
             }
 
+            if (!permission.granted) {
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    stringResource(R.string.reminders_permission_body),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Spacer(Modifier.height(8.dp))
+                if (permission.needsSettings) {
+                    OutlinedButton(onClick = permission.openSettings) {
+                        Text(stringResource(R.string.reminders_open_settings))
+                    }
+                } else {
+                    Button(onClick = permission.request) { Text(stringResource(R.string.reminders_enable)) }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun HabitRemindersCard(
+    settings: AppSettings,
+    onEnabledChange: (Boolean) -> Unit,
+    onHourChange: (Int, Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val permission = rememberNotificationPermission()
+
+    MoneaCard(modifier = modifier) {
+        Text(stringResource(R.string.settings_habit_title), style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.settings_habit_switch), style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    stringResource(R.string.settings_habit_switch_body),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = settings.habitRemindersEnabled,
+                onCheckedChange = { value ->
+                    onEnabledChange(value)
+                    if (value && !permission.granted) permission.request()
+                },
+            )
+        }
+
+        if (settings.habitRemindersEnabled) {
+            Spacer(Modifier.height(16.dp))
+            Text(stringResource(R.string.settings_habit_hours), style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(8.dp))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                HabitReminder.AVAILABLE_HOURS.forEach { hour ->
+                    val selected = hour in settings.habitHours
+                    FilterChip(
+                        selected = selected,
+                        onClick = { onHourChange(hour, !selected) },
+                        label = { Text(String.format(java.util.Locale.ROOT, "%d:00", hour)) },
+                    )
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+            Text(
+                stringResource(R.string.settings_habit_note),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             if (!permission.granted) {
                 Spacer(Modifier.height(16.dp))
                 Text(
