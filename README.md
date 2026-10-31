@@ -141,6 +141,7 @@ Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
 
 ## Tarjeta MoneaCard y refresco de cobros
 - `BankCard` en `ui/home/HomeScreen.kt`: el saldo disponible se dibuja como tarjeta bancaria (gradiente del tema, chip, pago sin contacto, nombre en mayúsculas, símbolo de dos círculos propio y brillo animado). El ojo oculta el saldo.
+- Orden de Inicio: tarjeta de saldo → **una sola cosa para resolver** (`AttentionCard`; si no hay nada, el monito) → consejo → atajos → resumen del mes (barra gastado vs. ingresado) → movimientos recientes → próximo cobro y próximos vencimientos. `HomeUiState.attention` (`AttentionItem`: cobro por confirmar, factura vencida o que vence en ≤ 3 días, gasto fijo pendiente) se arma en `HomeViewModel` en ese orden de prioridad; los cobros se confirman en la misma tarjeta (con el diálogo de siempre), las facturas y los gastos fijos abren su pantalla. "Ver N más" despliega el resto.
 - `HomeViewModel` e `IncomesViewModel` re-consultan los datos (`refresh` + `flatMapLatest`) al terminar de confirmar u omitir un cobro, y ignoran toques repetidos sobre el mismo cobro (`inFlight`).
 
 ## Anotar rápido (punto 1 del plan de diseño)

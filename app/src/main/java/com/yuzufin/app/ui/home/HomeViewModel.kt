@@ -9,12 +9,14 @@ import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.data.FinanceRepository
 import com.yuzufin.app.data.IncomeRepository
 import com.yuzufin.app.data.ObligationsRepository
+import com.yuzufin.app.data.RecurringRepository
 import com.yuzufin.app.data.SavingsRepository
 import com.yuzufin.app.data.SettingsRepository
 import com.yuzufin.app.domain.BalanceCalculator
 import com.yuzufin.app.domain.Bill
 import com.yuzufin.app.domain.BillStatus
 import com.yuzufin.app.domain.ObligationMath
+import com.yuzufin.app.domain.OccurrenceStatus
 import com.yuzufin.app.domain.SavingsMath
 import com.yuzufin.app.ui.common.MovementItem
 import com.yuzufin.app.ui.common.buildMovementItems
@@ -22,6 +24,7 @@ import com.yuzufin.app.ui.incomes.PendingIncome
 import com.yuzufin.app.ui.incomes.UpcomingIncome
 import com.yuzufin.app.ui.incomes.buildPending
 import com.yuzufin.app.ui.incomes.buildUpcoming
+import com.yuzufin.app.ui.recurring.PendingRecurring
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -55,15 +58,37 @@ data class HomeUiState(
     val nextIncome: UpcomingIncome? = null,
     /** Próximas facturas pendientes (las más cercanas primero, con las vencidas arriba). */
     val upcomingBills: List<UpcomingBill> = emptyList(),
+    /**
+     * Lo que conviene resolver ya, en este orden: cobros por confirmar, facturas vencidas o por
+     * vencer (hasta 3 días) y gastos fijos que ya tocan. Inicio muestra el primero y el resto
+     * detrás de “Ver N más”.
+     */
+    val attention: List<AttentionItem> = emptyList(),
 )
 
 data class UpcomingBill(val bill: Bill, val status: BillStatus)
+
+/** Algo que requiere una acción de la persona. */
+sealed interface AttentionItem {
+    /** Cobro que ya llegó y espera “Ya cobré”. */
+    data class IncomeToConfirm(val income: PendingIncome) : AttentionItem
+
+    /** Factura vencida o que vence en pocos días; [daysLeft] es negativo si ya venció. */
+    data class BillDue(val bill: Bill, val status: BillStatus, val daysLeft: Int) : AttentionItem
+
+    /** Gasto fijo cuyo pago ya tocó y sigue sin confirmarse. */
+    data class RecurringDue(val recurring: PendingRecurring) : AttentionItem
+}
+
+/** Días de anticipación con los que una factura pasa a “requiere atención”. */
+private const val BILL_ATTENTION_DAYS = 3
 
 private data class HomeExtras(
     val sources: List<com.yuzufin.app.domain.IncomeSource>,
     val occurrences: List<com.yuzufin.app.domain.IncomeOccurrence>,
     val savingEntries: List<com.yuzufin.app.domain.SavingsEntry>,
     val bills: List<Bill>,
+    val recurringDue: List<PendingRecurring>,
 )
 
 class HomeViewModel(
@@ -72,6 +97,7 @@ class HomeViewModel(
     savings: SavingsRepository,
     obligations: ObligationsRepository,
     settings: SettingsRepository,
+    recurring: RecurringRepository,
 ) : ViewModel() {
 
     /** Cada vez que sube, se vuelven a consultar los datos (por si alguna emisión no llegó). */
@@ -84,8 +110,25 @@ class HomeViewModel(
         finance.transactions,
         finance.categories,
         settings.settings,
-        combine(income.sources, income.occurrences, savings.entries, obligations.bills) { sources, occurrences, entries, bills ->
-            HomeExtras(sources, occurrences, entries, bills)
+        combine(
+            income.sources,
+            income.occurrences,
+            savings.entries,
+            obligations.bills,
+            // Gastos fijos que ya tocan y no se confirmaron (igual que en la pantalla Gastos fijos).
+            combine(recurring.expenses, recurring.occurrences) { expenses, occurrences ->
+                val names = expenses.associateBy { it.id }
+                val today = LocalDate.now()
+                occurrences
+                    .filter { it.status == OccurrenceStatus.PENDING && !it.dueDate.isAfter(today) }
+                    .mapNotNull { occurrence ->
+                        val expense = names[occurrence.expenseId] ?: return@mapNotNull null
+                        PendingRecurring(occurrence.id, expense.name, occurrence.dueDate, occurrence.amountMinor)
+                    }
+                    .sortedBy { it.dueDate }
+            },
+        ) { sources, occurrences, entries, bills, recurringDue ->
+            HomeExtras(sources, occurrences, entries, bills, recurringDue)
         },
     ) { initial, transactions, categories, appSettings, incomeData ->
         val sources = incomeData.sources
@@ -100,6 +143,15 @@ class HomeViewModel(
             val month = BalanceCalculator.monthTotals(initial, transactions, YearMonth.now())
             val today = LocalDate.now()
             val committed = ObligationMath.committed(incomeData.bills)
+            val pendingIncomes = buildPending(sources, occurrences)
+            val dueBills = incomeData.bills
+                .filter { !it.paid }
+                .sortedBy { it.dueDate }
+                .map { bill ->
+                    val days = (bill.dueDate.toEpochDay() - today.toEpochDay()).toInt()
+                    AttentionItem.BillDue(bill, ObligationMath.status(bill, today), days)
+                }
+                .filter { it.daysLeft <= BILL_ATTENTION_DAYS }
             HomeUiState(
                 loading = false,
                 currency = CurrencyInfo.fromCode(appSettings.currencyCode),
@@ -112,13 +164,18 @@ class HomeViewModel(
                 recent = buildMovementItems(transactions.take(4), categories),
                 hasMovements = transactions.isNotEmpty(),
                 userName = appSettings.userName,
-                pendingIncomes = buildPending(sources, occurrences),
+                pendingIncomes = pendingIncomes,
                 nextIncome = buildUpcoming(sources, today).firstOrNull(),
                 upcomingBills = incomeData.bills
                     .filter { !it.paid }
                     .sortedBy { it.dueDate }
                     .take(3)
                     .map { UpcomingBill(it, ObligationMath.status(it, today)) },
+                attention = buildList<AttentionItem> {
+                    pendingIncomes.forEach { add(AttentionItem.IncomeToConfirm(it)) }
+                    addAll(dueBills)
+                    incomeData.recurringDue.forEach { add(AttentionItem.RecurringDue(it)) }
+                },
             )
         }
     } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
@@ -157,6 +214,7 @@ class HomeViewModel(
                     container.savingsRepository,
                     container.obligationsRepository,
                     container.settingsRepository,
+                    container.recurringRepository,
                 )
             }
         }

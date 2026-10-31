@@ -54,6 +54,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -160,47 +161,48 @@ fun HomeScreen(
                     onGoSavings = { onNavigate(Destination.Savings) },
                 )
             }
+            // Lo primero: una sola cosa que requiere atención (o el monito si está todo en orden).
+            if (state.attention.isNotEmpty()) {
+                Box(Modifier.entrance(1)) {
+                    AttentionCard(
+                        state = state,
+                        onConfirmIncome = { confirming = it },
+                        onSkipIncome = { onSkipIncome(it.occurrenceId) },
+                        onOpen = onNavigate,
+                    )
+                }
+            } else if (state.hasMovements) {
+                Box(Modifier.entrance(1)) { MascotCard(state) }
+            }
             HintCard(
                 hintId = "home_numbers",
                 titleRes = R.string.hint_home_title,
                 bodyRes = R.string.hint_home_body,
                 pose = MascotPose.TIP,
             )
-            if (state.hasMovements) {
-                Box(Modifier.entrance(1)) { MascotCard(state) }
-            }
-            if (state.pendingIncomes.isNotEmpty()) {
-                Box(Modifier.entrance(2)) {
-                    PendingIncomesCard(
-                        state = state,
-                        onConfirm = { confirming = it },
-                        onSkip = { onSkipIncome(it.occurrenceId) },
-                        onSeeAll = { onNavigate(Destination.Incomes) },
-                    )
-                }
-            }
-            Box(Modifier.entrance(3)) { ShortcutsCard(onQuickAction) }
+            Box(Modifier.entrance(2)) { ShortcutsCard(onQuickAction) }
             if (!state.hasMovements) {
-                Box(Modifier.entrance(4)) {
+                Box(Modifier.entrance(3)) {
                     EmptyBanner(onRegister = { onQuickAction(QuickAction.Expense) })
                 }
             }
-            Box(Modifier.entrance(5)) { MonthSummaryCard(state) }
+            Box(Modifier.entrance(4)) { MonthSummaryCard(state) }
+            if (state.recent.isNotEmpty()) {
+                Box(Modifier.entrance(5)) {
+                    RecentMovementsCard(
+                        state = state,
+                        onSeeAll = { onNavigate(Destination.Movements) },
+                        onEdit = onEditMovement,
+                    )
+                }
+            }
+            // Lo que viene, más abajo: previsiones que no hace falta resolver hoy.
             state.nextIncome?.let {
                 Box(Modifier.entrance(6)) { NextIncomeCard(it, state, onClick = { onNavigate(Destination.Incomes) }) }
             }
             if (state.upcomingBills.isNotEmpty()) {
                 Box(Modifier.entrance(7)) {
                     UpcomingBillsCard(state, onClick = { onNavigate(Destination.Obligations) })
-                }
-            }
-            if (state.recent.isNotEmpty()) {
-                Box(Modifier.entrance(8)) {
-                    RecentMovementsCard(
-                        state = state,
-                        onSeeAll = { onNavigate(Destination.Movements) },
-                        onEdit = onEditMovement,
-                    )
                 }
             }
         }
@@ -221,38 +223,97 @@ fun HomeScreen(
     }
 }
 
-/** Cobros que llegaron y esperan confirmación: es lo primero que conviene resolver. */
+/**
+ * Lo que conviene resolver ya. Muestra una sola cosa y, si hay más, un botón “Ver N más” que las
+ * despliega. Los cobros se confirman acá mismo; las facturas y los gastos fijos abren su pantalla.
+ */
 @Composable
-private fun PendingIncomesCard(
+private fun AttentionCard(
     state: HomeUiState,
-    onConfirm: (PendingIncome) -> Unit,
-    onSkip: (PendingIncome) -> Unit,
-    onSeeAll: () -> Unit,
+    onConfirmIncome: (PendingIncome) -> Unit,
+    onSkipIncome: (PendingIncome) -> Unit,
+    onOpen: (Destination) -> Unit,
 ) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val items = state.attention
+    val shown = if (expanded) items else items.take(1)
+
     MoneaCard {
-        SectionHeader(
-            title = stringResource(R.string.incomes_pending_title),
-            actionLabel = stringResource(R.string.home_see_all),
-            onAction = onSeeAll,
-        )
-        Spacer(Modifier.height(8.dp))
-        state.pendingIncomes.take(3).forEachIndexed { index, item ->
-            if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-            PendingIncomeRow(
-                item = item,
-                currency = state.currency,
-                onConfirm = { onConfirm(item) },
-                onSkip = { onSkip(item) },
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Mascot(MascotPose.NOTIFICATION, size = 56.dp)
+            Text(
+                stringResource(R.string.home_attention_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f),
             )
         }
-        if (state.pendingIncomes.size > 3) {
-            Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(8.dp))
+        shown.forEachIndexed { index, item ->
+            if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+            when (item) {
+                is AttentionItem.IncomeToConfirm -> PendingIncomeRow(
+                    item = item.income,
+                    currency = state.currency,
+                    onConfirm = { onConfirmIncome(item.income) },
+                    onSkip = { onSkipIncome(item.income) },
+                )
+                is AttentionItem.BillDue -> AttentionBillRow(item, state) { onOpen(Destination.Obligations) }
+                is AttentionItem.RecurringDue -> AttentionRecurringRow(item, state) { onOpen(Destination.Recurring) }
+            }
+        }
+        if (items.size > 1) {
+            TextButton(onClick = { expanded = !expanded }) {
+                Text(
+                    if (expanded) {
+                        stringResource(R.string.home_attention_less)
+                    } else {
+                        stringResource(R.string.home_attention_more, items.size - 1)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AttentionBillRow(item: AttentionItem.BillDue, state: HomeUiState, onView: () -> Unit) {
+    val overdue = item.status == BillStatus.OVERDUE
+    val whenText = when {
+        overdue -> stringResource(R.string.obl_pill_overdue)
+        item.daysLeft <= 0 -> stringResource(R.string.home_attention_today)
+        item.daysLeft == 1 -> stringResource(R.string.home_attention_tomorrow)
+        else -> stringResource(R.string.home_attention_in_days, item.daysLeft)
+    }
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(item.bill.name, style = MaterialTheme.typography.titleSmall)
             Text(
-                stringResource(R.string.home_pending_more, state.pendingIncomes.size - 3),
+                "$whenText · ${formatFullDate(item.bill.dueDate)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = if (overdue) MaterialTheme.monea.expense else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Text(MoneyFormatter.format(item.bill.amountMinor, state.currency), style = MaterialTheme.typography.titleSmall)
+        FilledTonalButton(onClick = onView) { Text(stringResource(R.string.home_attention_view)) }
+    }
+}
+
+@Composable
+private fun AttentionRecurringRow(item: AttentionItem.RecurringDue, state: HomeUiState, onView: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(item.recurring.name, style = MaterialTheme.typography.titleSmall)
+            Text(
+                stringResource(R.string.home_attention_recurring, formatFullDate(item.recurring.dueDate)),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        Text(MoneyFormatter.format(item.recurring.amountMinor, state.currency), style = MaterialTheme.typography.titleSmall)
+        FilledTonalButton(onClick = onView) { Text(stringResource(R.string.home_attention_view)) }
     }
 }
 
@@ -819,51 +880,54 @@ private fun MonthSummaryCard(state: HomeUiState) {
     val currency = state.currency
     val income = state.monthIncome
     val expense = state.monthExpense
-    // La proporción solo sirve para dibujar la barra y el porcentaje; los importes son enteros.
-    val percent = if (income > 0) ((expense * 100) / income).toInt().coerceIn(0, 100) else 0
+    val difference = income - expense
+    // La proporción solo sirve para dibujar la barra; los importes son enteros.
+    val fraction = if (income > 0) (expense.toFloat() / income.toFloat()).coerceIn(0f, 1f) else 0f
+    val over = income > 0 && expense > income
 
     MoneaCard {
-        Text(
-            text = stringResource(R.string.home_month_title),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Spacer(Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            MonthFigure(
-                icon = Icons.Rounded.ArrowDownward,
-                label = stringResource(R.string.home_income_real),
-                value = MoneyFormatter.format(income, currency),
-                color = colors.income,
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(R.string.home_month_title),
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f),
             )
-            MonthFigure(
-                icon = Icons.Rounded.ArrowUpward,
-                label = stringResource(R.string.home_expense_real),
-                value = MoneyFormatter.format(expense, currency),
-                color = colors.expense,
-                modifier = Modifier.weight(1f),
-            )
+            if (income > 0) {
+                Text(
+                    text = if (difference >= 0) {
+                        stringResource(R.string.home_month_left, MoneyFormatter.format(difference, currency))
+                    } else {
+                        stringResource(R.string.home_month_over, MoneyFormatter.format(-difference, currency))
+                    },
+                    style = MaterialTheme.typography.titleSmall,
+                    color = if (difference >= 0) colors.income else colors.expense,
+                )
+            }
         }
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
         if (income > 0) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(10.dp)
+                    .height(12.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .fillMaxWidth(percent / 100f)
+                        .fillMaxWidth(fraction)
                         .clip(CircleShape)
-                        .background(colors.expense),
+                        .background(if (over) MaterialTheme.colorScheme.error else colors.expense),
                 )
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                text = stringResource(R.string.home_month_ratio, percent),
+                text = stringResource(
+                    R.string.home_month_spent_of,
+                    MoneyFormatter.format(expense, currency),
+                    MoneyFormatter.format(income, currency),
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -873,51 +937,13 @@ private fun MonthSummaryCard(state: HomeUiState) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-        Spacer(Modifier.height(12.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(R.string.home_month_difference),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                text = MoneyFormatter.format(income - expense, currency, showPlus = true),
-                style = MaterialTheme.typography.titleSmall,
-                color = if (income - expense >= 0) colors.income else colors.expense,
-            )
-        }
-    }
-}
-
-@Composable
-private fun MonthFigure(
-    icon: ImageVector,
-    label: String,
-    value: String,
-    color: Color,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        IconBadge(icon = icon, size = 36.dp, container = color.copy(alpha = 0.14f), tint = color)
-        Column {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            if (expense > 0) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.home_month_spent, MoneyFormatter.format(expense, currency)),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
         }
     }
 }

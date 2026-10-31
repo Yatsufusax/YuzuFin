@@ -23,12 +23,16 @@ Reglas de trabajo (importantes):
 - Pendiente de revisar con el usuario: cómo se ve en pantallas chicas (teclado + botón Guardar ocupan ~310 dp fijos y el resto scrollea), modo oscuro, y si prefiere que tocar un frecuente guarde directo.
 - Idea para después: pruebas unitarias de `onKey` (hoy está dentro del ViewModel; se podría extraer a una función pura).
 
-### Punto 2: Inicio que se entienda en 2 segundos — PENDIENTE
-- MoneaCard arriba (ya existe).
-- Debajo, **una sola cosa que requiere atención** (cobro por confirmar, factura por vencer, gasto fijo del día) en vez de varias tarjetas apiladas; si hay más, un "Ver N más".
-- Resumen del mes con una barra simple gastado vs. ingresado en lugar de números sueltos.
-- Movimientos recientes y lo demás más abajo. Menos cosas visibles a la vez.
-- Archivos probables: `ui/home/HomeScreen.kt`, `HomeViewModel.kt` (ya tiene `refresh` e `inFlight`; no romperlos).
+### Punto 2: Inicio que se entienda en 2 segundos — HECHO (sin probar)
+- [x] MoneaCard arriba (ya existía).
+- [x] Debajo, **una sola cosa que requiere atención** (`AttentionCard`): cobros por confirmar, luego facturas vencidas o que vencen en 3 días o menos, luego gastos fijos pendientes. Muestra el primero; "Ver N más" despliega el resto. Si no hay nada, se muestra el monito (`MascotCard`).
+  - Cobros: "Ya cobré" / "Omitir" ahí mismo (mismo diálogo y mismo `inFlight`/`refresh` de antes, intactos).
+  - Facturas y gastos fijos: botón "Ver" que abre Facturas o Gastos fijos (no se paga desde Inicio, a propósito, para no sumar más diálogos).
+- [x] Resumen del mes: una barra gastado vs. ingresado, "Te quedan X" / "Te pasaste X" y "Gastaste X de Y que ingresaron". Sin ingresos: texto de siempre y lo gastado.
+- [x] Orden: saldo → para resolver → consejo → atajos → resumen → movimientos recientes → próximo cobro y próximos vencimientos (lo previsto, abajo).
+- Archivos: `ui/home/HomeScreen.kt`, `ui/home/HomeViewModel.kt` (ahora recibe `RecurringRepository`; `HomeUiState.attention`, `AttentionItem`), `res/values/strings_attention.xml`.
+- Pendiente de revisar con el usuario: cómo se ve con 3 o más ítems desplegados, el monito de 56 dp en la tarjeta, y si quiere poder pagar facturas y confirmar gastos fijos desde Inicio.
+- Para otra vuelta: `RecurringViewModel.confirm/skip` y `ObligationsViewModel.payBill` no tienen el seguro contra toques repetidos ni el `refresh` que sí tienen Inicio e Ingresos. Pruebas unitarias para el armado de `attention` (hoy está dentro del `combine` del ViewModel; se podría extraer a una función pura).
 
 ### Punto 3: Menos pantallas, más claras — PENDIENTE
 - Barra con 4 destinos + "+" (ya está). Reagrupar "Menú" por tema: Dinero / Planificar / Ajustes.
