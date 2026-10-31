@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="filter_amount">Monto</string>
+    <string name="filter_amount_from">Desde %1$s</string>
+    <string name="filter_amount_to">Hasta %1$s</string>
+    <string name="filter_amount_range">%1$s – %2$s</string>
+    <string name="filter_amount_title">Filtrar por monto</string>
+    <string name="filter_amount_body">Mostrá solo los movimientos dentro de este rango. Podés dejar un casillero vacío.</string>
+    <string name="filter_amount_min">Desde</string>
+    <string name="filter_amount_max">Hasta</string>
+    <string name="filter_amount_apply">Aplicar</string>
+    <string name="filter_amount_remove">Quitar</string>
+    <string name="filter_amount_invalid">El mínimo no puede ser mayor que el máximo.</string>
+    <string name="movements_result_one">1 resultado</string>
+    <string name="movements_results">%1$d resultados</string>
+    <string name="movements_clear_filters">Quitar filtros</string>
+</resources>

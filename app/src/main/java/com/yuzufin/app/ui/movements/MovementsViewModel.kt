@@ -38,6 +38,9 @@ data class MovementFilters(
     val categoryId: Long? = null,
     /** `null` = todo el historial. */
     val month: YearMonth? = YearMonth.now(),
+    /** Importe mínimo y máximo, en la unidad mínima de la moneda. `null` = sin límite. */
+    val minAmountMinor: Long? = null,
+    val maxAmountMinor: Long? = null,
 )
 
 data class DayGroup(val date: LocalDate, val items: List<MovementItem>)
@@ -53,6 +56,9 @@ data class MovementsUiState(
     val totalExpense: Long = 0L,
     val hasAnyMovements: Boolean = false,
     val canGoToNextMonth: Boolean = false,
+    /** Cantidad de movimientos que se ven con los filtros actuales. */
+    val resultCount: Int = 0,
+    val hasActiveFilters: Boolean = false,
 )
 
 class MovementsViewModel(
@@ -68,19 +74,7 @@ class MovementsViewModel(
         finance.categories,
         settings.settings,
     ) { f, transactions, categories, appSettings ->
-        val byId = categories.associateBy { it.id }
-        val query = f.query.trim().lowercase()
-
-        val filtered = transactions.filter { t ->
-            f.type.matches(t.type) &&
-                (f.categoryId == null || t.categoryId == f.categoryId) &&
-                (f.month == null || YearMonth.from(t.date) == f.month) &&
-                (
-                    query.isEmpty() ||
-                        t.description.lowercase().contains(query) ||
-                        (byId[t.categoryId]?.name.orEmpty()).lowercase().contains(query)
-                    )
-        }
+        val filtered = applyMovementFilters(transactions, categories, f)
 
         val groups = buildMovementItems(filtered, categories)
             .groupBy { it.date }
@@ -92,10 +86,13 @@ class MovementsViewModel(
             filters = f,
             categories = categories.filter { f.type.matches(it.type) },
             groups = groups,
-            totalIncome = filtered.filter { it.type == TransactionType.INCOME }.sumOf { it.amountMinor },
-            totalExpense = filtered.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amountMinor },
+            // Los movimientos internos de préstamos no cuentan como ingreso ni gasto.
+            totalIncome = filtered.filter { it.type == TransactionType.INCOME && !it.internalTransfer }.sumOf { it.amountMinor },
+            totalExpense = filtered.filter { it.type == TransactionType.EXPENSE && !it.internalTransfer }.sumOf { it.amountMinor },
             hasAnyMovements = transactions.isNotEmpty(),
             canGoToNextMonth = f.month != null && f.month.isBefore(YearMonth.now()),
+            resultCount = groups.sumOf { it.items.size },
+            hasActiveFilters = f.hasActiveFilters(),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MovementsUiState())
 
@@ -129,6 +126,11 @@ class MovementsViewModel(
     fun setType(type: TypeFilter) = filters.update { it.copy(type = type, categoryId = null) }
 
     fun setCategory(categoryId: Long?) = filters.update { it.copy(categoryId = categoryId) }
+
+    /** Importe mínimo y máximo (cualquiera puede ser `null`). */
+    fun setAmountRange(min: Long?, max: Long?) = filters.update { it.copy(minAmountMinor = min, maxAmountMinor = max) }
+
+    fun clearFilters() = filters.update { it.cleared() }
 
     fun showAllHistory() = filters.update { it.copy(month = null) }
 

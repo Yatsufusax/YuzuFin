@@ -63,6 +63,9 @@ import com.yuzufin.app.R
 import com.yuzufin.app.ui.common.LocalDeleteUndo
 import com.yuzufin.app.ui.common.dropIn
 import com.yuzufin.app.ui.components.HintCard
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import com.yuzufin.app.core.money.AmountParser
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.TransactionType
 import com.yuzufin.app.rememberAppContainer
@@ -90,6 +93,7 @@ fun MovementsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val filters = state.filters
     var showExport by rememberSaveable { mutableStateOf(false) }
+    var showAmountFilter by rememberSaveable { mutableStateOf(false) }
     val deleteUndo = LocalDeleteUndo.current
     val freshIds by viewModel.fresh.collectAsStateWithLifecycle()
     LaunchedEffect(freshIds) {
@@ -101,6 +105,16 @@ fun MovementsScreen(
     val photoIds by container.attachmentRepository.transactionIdsWithPhotos.collectAsStateWithLifecycle(emptySet())
     val scope = rememberCoroutineScope()
     if (showExport) StatementExportDialog(onDismiss = { showExport = false })
+    if (showAmountFilter) {
+        AmountFilterDialog(
+            state = state,
+            onApply = { min, max ->
+                viewModel.setAmountRange(min, max)
+                showAmountFilter = false
+            },
+            onDismiss = { showAmountFilter = false },
+        )
+    }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -179,6 +193,13 @@ fun MovementsScreen(
                         label = { Text(stringResource(R.string.filter_expense)) },
                     )
                 }
+                item {
+                    FilterChip(
+                        selected = filters.minAmountMinor != null || filters.maxAmountMinor != null,
+                        onClick = { showAmountFilter = true },
+                        label = { Text(amountChipLabel(filters, state)) },
+                    )
+                }
             }
         }
 
@@ -195,6 +216,30 @@ fun MovementsScreen(
                         },
                         label = { Text(category.name) },
                     )
+                }
+            }
+        }
+
+        if (state.hasActiveFilters && !state.loading) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = if (state.resultCount == 1) {
+                            stringResource(R.string.movements_result_one)
+                        } else {
+                            stringResource(R.string.movements_results, state.resultCount)
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    TextButton(onClick = viewModel::clearFilters) {
+                        Text(stringResource(R.string.movements_clear_filters))
+                    }
                 }
             }
         }
@@ -439,4 +484,87 @@ private fun EmptyMovements(hasAnyMovements: Boolean, onNewMovement: () -> Unit) 
             Button(onClick = onNewMovement) { Text(stringResource(R.string.movements_register_first)) }
         }
     }
+}
+
+@Composable
+private fun amountChipLabel(filters: MovementFilters, state: MovementsUiState): String {
+    val min = filters.minAmountMinor
+    val max = filters.maxAmountMinor
+    fun money(value: Long) = MoneyFormatter.format(value, state.currency)
+    return when {
+        min != null && max != null -> stringResource(R.string.filter_amount_range, money(min), money(max))
+        min != null -> stringResource(R.string.filter_amount_from, money(min))
+        max != null -> stringResource(R.string.filter_amount_to, money(max))
+        else -> stringResource(R.string.filter_amount)
+    }
+}
+
+@Composable
+private fun AmountFilterDialog(
+    state: MovementsUiState,
+    onApply: (Long?, Long?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val currency = state.currency
+    var minText by remember {
+        mutableStateOf(state.filters.minAmountMinor?.let { AmountParser.toInputText(it, currency) }.orEmpty())
+    }
+    var maxText by remember {
+        mutableStateOf(state.filters.maxAmountMinor?.let { AmountParser.toInputText(it, currency) }.orEmpty())
+    }
+    val min = AmountParser.parseToMinorUnits(minText, currency)
+    val max = AmountParser.parseToMinorUnits(maxText, currency)
+    val minInvalid = minText.isNotBlank() && min == null
+    val maxInvalid = maxText.isNotBlank() && max == null
+    val reversed = min != null && max != null && min > max
+    val keyboard = KeyboardOptions(
+        keyboardType = if (currency.fractionDigits == 0) KeyboardType.Number else KeyboardType.Decimal,
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.filter_amount_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.filter_amount_body), style = MaterialTheme.typography.bodyMedium)
+                OutlinedTextField(
+                    value = minText,
+                    onValueChange = { minText = AmountParser.sanitize(it, currency) },
+                    label = { Text(stringResource(R.string.filter_amount_min)) },
+                    singleLine = true,
+                    isError = minInvalid || reversed,
+                    keyboardOptions = keyboard,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = maxText,
+                    onValueChange = { maxText = AmountParser.sanitize(it, currency) },
+                    label = { Text(stringResource(R.string.filter_amount_max)) },
+                    singleLine = true,
+                    isError = maxInvalid || reversed,
+                    keyboardOptions = keyboard,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (reversed) {
+                    Text(
+                        stringResource(R.string.filter_amount_invalid),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onApply(min, max) },
+                enabled = !minInvalid && !maxInvalid && !reversed,
+            ) { Text(stringResource(R.string.filter_amount_apply)) }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = { onApply(null, null) }) { Text(stringResource(R.string.filter_amount_remove)) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+            }
+        },
+    )
 }

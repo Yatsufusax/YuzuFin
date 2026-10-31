@@ -21,7 +21,7 @@ App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Ro
 - **Disponible vs. ahorrado:** Inicio muestra el **disponible** (saldo total − apartado) y debajo lo **ahorrado**. Apartar no es un gasto ni un ingreso: no aparece en Movimientos ni cambia el extracto PDF.
 - **Fase 5, obligaciones:** facturas con vencimiento (únicas o mensuales) que **no descuentan el saldo hasta que las pagás**; al pagar se crea el gasto real (importe y fecha editables) y, si es mensual, queda lista la del mes siguiente. Préstamos que hiciste o que te hicieron, con devoluciones parciales. Inicio muestra los próximos vencimientos y el **libre estimado** (disponible − facturas pendientes). La pantalla Obligaciones suma además lo que te deben, lo que debés y el **patrimonio**.
 - **Avisos de la Fase 5:** factura por vencer (desde el día anterior, o ya vencida; un aviso por vencimiento) y, los últimos dos días de cada mes, quién te debe y a quién le debés mientras quede saldo (una vez por mes y por préstamo). Todo se puede apagar por factura o préstamo.
-- Tests: `ObligationMathTest` (vencimientos mensuales y meses cortos, avisos, devoluciones, totales, fin de mes), `SavingsMathTest` (disponible, avance, meses que quedan, aporte mensual, aporte automático), `StatementBuilderTest`, `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`, `IncomeSchedulerTest` (fechas, meses cortos, años bisiestos, quincenas), `ReminderSchedulerTest`, `HabitReminderTest`, `QuickLaunchTest`.
+- Tests: `ObligationMathTest` (vencimientos mensuales y meses cortos, avisos, devoluciones, totales, fin de mes), `SavingsMathTest` (disponible, avance, meses que quedan, aporte mensual, aporte automático), `StatementBuilderTest`, `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`, `IncomeSchedulerTest` (fechas, meses cortos, años bisiestos, quincenas), `ReminderSchedulerTest`, `HabitReminderTest`, `QuickLaunchTest`, `MovementFilteringTest`.
 
 **Sin verificar:** no se pudo compilar ni ejecutar donde se escribió (sin acceso al SDK de Android). Solo se revisaron recursos y XML con scripts. La compilación y los tests corren en GitHub Actions; si falla, pegá el error.
 
@@ -75,6 +75,9 @@ Por terminal (con el SDK instalado y `local.properties` con `sdk.dir=...`):
 ./gradlew testDebugUnitTest      # tests
 ./gradlew assembleDebug          # APK en app/build/outputs/apk/debug/
 ```
+
+## Filtros de Movimientos
+`MovementsViewModel` + `MovementFiltering.kt` (reglas puras: `applyMovementFilters`, `hasActiveFilters`, `cleared`). Filtros: texto, mes (o todo el historial), tipo, categoría y rango de monto (`minAmountMinor`/`maxAmountMinor`, ambos opcionales e inclusivos; chip "Monto" abre un diálogo). Con algún filtro activo se muestra "N resultados" y "Quitar filtros" (mantiene el mes). Los totales de arriba excluyen los movimientos internos de préstamos. El estado vive en el ViewModel (sobrevive a la rotación). Test: `MovementFilteringTest`.
 
 ## Widget "+ Gasto"
 `widget/ExpenseWidgetProvider` (`AppWidgetProvider` con `RemoteViews`, sin dependencias nuevas; recursos `widget_expense`, `widget_expense_bg`, `widget_expense_info`, `strings_widget.xml`). El toque lanza `MainActivity` (ahora `singleTop`) con el extra `open=expense` (`QuickLaunch`). `MainActivity` lo lee solo al crearse sin estado guardado o en `onNewIntent` (y lo borra, para que rotar no lo repita); `MoneaApp` lo descarta si falta la configuración inicial; `MainShell` abre el formulario de gasto cuando la navegación está lista y no hay otro formulario abierto. El widget no muestra ni guarda datos. Test: `QuickLaunchTest`.

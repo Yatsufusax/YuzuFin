@@ -71,5 +71,8 @@ Reglas de trabajo (importantes):
 ## Widget "+ Gasto" (idea 2, v45) — HECHO (sin compilar ni probar)
 - [x] Widget de pantalla de inicio que abre directo el formulario de gasto. Pendiente de probar en el teléfono: que aparezca en la lista de widgets, que abra el formulario con la app cerrada y abierta, que no se abra dos veces, que con la configuración inicial sin terminar abra la app normal.
 
+## Filtros en Movimientos (idea 4, v46) — HECHO (sin compilar ni probar)
+- [x] Filtro por rango de monto, contador de resultados y "Quitar filtros". Pendiente de probar en el teléfono: el diálogo de monto con teclado, que el chip muestre el rango, que "Quitar filtros" no cambie el mes y que los totales no cuenten préstamos.
+
 ## Ideas sueltas (no elegidas todavía)
 Resumen semanal, detección de gastos desde notificaciones (necesita ejemplos reales y lista "Detectados para confirmar"), versión Google Play con Billing, exportar CSV, filtros de movimientos, monito en mayor resolución.
