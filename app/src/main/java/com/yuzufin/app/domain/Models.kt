@@ -54,6 +54,8 @@ data class AppSettings(
     val habitRemindersEnabled: Boolean = true,
     /** Horas (0 a 23) a las que puede llegar el aviso de hábito. */
     val habitHours: Set<Int> = setOf(13, 18, 21),
+    /** Resumen de los últimos 7 días, los domingos a la noche. */
+    val weeklySummaryEnabled: Boolean = true,
     /** Si el texto de la notificación incluye el importe. Apagado por defecto: se ve en la pantalla bloqueada. */
     val showAmountsInNotifications: Boolean = false,
     /** Paleta de color elegida. */

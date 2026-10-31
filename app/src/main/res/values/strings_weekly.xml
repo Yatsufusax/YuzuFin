@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_weekly_title">Resumen semanal</string>
+    <string name="settings_weekly_switch">Resumen del domingo</string>
+    <string name="settings_weekly_switch_body">Los domingos a la noche, un aviso con lo que gastaste en los últimos 7 días y la categoría que más pesó. Respeta el ajuste de importes en los avisos.</string>
+
+    <string name="weekly_title">Tu semana en Monea</string>
+    <string name="weekly_body_amount">Gastaste %1$s en 7 días. Lo que más pesó: %2$s (%3$s).</string>
+    <string name="weekly_body">Ya tenés el resumen de tu semana. Lo que más pesó: %1$s.</string>
+    <string name="weekly_body_empty">No anotaste gastos en los últimos 7 días. ¿Se te pasó alguno?</string>
+</resources>

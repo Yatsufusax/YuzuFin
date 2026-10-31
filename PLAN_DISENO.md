@@ -74,5 +74,8 @@ Reglas de trabajo (importantes):
 ## Filtros en Movimientos (idea 4, v46) — HECHO (sin compilar ni probar)
 - [x] Filtro por rango de monto, contador de resultados y "Quitar filtros". Pendiente de probar en el teléfono: el diálogo de monto con teclado, que el chip muestre el rango, que "Quitar filtros" no cambie el mes y que los totales no cuenten préstamos.
 
+## Resumen semanal (idea 5, v47) — HECHO (sin compilar ni probar)
+- [x] Aviso del domingo a las 20:00 con el total de 7 días y la categoría que más pesó. Pendiente de probar en el teléfono: que llegue el domingo, que respete el ajuste de importes y que el interruptor lo apague.
+
 ## Ideas sueltas (no elegidas todavía)
-Resumen semanal, detección de gastos desde notificaciones (necesita ejemplos reales y lista "Detectados para confirmar"), versión Google Play con Billing, exportar CSV, filtros de movimientos, monito en mayor resolución.
+Detección de gastos desde notificaciones (necesita ejemplos reales y lista "Detectados para confirmar"), versión Google Play con Billing, exportar CSV (descartado por ahora), monito en mayor resolución.

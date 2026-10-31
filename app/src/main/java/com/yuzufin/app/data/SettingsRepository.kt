@@ -33,6 +33,7 @@ class SettingsRepository(private val context: Context) {
             reminderHour = (prefs[REMINDER_HOUR] ?: DEFAULT_REMINDER_HOUR).coerceIn(0, 23),
             habitRemindersEnabled = prefs[HABIT_ENABLED] ?: true,
             habitHours = HabitReminder.parseHours(prefs[HABIT_HOURS] ?: HabitReminder.DEFAULT_HOURS),
+            weeklySummaryEnabled = prefs[WEEKLY_ENABLED] ?: true,
             showAmountsInNotifications = prefs[SHOW_AMOUNTS] ?: false,
             themePalette = ThemePalette.fromName(prefs[THEME_PALETTE]),
             themeMode = ThemeMode.fromName(prefs[THEME_MODE]),
@@ -93,6 +94,10 @@ class SettingsRepository(private val context: Context) {
         context.settingsDataStore.edit { prefs -> prefs[HABIT_ENABLED] = enabled }
     }
 
+    suspend fun setWeeklySummaryEnabled(enabled: Boolean) {
+        context.settingsDataStore.edit { prefs -> prefs[WEEKLY_ENABLED] = enabled }
+    }
+
     /** Prende o apaga una hora del aviso "¿Anotaste hoy?". */
     suspend fun setHabitHour(hour: Int, on: Boolean) {
         context.settingsDataStore.edit { prefs ->
@@ -120,6 +125,7 @@ class SettingsRepository(private val context: Context) {
             put("reminderHour", prefs[REMINDER_HOUR] ?: DEFAULT_REMINDER_HOUR)
             put("habitEnabled", prefs[HABIT_ENABLED] ?: true)
             put("habitHours", prefs[HABIT_HOURS] ?: HabitReminder.DEFAULT_HOURS)
+            put("weeklyEnabled", prefs[WEEKLY_ENABLED] ?: true)
             put("showAmounts", prefs[SHOW_AMOUNTS] ?: false)
             put("themePalette", prefs[THEME_PALETTE] ?: ThemePalette.GREEN.name)
             put("themeMode", prefs[THEME_MODE] ?: ThemeMode.SYSTEM.name)
@@ -138,6 +144,7 @@ class SettingsRepository(private val context: Context) {
             prefs[REMINDERS_ENABLED] = json.optBoolean("remindersEnabled", true)
             prefs[REMINDER_HOUR] = json.optInt("reminderHour", DEFAULT_REMINDER_HOUR).coerceIn(0, 23)
             prefs[HABIT_ENABLED] = json.optBoolean("habitEnabled", true)
+            prefs[WEEKLY_ENABLED] = json.optBoolean("weeklyEnabled", true)
             prefs[HABIT_HOURS] = HabitReminder.formatHours(
                 HabitReminder.parseHours(json.optString("habitHours", HabitReminder.DEFAULT_HOURS)),
             )
@@ -193,6 +200,7 @@ class SettingsRepository(private val context: Context) {
         private val REMINDER_HOUR = intPreferencesKey("reminder_hour")
         private val HABIT_ENABLED = booleanPreferencesKey("habit_enabled")
         private val HABIT_HOURS = stringPreferencesKey("habit_hours")
+        private val WEEKLY_ENABLED = booleanPreferencesKey("weekly_enabled")
         private val SHOW_AMOUNTS = booleanPreferencesKey("show_amounts_in_notifications")
         private val THEME_PALETTE = stringPreferencesKey("theme_palette")
         private val THEME_MODE = stringPreferencesKey("theme_mode")

@@ -116,6 +116,11 @@ fun SettingsScreen(
                 onHourChange = { hour, on -> scope.launch { container.settingsRepository.setHabitHour(hour, on) } },
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
+            WeeklySummaryCard(
+                enabled = current.weeklySummaryEnabled,
+                onEnabledChange = { value -> scope.launch { container.settingsRepository.setWeeklySummaryEnabled(value) } },
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
         }
 
         CurrencyCard(
@@ -336,6 +341,37 @@ private fun RemindersCard(
                     Button(onClick = permission.request) { Text(stringResource(R.string.reminders_enable)) }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun WeeklySummaryCard(
+    enabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val permission = rememberNotificationPermission()
+
+    MoneaCard(modifier = modifier) {
+        Text(stringResource(R.string.settings_weekly_title), style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.settings_weekly_switch), style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    stringResource(R.string.settings_weekly_switch_body),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = { value ->
+                    onEnabledChange(value)
+                    if (value && !permission.granted) permission.request()
+                },
+            )
         }
     }
 }

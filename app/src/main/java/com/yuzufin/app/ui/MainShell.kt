@@ -32,6 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import com.yuzufin.app.domain.TransactionType
 import com.yuzufin.app.reminders.HabitReminderScheduler
 import com.yuzufin.app.reminders.ReminderScheduler
+import com.yuzufin.app.reminders.WeeklySummaryScheduler
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.R
 import com.yuzufin.app.ui.common.DeleteUndo
@@ -88,6 +89,11 @@ fun MainShell(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {
     // Avisos "¿Anotaste hoy?": un trabajo diario por cada hora elegida.
     LaunchedEffect(appSettings?.habitRemindersEnabled, appSettings?.habitHours) {
         appSettings?.let { HabitReminderScheduler.apply(context, it.habitRemindersEnabled, it.habitHours) }
+    }
+
+    // Resumen semanal del domingo.
+    LaunchedEffect(appSettings?.weeklySummaryEnabled) {
+        appSettings?.let { WeeklySummaryScheduler.apply(context, it.weeklySummaryEnabled) }
     }
 
     // Cada vez que se abre la app: crea los cobros vencidos (y registra los automáticos).
