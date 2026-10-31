@@ -54,6 +54,7 @@ import java.io.File
 import java.util.UUID
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.TransactionType
+import com.yuzufin.app.ui.common.LocalDeleteUndo
 import com.yuzufin.app.ui.common.categoryIcon
 import com.yuzufin.app.ui.components.DateField
 import com.yuzufin.app.ui.components.ScreenHeader
@@ -92,6 +93,7 @@ fun TransactionFormScreen(
         }
     }
 
+    val deleteUndo = LocalDeleteUndo.current
     val haptic = rememberHaptic()
     LaunchedEffect(state.finished, state.notFound) {
         if (state.finished) haptic()
@@ -109,7 +111,17 @@ fun TransactionFormScreen(
             onBack = onClose,
             actions = {
                 if (state.isEdit) {
-                    IconButton(onClick = { confirmDelete = true }) {
+                    IconButton(
+                        onClick = {
+                            if (deleteUndo != null) {
+                                // Se cierra y el aviso “Deshacer” aparece en la pantalla anterior.
+                                deleteUndo.delete(viewModel.editingId)
+                                onClose()
+                            } else {
+                                confirmDelete = true
+                            }
+                        },
+                    ) {
                         Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.action_delete))
                     }
                 }

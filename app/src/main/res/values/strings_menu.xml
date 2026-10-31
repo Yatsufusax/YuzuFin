@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Menú agrupado -->
+    <string name="menu_group_money">Dinero</string>
+    <string name="menu_group_plan">Planificar y analizar</string>
+    <string name="menu_group_help">Ayuda</string>
+
+    <!-- Deshacer al borrar -->
+    <string name="undo_deleted">Movimiento borrado</string>
+    <string name="action_undo">Deshacer</string>
+</resources>

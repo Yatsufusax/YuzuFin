@@ -47,14 +47,35 @@ private data class MenuEntry(
     val icon: ImageVector,
 )
 
-private val menuEntries = listOf(
-    MenuEntry(Destination.Incomes, R.string.menu_incomes, R.string.menu_incomes_desc, Icons.Rounded.AccountBalanceWallet),
-    MenuEntry(Destination.Recurring, R.string.menu_recurring, R.string.menu_recurring_desc, Icons.Rounded.Repeat),
-    MenuEntry(Destination.Obligations, R.string.menu_obligations, R.string.menu_obligations_desc, Icons.Rounded.CalendarMonth),
-    MenuEntry(Destination.Stats, R.string.menu_stats, R.string.menu_stats_desc, Icons.Rounded.BarChart),
-    MenuEntry(Destination.Budgets, R.string.menu_budgets, R.string.menu_budgets_desc, Icons.Rounded.PieChart),
-    MenuEntry(Destination.Categories, R.string.menu_categories, R.string.menu_categories_desc, Icons.Rounded.Category),
-    MenuEntry(Destination.Help, R.string.menu_help, R.string.menu_help_desc, Icons.Rounded.Info),
+private data class MenuGroup(
+    @StringRes val titleRes: Int,
+    val entries: List<MenuEntry>,
+)
+
+/** Menú agrupado por tema, para encontrar cada cosa sin leer una lista larga. */
+private val menuGroups = listOf(
+    MenuGroup(
+        R.string.menu_group_money,
+        listOf(
+            MenuEntry(Destination.Incomes, R.string.menu_incomes, R.string.menu_incomes_desc, Icons.Rounded.AccountBalanceWallet),
+            MenuEntry(Destination.Recurring, R.string.menu_recurring, R.string.menu_recurring_desc, Icons.Rounded.Repeat),
+            MenuEntry(Destination.Obligations, R.string.menu_obligations, R.string.menu_obligations_desc, Icons.Rounded.CalendarMonth),
+        ),
+    ),
+    MenuGroup(
+        R.string.menu_group_plan,
+        listOf(
+            MenuEntry(Destination.Budgets, R.string.menu_budgets, R.string.menu_budgets_desc, Icons.Rounded.PieChart),
+            MenuEntry(Destination.Stats, R.string.menu_stats, R.string.menu_stats_desc, Icons.Rounded.BarChart),
+            MenuEntry(Destination.Categories, R.string.menu_categories, R.string.menu_categories_desc, Icons.Rounded.Category),
+        ),
+    ),
+    MenuGroup(
+        R.string.menu_group_help,
+        listOf(
+            MenuEntry(Destination.Help, R.string.menu_help, R.string.menu_help_desc, Icons.Rounded.Info),
+        ),
+    ),
 )
 
 @Composable
@@ -70,40 +91,48 @@ fun MenuScreen(
     ) {
         ScreenHeader(title = stringResource(R.string.menu_title))
 
-        MoneaCard(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(vertical = 8.dp),
-        ) {
-            menuEntries.forEachIndexed { index, entry ->
-                if (index > 0) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(role = Role.Button) { onNavigate(entry.destination) }
-                        .padding(horizontal = 20.dp, vertical = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    IconBadge(icon = entry.icon, size = 44.dp)
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(entry.titleRes), style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            text = stringResource(entry.descriptionRes),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        menuGroups.forEach { group ->
+            Text(
+                text = stringResource(group.titleRes),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 24.dp, end = 16.dp, top = 12.dp, bottom = 6.dp),
+            )
+            MoneaCard(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                contentPadding = PaddingValues(vertical = 8.dp),
+            ) {
+                group.entries.forEachIndexed { index, entry ->
+                    if (index > 0) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant,
                         )
                     }
-                    Icon(
-                        Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp),
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(role = Role.Button) { onNavigate(entry.destination) }
+                            .padding(horizontal = 20.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        IconBadge(icon = entry.icon, size = 44.dp)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(stringResource(entry.titleRes), style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                text = stringResource(entry.descriptionRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Icon(
+                            Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
                 }
             }
         }

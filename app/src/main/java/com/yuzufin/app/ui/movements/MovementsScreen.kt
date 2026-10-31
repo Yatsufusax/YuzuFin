@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.common.LocalDeleteUndo
 import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.TransactionType
@@ -86,7 +87,7 @@ fun MovementsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val filters = state.filters
     var showExport by rememberSaveable { mutableStateOf(false) }
-    var pendingDelete by remember { mutableStateOf<MovementItem?>(null) }
+    val deleteUndo = LocalDeleteUndo.current
     val photoIds by container.attachmentRepository.transactionIdsWithPhotos.collectAsStateWithLifecycle(emptySet())
     val scope = rememberCoroutineScope()
     if (showExport) StatementExportDialog(onDismiss = { showExport = false })
@@ -244,31 +245,18 @@ fun MovementsScreen(
                             state = state,
                             hasPhoto = item.id in photoIds,
                             onClick = { if (!item.isInternal) onEdit(item.id) },
-                            onRequestDelete = { pendingDelete = item },
+                            onRequestDelete = {
+                                if (deleteUndo != null) {
+                                    deleteUndo.delete(item.id)
+                                } else {
+                                    scope.launch { container.financeRepository.deleteTransaction(item.id) }
+                                }
+                            },
                         )
                     }
                 }
             }
         }
-    }
-
-    pendingDelete?.let { target ->
-        AlertDialog(
-            onDismissRequest = { pendingDelete = null },
-            title = { Text(stringResource(R.string.delete_title)) },
-            text = { Text(stringResource(R.string.delete_body)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        pendingDelete = null
-                        scope.launch { container.financeRepository.deleteTransaction(target.id) }
-                    },
-                ) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.action_cancel)) }
-            },
-        )
     }
 }
 
@@ -289,7 +277,7 @@ private fun SwipeableMovementRow(
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) onRequestDelete()
-            // Siempre vuelve a su lugar: el borrado real ocurre después de confirmar.
+            // Siempre vuelve a su lugar: el movimiento se oculta solo y el borrado real espera el “Deshacer”.
             false
         },
     )

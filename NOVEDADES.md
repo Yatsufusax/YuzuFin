@@ -1,4 +1,6 @@
 ## Nuevo
+- Borrar un movimiento ya no pregunta: desaparece al instante y aparece "Movimiento borrado · Deshacer" durante 5 segundos. Si tocás Deshacer, vuelve tal cual estaba (con sus fotos). Funciona deslizando en Movimientos y con el tachito dentro del movimiento.
+- El Menú ahora está ordenado por tema: Dinero (cobros, gastos fijos, obligaciones), Planificar y analizar (presupuestos, estadísticas, categorías) y Ayuda.
 - Ajustes ahora está en la barra de abajo, justo antes de Menú, para entrar con un toque. Ya no hace falta pasar por Menú.
 - Las novedades de cada actualización quedan guardadas en la campanilla de notificaciones. Cuando la app se actualiza, abrí la campanilla y leé con calma todo lo que trae la versión.
 - Inicio más simple: debajo de tu tarjeta ahora ves una sola cosa para resolver (un cobro por confirmar, una factura vencida o por vencer en 3 días, o un gasto fijo que ya tocó). Si hay más, tocás "Ver N más". Si no hay nada pendiente, te saluda el monito.

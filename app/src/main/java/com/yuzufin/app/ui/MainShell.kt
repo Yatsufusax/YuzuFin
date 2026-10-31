@@ -10,6 +10,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,6 +19,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -30,6 +32,9 @@ import androidx.navigation.compose.rememberNavController
 import com.yuzufin.app.domain.TransactionType
 import com.yuzufin.app.reminders.ReminderScheduler
 import com.yuzufin.app.rememberAppContainer
+import com.yuzufin.app.R
+import com.yuzufin.app.ui.common.DeleteUndo
+import com.yuzufin.app.ui.common.LocalDeleteUndo
 import com.yuzufin.app.ui.components.QuickAction
 import com.yuzufin.app.ui.components.QuickActionsSheetContent
 import com.yuzufin.app.ui.navigation.BillFormRoute
@@ -55,6 +60,11 @@ fun MainShell() {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val undoMessage = stringResource(R.string.undo_deleted)
+    val undoLabel = stringResource(R.string.action_undo)
+    val deleteUndo = remember(container, scope, snackbarHostState, undoMessage, undoLabel) {
+        DeleteUndo(container.financeRepository, scope, snackbarHostState, undoMessage, undoLabel)
+    }
     var showQuickSheet by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -94,30 +104,32 @@ fun MainShell() {
         }
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        bottomBar = {
-            // El formulario ocupa toda la pantalla: sin barra flotante.
-            if (!isFullScreenRoute(currentRoute)) {
-                FloatingNavBar(
-                    currentRoute = currentRoute,
-                    onNavigate = navController::navigateTo,
-                    onAddClick = { onQuickAction(QuickAction.Expense) },
-                    onAddLongClick = { showQuickSheet = true },
-                )
-            }
-        },
-    ) { innerPadding ->
-        MoneaNavHost(
-            navController = navController,
-            contentPadding = innerPadding,
-            updateViewModel = updateViewModel,
-            onQuickAction = onQuickAction,
-            onNotificationsClick = { navController.navigateTo(Destination.Notifications) },
-            modifier = Modifier.fillMaxSize(),
-        )
+    CompositionLocalProvider(LocalDeleteUndo provides deleteUndo) {
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            bottomBar = {
+                // El formulario ocupa toda la pantalla: sin barra flotante.
+                if (!isFullScreenRoute(currentRoute)) {
+                    FloatingNavBar(
+                        currentRoute = currentRoute,
+                        onNavigate = navController::navigateTo,
+                        onAddClick = { onQuickAction(QuickAction.Expense) },
+                        onAddLongClick = { showQuickSheet = true },
+                    )
+                }
+            },
+        ) { innerPadding ->
+            MoneaNavHost(
+                navController = navController,
+                contentPadding = innerPadding,
+                updateViewModel = updateViewModel,
+                onQuickAction = onQuickAction,
+                onNotificationsClick = { navController.navigateTo(Destination.Notifications) },
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 
     if (showQuickSheet) {

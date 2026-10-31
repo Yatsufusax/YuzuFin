@@ -154,3 +154,8 @@ Ver `PLAN_DISENO.md` (estado de cada punto y lo que falta) y `MONEA_HANDOFF.md` 
 - **Notas de actualización en la campanilla:** como la actualización es obligatoria y se instala enseguida, la ventana pasa demasiado rápido para leer las novedades. Ahora `UpdateViewModel.saveNotes` guarda las notas de la Release (el contenido de `NOVEDADES.md`, convertido a texto plano con viñetas por `ReleaseNotes.toPlainText`) en `app_notifications` apenas se detecta la versión nueva. Tipo `NotificationKind.UPDATE` (ícono `NewReleases`), título "Novedades de Monea 0.2.N" y clave de deduplicación `update-<buildNumber>` (una sola vez por versión aunque se vuelva a detectar). No hizo falta migración de base de datos (`kind` se guarda como texto). Se leen abriendo la campanilla; el cuerpo se muestra completo.
 - Convención: `NOVEDADES.md` va a la campanilla tal cual, así que conviene que contenga solo lo nuevo desde la última Release publicada (cuando se confirme que una versión salió, vaciar lo anterior y empezar de nuevo).
 - Test nuevo: `ReleaseNotesTest` (texto plano con viñetas y vacío).
+
+## Menú agrupado y borrar con deshacer (punto 3)
+- `MenuScreen`: tres grupos con título (Dinero / Planificar y analizar / Ayuda).
+- Borrar un movimiento: `DeleteUndo` (en `ui/common`) oculta el movimiento con `FinanceRepository.hideTransaction`, muestra el aviso con "Deshacer" 5 segundos y recién después llama a `deleteTransaction`. Se ofrece a las pantallas con `LocalDeleteUndo`.
+

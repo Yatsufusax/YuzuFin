@@ -81,7 +81,7 @@ data class TransactionFormState(
 class TransactionFormViewModel(
     private val finance: FinanceRepository,
     private val settings: SettingsRepository,
-    private val editingId: Long,
+    val editingId: Long,
     initialType: TransactionType,
     private val attachments: AttachmentRepository,
     private val voucherBuilder: VoucherBuilder,

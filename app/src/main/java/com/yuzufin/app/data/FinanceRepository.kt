@@ -10,7 +10,10 @@ import com.yuzufin.app.domain.FinanceTransaction
 import com.yuzufin.app.domain.InitialBalance
 import com.yuzufin.app.domain.TransactionType
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 
 /** Acceso a movimientos, categorías y saldo inicial. La UI nunca toca la base de datos directo. */
@@ -26,8 +29,20 @@ class FinanceRepository(private val db: AppDatabase, private val attachmentFiles
     val categories: Flow<List<Category>> =
         categoryDao.observeAll().map { list -> list.map { it.toDomain() } }
 
+    /**
+     * Movimientos que el usuario borró y todavía pueden deshacerse: ya no se ven ni cuentan en
+     * el saldo, pero siguen en la base (con sus fotos) hasta que se confirma el borrado.
+     */
+    private val hiddenIds = MutableStateFlow<Set<Long>>(emptySet())
+
     val transactions: Flow<List<FinanceTransaction>> =
-        transactionDao.observeAll().map { list -> list.map { it.toDomain() } }
+        combine(transactionDao.observeAll(), hiddenIds) { list, hidden ->
+            list.filter { it.id !in hidden }.map { it.toDomain() }
+        }
+
+    fun hideTransaction(id: Long) = hiddenIds.update { it + id }
+
+    fun showTransaction(id: Long) = hiddenIds.update { it - id }
 
     val initialBalance: Flow<InitialBalance?> =
         initialBalanceDao.observe().map { it?.toDomain() }

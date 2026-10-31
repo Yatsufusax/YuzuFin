@@ -34,10 +34,11 @@ Reglas de trabajo (importantes):
 - Pendiente de revisar con el usuario: cómo se ve con 3 o más ítems desplegados, el monito de 56 dp en la tarjeta, y si quiere poder pagar facturas y confirmar gastos fijos desde Inicio.
 - Para otra vuelta: `RecurringViewModel.confirm/skip` y `ObligationsViewModel.payBill` no tienen el seguro contra toques repetidos ni el `refresh` que sí tienen Inicio e Ingresos. Pruebas unitarias para el armado de `attention` (hoy está dentro del `combine` del ViewModel; se podría extraer a una función pura).
 
-### Punto 3: Menos pantallas, más claras — PENDIENTE
-- Barra con 4 destinos + "+" (ya está). Reagrupar "Menú" por tema: Dinero / Planificar (Ajustes ya tiene su lugar en la barra).
-- **Deshacer en vez de preguntar**: al borrar un movimiento (deslizar o desde el formulario) mostrar snackbar "Borrado · Deshacer" unos segundos en lugar del diálogo de confirmación. Hay que guardar el movimiento (con sus fotos, que no deben borrarse del disco hasta que pase el tiempo) y reinsertarlo si se toca Deshacer.
-- Archivos probables: `ui/movements/MovementsScreen.kt`, `MovementsViewModel`, `TransactionFormScreen.kt` (diálogo `confirmDelete`), `ui/MainShell.kt` (ya tiene `SnackbarHost`), `ui/menu`.
+### Punto 3: Menos pantallas, más claras — HECHO (sin probar)
+- [x] Menú agrupado por tema: Dinero (Cobros e ingresos, Gastos fijos, Obligaciones) / Planificar y analizar (Presupuestos, Estadísticas, Categorías) / Ayuda. (`ui/menu/MenuScreen.kt`, `strings_menu.xml`; Ajustes ya tiene su lugar en la barra).
+- [x] **Deshacer en vez de preguntar** al borrar un movimiento (deslizando en Movimientos o con el tachito del formulario). Diseño: no se borra enseguida. `FinanceRepository.hideTransaction/showTransaction` lo ocultan de `transactions` (saldo, listas y estadísticas ya no lo cuentan); `ui/common/DeleteUndo.kt` muestra el snackbar durante 5 s; si se toca "Deshacer" se vuelve a mostrar, y si pasa el tiempo (o llega otro borrado) recién ahí se llama a `deleteTransaction` (efectos laterales: cobro vuelve a "omitido", aportes de ahorro asociados, factura desvinculada, fotos). Así no hay que reconstruir nada al deshacer. Si la app se cierra durante los 5 s, el movimiento queda sin borrar (falla seguro).
+- Se entrega con `LocalDeleteUndo` (CompositionLocal) desde `MainShell`; si es `null` (vista previa) las pantallas usan el borrado directo / diálogo de antes.
+- Pendiente a mirar con el usuario: que el snackbar se vea bien sobre la barra flotante, y si quiere el mismo "Deshacer" para borrar metas, facturas y fuentes de ingreso (hoy siguen con diálogo de confirmación).
 
 ### Punto 4: Que se sienta viva sin cansar — PENDIENTE
 - Identidad coherente (tarjeta, monito, verde/amarillo) en todas las pantallas.
