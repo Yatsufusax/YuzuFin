@@ -1,5 +1,7 @@
 package com.yuzufin.app.ui.notifications
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -24,11 +26,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.unit.Dp
 import com.yuzufin.app.R
 import com.yuzufin.app.ui.components.Mascot
 import com.yuzufin.app.ui.components.MascotPose
@@ -47,16 +49,22 @@ private fun parseNotes(body: String): List<NotesBlock> =
 
 /** Ventana aparte, a pantalla completa, para leer con calma lo que trae una actualización. */
 @Composable
-fun UpdateNotesWindow(title: String, body: String, onDismiss: () -> Unit) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+fun UpdateNotesWindow(title: String, body: String, bottomPadding: Dp, onDismiss: () -> Unit) {
+    // Se dibuja dentro de la pantalla (no en un diálogo). [bottomPadding] deja lugar a la barra flotante.
+    BackHandler(onBack = onDismiss)
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) { detectTapGestures { } },
+        color = MaterialTheme.colorScheme.background,
     ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background,
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
+        run {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .padding(bottom = bottomPadding),
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -115,7 +123,6 @@ fun UpdateNotesWindow(title: String, body: String, onDismiss: () -> Unit) {
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier
-                        .navigationBarsPadding()
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp, vertical = 12.dp)
                         .heightIn(min = 52.dp),

@@ -137,6 +137,7 @@ fun NotificationsScreen(
         UpdateNotesWindow(
             title = displayTitle(note),
             body = note.body,
+            bottomPadding = contentPadding.calculateBottomPadding(),
             onDismiss = { opened = null },
         )
     }

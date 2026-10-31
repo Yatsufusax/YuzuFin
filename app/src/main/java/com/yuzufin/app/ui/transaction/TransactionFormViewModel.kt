@@ -239,6 +239,10 @@ class TransactionFormViewModel(
         }
         _state.update { it.copy(saving = true) }
         viewModelScope.launch {
+            // ¿Es el primer gasto que anota? (para el festejo del monito)
+            val isFirstExpense = editingId == 0L && s.type == TransactionType.EXPENSE &&
+                runCatching { finance.transactions.first().none { it.type == TransactionType.EXPENSE } }
+                    .getOrDefault(false)
             val id = finance.saveTransaction(
                 FinanceTransaction(
                     id = editingId,
@@ -255,6 +259,7 @@ class TransactionFormViewModel(
                 removeIds = removedPhotoIds.toList(),
             )
             saved = true
+            if (isFirstExpense) runCatching { settings.markFirstExpense() }
             _state.update { it.copy(saving = false, finished = true) }
         }
     }

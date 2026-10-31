@@ -14,9 +14,12 @@ import com.yuzufin.app.domain.OccurrenceStatus
 import com.yuzufin.app.domain.RecurringExpense
 import com.yuzufin.app.domain.RecurringScheduler
 import com.yuzufin.app.domain.TransactionType
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -51,7 +54,11 @@ class RecurringViewModel(
     settings: SettingsRepository,
 ) : ViewModel() {
 
-    val uiState: StateFlow<RecurringUiState> = combine(
+    private val refresh = MutableStateFlow(0)
+    private val inFlight = HashSet<Long>()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<RecurringUiState> = refresh.flatMapLatest { combine(
         recurring.expenses,
         recurring.occurrences,
         finance.categories,
@@ -82,7 +89,7 @@ class RecurringViewModel(
             categories = categories.filter { it.type == TransactionType.EXPENSE && !it.archived },
             allCategories = categories,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecurringUiState())
+    } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecurringUiState())
 
     fun save(expense: RecurringExpense) {
         viewModelScope.launch {
@@ -91,12 +98,29 @@ class RecurringViewModel(
         }
     }
 
+    /** Ignora toques repetidos sobre el mismo pago y, al terminar, fuerza que la pantalla se actualice. */
     fun confirm(occurrenceId: Long, amountMinor: Long) {
-        viewModelScope.launch { recurring.confirm(occurrenceId, amountMinor) }
+        if (!inFlight.add(occurrenceId)) return
+        viewModelScope.launch {
+            try {
+                runCatching { recurring.confirm(occurrenceId, amountMinor) }
+            } finally {
+                inFlight.remove(occurrenceId)
+                refresh.value += 1
+            }
+        }
     }
 
     fun skip(occurrenceId: Long) {
-        viewModelScope.launch { recurring.skip(occurrenceId) }
+        if (!inFlight.add(occurrenceId)) return
+        viewModelScope.launch {
+            try {
+                runCatching { recurring.skip(occurrenceId) }
+            } finally {
+                inFlight.remove(occurrenceId)
+                refresh.value += 1
+            }
+        }
     }
 
     fun setActive(id: Long, active: Boolean) {

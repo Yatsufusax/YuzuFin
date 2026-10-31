@@ -44,7 +44,8 @@ Reglas de trabajo (importantes):
 - [x] El movimiento recién guardado "cae" en la lista de Movimientos: `Modifier.dropIn` (`ui/common/Effects.kt`) + `MovementsViewModel.fresh` (ids que aparecen mientras la pantalla vive; se limpian a los 1,8 s). Solo se ve si el usuario vuelve a Movimientos desde el formulario.
 - [x] Barras de progreso que se llenan al aparecer: `rememberFillAnimation` en `ProgressBar` (Estadísticas y Presupuestos) y en la barra de metas de Ahorros.
 - [x] Monito en un momento clave: Presupuestos muestra `OVERSPENT` con las categorías pasadas del tope. (Meta cumplida ya tenía `GOAL_DONE` + confeti.)
-- [ ] Falta: monito al guardar el **primer gasto** (necesita una marca "ya celebrado" en DataStore, como `dismissed_hints`), identidad visual coherente (tarjeta/monito/verde-amarillo) en el resto de pantallas, y revisar que ninguna animación obligue a esperar.
+- [x] Monito al guardar el **primer gasto** (v43): `TransactionFormViewModel.save` detecta que no hay gastos previos y llama a `SettingsRepository.markFirstExpense` (marca `first_expense_done`, una sola vez); `MainShell` muestra `FirstExpenseCelebration`.
+- [ ] Falta: identidad visual coherente (tarjeta/monito/verde-amarillo) en el resto de pantallas, y revisar que ninguna animación obligue a esperar.
 - Archivos: `ui/common/Effects.kt`, `ui/movements/*`, `ui/stats/StatsScreen.kt`, `ui/savings/SavingsScreen.kt`, `ui/budgets/BudgetsScreen.kt`, `strings_notes.xml`.
 
 ### Aviso de novedades en la campanilla (pedido del usuario, v40)

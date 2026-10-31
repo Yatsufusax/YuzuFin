@@ -170,3 +170,10 @@ Ver `PLAN_DISENO.md` (estado de cada punto y lo que falta) y `MONEA_HANDOFF.md` 
 - **Recorrido del primer uso:** `ui/tour/FirstUseTour.kt`, diálogo a pantalla completa de 3 pasos (anotar un gasto, resumen de Inicio, ayuda) con "Saltar", "Atrás" y "Siguiente" abajo. Se muestra desde `MainShell` mientras `AppSettings.tourPending` sea verdadero. `SettingsRepository.completeOnboarding` lo activa; `finishTour` lo apaga; `restartTour` (botón en Ayuda) lo vuelve a activar. Quien restaura una copia o ya tenía la app no lo ve solo.
 - Tests nuevos: contraste en `PalettesTest` y `TextScaleTest`.
 
+## Toques repetidos y primer gasto (v43)
+- `RecurringViewModel.confirm/skip`, `ObligationsViewModel.payBill` y `repay` ignoran toques repetidos (`inFlight`) y re-consultan los datos al terminar (`refresh` + `flatMapLatest`), igual que Inicio e Ingresos. Los repositorios ya rechazaban pagos repetidos dentro de la transacción.
+- Primer gasto: `FirstExpenseCelebration` (diálogo con el monito `GOAL_DONE`) se muestra una sola vez cuando se guarda el primer gasto nuevo de la app.
+
+## Pantallas completas sin Dialog (v44)
+- `FirstUseTour` y `UpdateNotesWindow` ya no usan `Dialog`: en Samsung con gestos el diálogo no recibía el margen de la barra de navegación y el botón quedaba tapado. Ahora son un `Surface` a pantalla completa dentro de la composición (con `BackHandler` y bloqueo de toques), igual que la configuración inicial. `UpdateNotesWindow` recibe `bottomPadding` (el de la barra flotante).
+

@@ -20,9 +20,12 @@ import com.yuzufin.app.domain.LoanPayment
 import com.yuzufin.app.domain.LoanResult
 import com.yuzufin.app.domain.ObligationMath
 import com.yuzufin.app.domain.SavingsMath
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -84,7 +87,12 @@ class ObligationsViewModel(
         Triple(bills, loans, payments)
     }
 
-    val uiState: StateFlow<ObligationsUiState> = combine(base, loansData) { data, (bills, loans, payments) ->
+    private val refresh = MutableStateFlow(0)
+    private val inFlightBills = HashSet<Long>()
+    private val inFlightLoans = HashSet<Long>()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<ObligationsUiState> = refresh.flatMapLatest { combine(base, loansData) { data, (bills, loans, payments) ->
         val initial = data.initial
         if (initial == null) {
             ObligationsUiState()
@@ -125,19 +133,33 @@ class ObligationsViewModel(
                 borrowed = loanRows.filter { it.loan.direction == LoanDirection.BORROWED }.sortedBy { it.settled },
             )
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ObligationsUiState())
+    } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ObligationsUiState())
 
+    /** Ignora toques repetidos sobre la misma factura y, al terminar, fuerza que la pantalla se actualice. */
     fun payBill(id: Long, amountMinor: Long, date: LocalDate) {
-        viewModelScope.launch { runCatching { obligations.payBill(id, amountMinor, date) } }
+        if (!inFlightBills.add(id)) return
+        viewModelScope.launch {
+            try {
+                runCatching { obligations.payBill(id, amountMinor, date) }
+            } finally {
+                inFlightBills.remove(id)
+                refresh.value += 1
+            }
+        }
     }
 
     /** [onResult] corre en el hilo principal. */
     fun repay(loanId: Long, amountMinor: Long, date: LocalDate, note: String, onResult: (LoanResult) -> Unit) {
+        // Un segundo toque mientras se guarda el primero registraría el pago dos veces.
+        if (!inFlightLoans.add(loanId)) return
         viewModelScope.launch {
             val result = try {
                 obligations.repay(loanId, amountMinor, date, note)
             } catch (e: Exception) {
                 LoanResult.INVALID
+            } finally {
+                inFlightLoans.remove(loanId)
+                refresh.value += 1
             }
             onResult(result)
         }

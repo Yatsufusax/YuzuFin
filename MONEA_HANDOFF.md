@@ -1,6 +1,6 @@
 # Monea (antes YuzuFin): documento de traspaso para continuar el proyecto
 
-Pegá este documento al empezar una conversación nueva (otra cuenta de Claude, por ejemplo) y adjuntá el último zip del proyecto (`monea-proyecto-v42.zip` o el más nuevo). Sin el zip no hay código: la otra cuenta no tiene acceso a mis archivos. Este mismo archivo viaja dentro del zip (raíz del proyecto) junto con `README.md`, `NOVEDADES.md` y `PLAN_DISENO.md`.
+Pegá este documento al empezar una conversación nueva (otra cuenta de Claude, por ejemplo) y adjuntá el último zip del proyecto (`monea-proyecto-v44.zip` o el más nuevo). Sin el zip no hay código: la otra cuenta no tiene acceso a mis archivos. Este mismo archivo viaja dentro del zip (raíz del proyecto) junto con `README.md`, `NOVEDADES.md` y `PLAN_DISENO.md`.
 
 **Qué leer primero en la conversación nueva (y nada más, salvo lo necesario):** este documento, `PLAN_DISENO.md` (estado de cada punto del plan) y `NOVEDADES.md`. El `README.md` explica el modelo de datos y las reglas de negocio con detalle.
 
@@ -142,6 +142,8 @@ No hay confirmación de que los últimos zips hayan compilado ni de que se hayan
 - Consejos, pantalla Ayuda, restaurar desde el onboarding, color al empezar, `MISSED_YOU`.
 - Anotar rápido (`QuickEntry`) y tarjeta `BankCard` (otra cuenta).
 - Punto 2 (`AttentionCard`, resumen del mes simplificado).
+- **v44:** el recorrido (`FirstUseTour`) y `UpdateNotesWindow` dejaron de ser `Dialog` y se dibujan dentro de la app con `statusBarsPadding`/`navigationBarsPadding` (en el teléfono del usuario el `Dialog` no recibía el margen de la barra de gestos y los botones quedaban tapados; la notas reciben `bottomPadding` para no quedar bajo la barra flotante). Regla: para pantallas completas, no usar `Dialog`.
+- **v43:** monito del primer gasto (`FirstExpenseCelebration`, `AppSettings.firstExpensePending`), `inFlight` + `refresh` en `RecurringViewModel` y `ObligationsViewModel` (payBill y repay).
 - **v42:** títulos del onboarding en oscuro (`LocalContentColor`) y botones de diálogos con `navigationBarsPadding`.
 - **v41:** tamaño del texto, recorrido de 3 pasos, colores con más contraste, botones de 48 dp.
 - **v40:** aviso corto de actualización + ventana de novedades, animaciones del punto 4.
@@ -168,9 +170,9 @@ Si el build falla, el usuario pega el log y se corrige el error puntual.
 
 ## 11. Lo que sigue (en orden de prioridad)
 1. **Probar y arreglar** lo de la sección 9 con el log del CI y lo que vea el usuario en el teléfono.
-2. **Mismo arreglo de toques repetidos y refresco** en `RecurringViewModel.confirm/skip` ("Ya pagué") y `ObligationsViewModel.payBill` (Facturas): hoy solo Inicio e Ingresos tienen `inFlight` + `refresh`.
+2. ~~Toques repetidos y refresco en Gastos fijos y Facturas~~ (hecho en v43, sin probar; los repositorios ya validaban el estado dentro de la transacción, así que no había duplicados reales, solo pantalla sin refrescar).
 3. ~~Punto 3 del plan~~ (hecho en v39, sin probar). Falta, si el usuario quiere, el mismo "Deshacer" para metas, facturas y fuentes de ingreso.
-4. **Punto 4** (en curso, ver `PLAN_DISENO.md`): falta el monito del primer gasto y la identidad visual coherente.
+4. **Punto 4** (en curso, ver `PLAN_DISENO.md`): el monito del primer gasto ya está (v43); falta la identidad visual coherente.
 5. ~~Punto 5~~ (hecho en v41, sin probar). Falta mirar en el teléfono con letra grande y TalkBack (ver `PLAN_DISENO.md`).
 6. Más didáctica: textos de ayuda dentro de los formularios, y el monito/logo en los encabezados de los PDFs (hoy tienen las hojas del diseño viejo).
 7. Ideas sueltas: widget "+ Gasto", recordatorio nocturno inteligente ("¿Anotaste hoy?"), resumen semanal, detección de gastos desde notificaciones de pago (`NotificationListenerService`, lista "Detectados para confirmar", nunca guardar el texto completo; hacen falta 2 o 3 ejemplos reales con datos tapados), versión Google Play con Billing (variante sin el actualizador de GitHub; el usuario todavía no decidió qué sería premium), exportar CSV, filtros de movimientos, monito en mayor resolución.

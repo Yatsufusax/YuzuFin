@@ -1,5 +1,6 @@
 package com.yuzufin.app.ui.tour
 
+import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
@@ -11,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -32,13 +35,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.yuzufin.app.R
 import com.yuzufin.app.ui.components.Mascot
 import com.yuzufin.app.ui.components.MascotPose
@@ -66,15 +68,21 @@ fun FirstUseTour(onFinish: () -> Unit) {
     var index by rememberSaveable { mutableStateOf(0) }
     val last = index == tourSteps.lastIndex
 
-    Dialog(
-        onDismissRequest = onFinish,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+    // Se dibuja dentro de la app (no en un diálogo): así respeta la barra de gestos del teléfono.
+    BackHandler(onBack = onFinish)
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) { detectTapGestures { } },
+        color = MaterialTheme.colorScheme.background,
     ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background,
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
+        run {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .navigationBarsPadding(),
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -108,7 +116,6 @@ fun FirstUseTour(onFinish: () -> Unit) {
 
                 Row(
                     modifier = Modifier
-                        .navigationBarsPadding()
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .padding(bottom = 16.dp),

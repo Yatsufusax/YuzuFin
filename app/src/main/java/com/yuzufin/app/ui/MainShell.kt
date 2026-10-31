@@ -45,6 +45,7 @@ import com.yuzufin.app.ui.navigation.TransactionRoute
 import com.yuzufin.app.ui.navigation.MoneaNavHost
 import com.yuzufin.app.ui.navigation.isFullScreenRoute
 import com.yuzufin.app.ui.navigation.navigateTo
+import com.yuzufin.app.ui.tour.FirstExpenseCelebration
 import com.yuzufin.app.ui.tour.FirstUseTour
 import com.yuzufin.app.ui.update.UpdateEffects
 import com.yuzufin.app.ui.update.UpdateViewModel
@@ -136,6 +137,10 @@ fun MainShell() {
     // Recorrido de 3 pasos: solo después de la configuración inicial (o si se pide desde Ayuda).
     if (appSettings?.tourPending == true) {
         FirstUseTour(onFinish = { scope.launch { container.settingsRepository.finishTour() } })
+    }
+
+    if (appSettings?.firstExpensePending == true) {
+        FirstExpenseCelebration(onDismiss = { scope.launch { container.settingsRepository.dismissFirstExpense() } })
     }
 
     if (showQuickSheet) {
