@@ -142,3 +142,10 @@ Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
 ## Tarjeta MoneaCard y refresco de cobros
 - `BankCard` en `ui/home/HomeScreen.kt`: el saldo disponible se dibuja como tarjeta bancaria (gradiente del tema, chip, pago sin contacto, nombre en mayúsculas, símbolo de dos círculos propio y brillo animado). El ojo oculta el saldo.
 - `HomeViewModel` e `IncomesViewModel` re-consultan los datos (`refresh` + `flatMapLatest`) al terminar de confirmar u omitir un cobro, y ignoran toques repetidos sobre el mismo cobro (`inFlight`).
+
+## Anotar rápido (punto 1 del plan de diseño)
+- Botón "+" central: un toque abre directo un gasto nuevo; mantenerlo apretado abre la hoja con las otras acciones (`FloatingNavBar`, `MainShell`).
+- Movimiento nuevo → `ui/transaction/QuickEntry.kt` (importe grande, teclado propio, sumas rápidas, frecuentes, grilla de categorías, Hoy/Ayer y "Más detalles"). Editar un movimiento sigue usando el formulario clásico.
+- `TransactionFormViewModel`: `onKey`, `onQuickAdd`, `onFrequentPick`; categorías ordenadas por uso y frecuentes calculados del historial (últimos 120 días, 2 o más repeticiones).
+- Plan completo y estado de cada punto: ver `PLAN_DISENO.md`.
+

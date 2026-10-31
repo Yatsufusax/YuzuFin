@@ -30,7 +30,15 @@ import java.time.LocalDate
 /** Foto del formulario. [attachmentId] = 0 si todavía no se guardó con el movimiento. */
 data class PhotoItem(val attachmentId: Long, val fileName: String)
 
+/** Gasto o ingreso que el usuario repite seguido: se ofrece para completar el formulario de un toque. */
+data class FrequentItem(
+    val description: String,
+    val amountMinor: Long,
+    val categoryId: Long,
+)
+
 data class TransactionFormState(
+    val frequent: List<FrequentItem> = emptyList(),
     val loading: Boolean = true,
     val notFound: Boolean = false,
     val isEdit: Boolean = false,
@@ -83,6 +91,7 @@ class TransactionFormViewModel(
     val state: StateFlow<TransactionFormState> = _state.asStateFlow()
 
     private var allCategories: List<Category> = emptyList()
+    private var history: List<FinanceTransaction> = emptyList()
     private val removedPhotoIds = mutableListOf<Long>()
     private var saved = false
 
@@ -94,6 +103,7 @@ class TransactionFormViewModel(
         val currency = CurrencyInfo.fromCode(settings.settings.first().currencyCode)
         val initial = finance.initialBalance.first()
         val transactions = finance.transactions.first()
+        history = transactions.filter { !it.internalTransfer }
         // La categoría "Préstamos" es interna: la usan los préstamos, no el registro manual.
         allCategories = finance.categories.first().filter { it.iconKey != LOAN_ICON_KEY }
         val existing = if (editingId != 0L) finance.getTransaction(editingId) else null
@@ -126,8 +136,9 @@ class TransactionFormViewModel(
                 currency = currency,
                 type = type,
                 amountText = existing?.let { e -> AmountParser.toInputText(e.amountMinor, currency) }.orEmpty(),
-                categories = allCategories.filter { c -> c.type == type },
-                categoryId = existing?.categoryId ?: allCategories.firstOrNull { c -> c.type == type }?.id,
+                categories = categoriesFor(type),
+                categoryId = existing?.categoryId ?: categoriesFor(type).firstOrNull()?.id,
+                frequent = if (existing == null) frequentFor(type) else emptyList(),
                 description = existing?.description.orEmpty(),
                 date = existing?.date ?: today,
                 minDate = initial?.startDate ?: today,
@@ -141,9 +152,69 @@ class TransactionFormViewModel(
         if (it.type == type) {
             it
         } else {
-            val categories = allCategories.filter { c -> c.type == type }
-            it.copy(type = type, categories = categories, categoryId = categories.firstOrNull()?.id)
+            val categories = categoriesFor(type)
+            it.copy(
+                type = type,
+                categories = categories,
+                categoryId = categories.firstOrNull()?.id,
+                frequent = if (it.isEdit) emptyList() else frequentFor(type),
+            )
         }
+    }
+
+    /** Categorías del tipo, las más usadas primero (el orden original desempata). */
+    private fun categoriesFor(type: TransactionType): List<Category> {
+        val usage = history.groupingBy { it.categoryId }.eachCount()
+        return allCategories.filter { it.type == type }.sortedByDescending { usage[it.id] ?: 0 }
+    }
+
+    /** Hasta 4 movimientos con descripción que se repiten (mismo texto, importe y categoría) en los últimos 120 días. */
+    private fun frequentFor(type: TransactionType): List<FrequentItem> {
+        val since = LocalDate.now().minusDays(120)
+        val valid = allCategories.filter { it.type == type && !it.archived }.map { it.id }.toSet()
+        return history
+            .filter { it.type == type && it.description.isNotBlank() && !it.date.isBefore(since) && it.categoryId in valid }
+            .groupBy { Triple(it.description.trim().lowercase(), it.amountMinor, it.categoryId) }
+            .filterValues { it.size >= 2 }
+            .values
+            .sortedByDescending { it.size }
+            .take(4)
+            .map { group ->
+                val latest = group.maxByOrNull { it.date } ?: group.first()
+                FrequentItem(latest.description.trim(), latest.amountMinor, latest.categoryId)
+            }
+    }
+
+    /** Completa importe, categoría y descripción con un gasto frecuente. */
+    fun onFrequentPick(item: FrequentItem) = _state.update {
+        it.copy(
+            amountText = AmountParser.toInputText(item.amountMinor, it.currency),
+            categoryId = item.categoryId,
+            description = item.description.take(80),
+        )
+    }
+
+    /** Suma un monto (en unidades mínimas) al importe que se está tipeando. */
+    fun onQuickAdd(stepMinor: Long) = _state.update {
+        val total = (it.amountMinor ?: 0L) + stepMinor
+        it.copy(amountText = AmountParser.sanitize(AmountParser.toInputText(total, it.currency), it.currency))
+    }
+
+    /** Tecla del teclado propio: dígito, "000", coma, o [KEY_BACKSPACE] / [KEY_CLEAR]. */
+    fun onKey(key: String) = _state.update {
+        val current = it.amountText
+        val next = when (key) {
+            KEY_BACKSPACE -> current.dropLast(1)
+            KEY_CLEAR -> ""
+            "," -> when {
+                it.currency.fractionDigits == 0 || current.contains(',') -> current
+                current.isEmpty() -> "0,"
+                else -> "$current,"
+            }
+            "000" -> if (current.isEmpty() || current == "0" || current.endsWith(",")) current else current + key
+            else -> if (current == "0") key else current + key
+        }
+        it.copy(amountText = AmountParser.sanitize(next, it.currency))
     }
 
     fun onAmountChange(text: String) = _state.update {
@@ -270,6 +341,9 @@ class TransactionFormViewModel(
     }
 
     companion object {
+        const val KEY_BACKSPACE = "back"
+        const val KEY_CLEAR = "clear"
+
         fun factory(container: AppContainer, editingId: Long, initialType: TransactionType) =
             viewModelFactory {
                 initializer {

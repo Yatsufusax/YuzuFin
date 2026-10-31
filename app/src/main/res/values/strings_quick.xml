@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Anotar rápido -->
+    <string name="quick_frequent">Tus frecuentes</string>
+    <string name="quick_more">Más detalles</string>
+    <string name="quick_less">Menos</string>
+    <string name="quick_key_backspace">Borrar</string>
+</resources>

@@ -1,11 +1,14 @@
 package com.yuzufin.app.ui.navigation
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -28,6 +31,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -51,14 +56,20 @@ private val rightEntries = listOf(
     BarEntry(Destination.Menu, R.string.nav_menu, Icons.Rounded.Menu),
 )
 
-/** Barra inferior flotante con botón central “+”, como en la referencia. */
+/**
+ * Barra inferior flotante con botón central “+”: un toque abre directo anotar un gasto;
+ * mantenerlo apretado abre el menú con las demás acciones.
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FloatingNavBar(
     currentRoute: String?,
     onNavigate: (Destination) -> Unit,
     onAddClick: () -> Unit,
+    onAddLongClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val haptic = LocalHapticFeedback.current
     Surface(
         modifier = modifier
             .navigationBarsPadding()
@@ -80,14 +91,26 @@ fun FloatingNavBar(
 
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 Surface(
-                    onClick = onAddClick,
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                     shadowElevation = 6.dp,
                     modifier = Modifier.size(58.dp),
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .combinedClickable(
+                                role = Role.Button,
+                                onClick = onAddClick,
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onAddLongClick()
+                                },
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
                         Icon(
                             imageVector = Icons.Rounded.Add,
                             contentDescription = stringResource(R.string.nav_add),

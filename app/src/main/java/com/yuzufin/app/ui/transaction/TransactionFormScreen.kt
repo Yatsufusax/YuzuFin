@@ -116,7 +116,35 @@ fun TransactionFormScreen(
             },
         )
 
-        if (!state.loading) {
+        val launchCamera: () -> Unit = {
+            try {
+                val dir = File(context.cacheDir, "capture").apply { mkdirs() }
+                val file = File(dir, "${UUID.randomUUID()}.jpg")
+                captureTarget = file.path
+                takePicture.launch(FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file))
+            } catch (e: ActivityNotFoundException) {
+                captureTarget = null
+                viewModel.reportPhotoError()
+            }
+        }
+        val launchGallery: () -> Unit = {
+            try {
+                pickPhoto.launch("image/*")
+            } catch (e: ActivityNotFoundException) {
+                viewModel.reportPhotoError()
+            }
+        }
+
+        if (!state.loading && !state.isEdit) {
+            // Movimiento nuevo: pantalla de anotar rápido con teclado propio.
+            QuickEntryBody(
+                state = state,
+                viewModel = viewModel,
+                files = container.attachmentFileStore,
+                onTakePhoto = launchCamera,
+                onPickPhoto = launchGallery,
+            )
+        } else if (!state.loading) {
             Column(
                 modifier = Modifier
                     .weight(1f)

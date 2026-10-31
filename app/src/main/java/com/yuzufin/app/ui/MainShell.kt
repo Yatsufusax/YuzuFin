@@ -104,7 +104,8 @@ fun MainShell() {
                 FloatingNavBar(
                     currentRoute = currentRoute,
                     onNavigate = navController::navigateTo,
-                    onAddClick = { showQuickSheet = true },
+                    onAddClick = { onQuickAction(QuickAction.Expense) },
+                    onAddLongClick = { showQuickSheet = true },
                 )
             }
         },
