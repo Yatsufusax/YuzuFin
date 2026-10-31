@@ -21,6 +21,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Payments
+import androidx.compose.material.icons.rounded.NewReleases
 import androidx.compose.material.icons.rounded.PieChart
 import androidx.compose.material.icons.rounded.Receipt
 import androidx.compose.material.icons.rounded.Savings
@@ -212,6 +213,7 @@ private fun kindIcon(kind: NotificationKind): ImageVector = when (kind) {
     NotificationKind.LOAN_OWED, NotificationKind.LOAN_OWE -> Icons.Rounded.SwapHoriz
     NotificationKind.SAVINGS -> Icons.Rounded.Savings
     NotificationKind.BUDGET -> Icons.Rounded.PieChart
+    NotificationKind.UPDATE -> Icons.Rounded.NewReleases
     NotificationKind.OTHER -> Icons.Rounded.AccountBalanceWallet
 }
 

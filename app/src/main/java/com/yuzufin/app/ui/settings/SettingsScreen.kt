@@ -39,7 +39,6 @@ import com.yuzufin.app.ui.common.rememberNotificationPermission
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -198,26 +197,6 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-
-        MoneaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Text(stringResource(R.string.coming_soon_features_title), style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
-            stringArrayResource(R.array.settings_features).forEach { feature ->
-                Row(
-                    modifier = Modifier.padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    Icon(
-                        Icons.Rounded.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Text(feature, style = MaterialTheme.typography.bodyMedium)
-                }
-            }
         }
 
         Spacer(Modifier.height(contentPadding.calculateBottomPadding() + 16.dp))

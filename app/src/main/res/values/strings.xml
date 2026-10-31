@@ -75,9 +75,4 @@
         <item>Gastos por categoría y comparación con meses anteriores</item>
         <item>Presupuestos por categoría y escenarios de ahorro</item>
     </string-array>
-    <string-array name="settings_features">
-        <item>Moneda e idioma, con guaraníes y otras monedas</item>
-        <item>Tema claro u oscuro</item>
-        <item>Copias de seguridad, exportación y reinicio protegido</item>
-    </string-array>
 </resources>

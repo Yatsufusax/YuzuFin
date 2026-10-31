@@ -23,8 +23,6 @@ App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Ro
 - **Avisos de la Fase 5:** factura por vencer (desde el día anterior, o ya vencida; un aviso por vencimiento) y, los últimos dos días de cada mes, quién te debe y a quién le debés mientras quede saldo (una vez por mes y por préstamo). Todo se puede apagar por factura o préstamo.
 - Tests: `ObligationMathTest` (vencimientos mensuales y meses cortos, avisos, devoluciones, totales, fin de mes), `SavingsMathTest` (disponible, avance, meses que quedan, aporte mensual, aporte automático), `StatementBuilderTest`, `AmountParserTest`, `BalanceCalculatorTest`, `UpdateCheckerTest`, `MoneyFormatterTest`, `IncomeSchedulerTest` (fechas, meses cortos, años bisiestos, quincenas), `ReminderSchedulerTest`.
 
-**No hecho todavía:** presupuestos y estadísticas (Fase 6).
-
 **Sin verificar:** no se pudo compilar ni ejecutar donde se escribió (sin acceso al SDK de Android). Solo se revisaron recursos y XML con scripts. La compilación y los tests corren en GitHub Actions; si falla, pegá el error.
 
 ## Modelo de datos
@@ -54,7 +52,7 @@ App de finanzas personales para Android (Kotlin, Jetpack Compose, Material 3, Ro
 ## Actualizaciones desde GitHub
 Servicio externo (el único): `GET https://api.github.com/repos/Yatsufusax/YuzuFin/releases/latest`. No envía ningún dato tuyo.
 
-- Cada push a `main` compila, corre los tests, publica el APK firmado como Release `build-<n>` (`n` = número de ejecución) y esa `n` es el `versionCode`.
+- Cada push a `main` o `master` compila, corre los tests, publica el APK firmado como Release `build-<n>` (`n` = número de ejecución) y esa `n` es el `versionCode`.
 - La app compara su `versionCode` con `n`. Las actualizaciones son **obligatorias**: mientras la app está abierta busca cada minuto (con espera creciente si no hay conexión), descarga sola la versión nueva y muestra una ventana que no se puede cerrar hasta instalarla. Android pide confirmar cada instalación y, la primera vez, el permiso "instalar apps desconocidas". No puede instalarse en silencio.
 - La búsqueda de cada minuto lee la redirección de `github.com/<repo>/releases/latest`, que no cuenta contra el límite de 60 consultas por hora de la API. La API solo se consulta cuando hay versión nueva, para traer las novedades.
 - **`NOVEDADES.md`**: es el texto de la ventana de actualización. Editalo antes de cada push con secciones `## Nuevo`, `## Mejorado`, `## Corregido` y puntos `- ...`; el workflow lo publica como notas de la Release.
@@ -94,7 +92,7 @@ app/src/main/java/com/yuzufin/app/
 ```
 
 ## Siguiente paso
-Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
+Ver `PLAN_DISENO.md` (estado de cada punto y lo que falta) y `MONEA_HANDOFF.md` (traspaso completo para continuar en otra conversación o cuenta).
 
 ## Temas y centro de notificaciones (entre Fase 5 y 6)
 - **Paletas:** `ui/theme/Palettes.kt`. El verde conserva sus colores originales; las otras seis (violeta, azul marino, rojo, naranja, rosa, turquesa) se generan desde un tono para que fondos, superficies y contenedores combinen en claro y en oscuro. Ingresos (verde) y gastos (rojo) mantienen su significado en todas las paletas. Preferencias en DataStore: `theme_palette`, `theme_mode` (SYSTEM / LIGHT / DARK).
@@ -150,3 +148,9 @@ Revisar la Fase 5. Después, Fase 6: presupuestos y estadísticas.
 - `TransactionFormViewModel`: `onKey`, `onQuickAdd`, `onFrequentPick`; categorías ordenadas por uso y frecuentes calculados del historial (últimos 120 días, 2 o más repeticiones).
 - Plan completo y estado de cada punto: ver `PLAN_DISENO.md`.
 
+## Barra inferior, Ajustes y notas de versión
+- Barra inferior (`ui/navigation/FloatingNavBar.kt`): a la izquierda **Inicio** y **Movimientos**, al centro el **+** y a la derecha **Ajustes** y **Menú** (mitades iguales: el + queda justo en el centro). `Destination.Settings` es de primer nivel (`isTopLevel = true`, vuelve a Inicio con atrás) y salió de `isMenuGroupRoute`, así que no marca "Menú" como activo. Ajustes ya no aparece dentro de la pantalla Menú.
+- Ajustes ya no muestra el bloque "Lo que va a incluir" (se quitó el array `settings_features`; el texto `coming_soon_features_title` sigue porque lo usa `ComingSoonScreen`, que hoy no se llama desde ningún lado).
+- **Notas de actualización en la campanilla:** como la actualización es obligatoria y se instala enseguida, la ventana pasa demasiado rápido para leer las novedades. Ahora `UpdateViewModel.saveNotes` guarda las notas de la Release (el contenido de `NOVEDADES.md`, convertido a texto plano con viñetas por `ReleaseNotes.toPlainText`) en `app_notifications` apenas se detecta la versión nueva. Tipo `NotificationKind.UPDATE` (ícono `NewReleases`), título "Novedades de Monea 0.2.N" y clave de deduplicación `update-<buildNumber>` (una sola vez por versión aunque se vuelva a detectar). No hizo falta migración de base de datos (`kind` se guarda como texto). Se leen abriendo la campanilla; el cuerpo se muestra completo.
+- Convención: `NOVEDADES.md` va a la campanilla tal cual, así que conviene que contenga solo lo nuevo desde la última Release publicada (cuando se confirme que una versión salió, vaciar lo anterior y empezar de nuevo).
+- Test nuevo: `ReleaseNotesTest` (texto plano con viñetas y vacío).

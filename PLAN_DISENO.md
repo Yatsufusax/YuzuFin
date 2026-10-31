@@ -18,7 +18,7 @@ Reglas de trabajo (importantes):
 - [x] Categorías como grilla de botones con ícono, ordenadas por uso real.
 - [x] Fecha "Hoy" por defecto, "Ayer" a un toque; nota, otra fecha y fotos en "Más detalles".
 - [x] Gastos frecuentes: tocar uno completa importe, categoría y nota (después se toca Guardar; no registra solo para evitar errores).
-- [x] Pedido del usuario (v35): barra inferior = Inicio, Movimientos, +, Menú (sin Ahorros); atajos de Inicio y hoja del "+" = solo Pagar, Préstamo, Ahorro (`QuickAction.shortcuts`). Ahorros sigue abierto desde esos atajos. El "+" está centrado exacto (mitades iguales a cada lado: Inicio y Movimientos a la izquierda, Menú a la derecha).
+- [x] Pedido del usuario (v35): barra inferior = Inicio, Movimientos, +, Menú (sin Ahorros; en v38 se sumó Ajustes antes de Menú, ver "Cambios pedidos por el usuario"); atajos de Inicio y hoja del "+" = solo Pagar, Préstamo, Ahorro (`QuickAction.shortcuts`). Ahorros sigue abierto desde esos atajos. El "+" está centrado exacto (mitades iguales a cada lado: Inicio y Movimientos a la izquierda, Menú a la derecha).
 - Archivos: `ui/transaction/QuickEntry.kt` (nuevo), `TransactionFormViewModel.kt`, `TransactionFormScreen.kt`, `ui/navigation/FloatingNavBar.kt`, `ui/MainShell.kt`, `res/values/strings_quick.xml`.
 - Pendiente de revisar con el usuario: cómo se ve en pantallas chicas (teclado + botón Guardar ocupan ~310 dp fijos y el resto scrollea), modo oscuro, y si prefiere que tocar un frecuente guarde directo.
 - Idea para después: pruebas unitarias de `onKey` (hoy está dentro del ViewModel; se podría extraer a una función pura).
@@ -35,7 +35,7 @@ Reglas de trabajo (importantes):
 - Para otra vuelta: `RecurringViewModel.confirm/skip` y `ObligationsViewModel.payBill` no tienen el seguro contra toques repetidos ni el `refresh` que sí tienen Inicio e Ingresos. Pruebas unitarias para el armado de `attention` (hoy está dentro del `combine` del ViewModel; se podría extraer a una función pura).
 
 ### Punto 3: Menos pantallas, más claras — PENDIENTE
-- Barra con 4 destinos + "+" (ya está). Reagrupar "Menú" por tema: Dinero / Planificar / Ajustes.
+- Barra con 4 destinos + "+" (ya está). Reagrupar "Menú" por tema: Dinero / Planificar (Ajustes ya tiene su lugar en la barra).
 - **Deshacer en vez de preguntar**: al borrar un movimiento (deslizar o desde el formulario) mostrar snackbar "Borrado · Deshacer" unos segundos en lugar del diálogo de confirmación. Hay que guardar el movimiento (con sus fotos, que no deben borrarse del disco hasta que pase el tiempo) y reinsertarlo si se toca Deshacer.
 - Archivos probables: `ui/movements/MovementsScreen.kt`, `MovementsViewModel`, `TransactionFormScreen.kt` (diálogo `confirmDelete`), `ui/MainShell.kt` (ya tiene `SnackbarHost`), `ui/menu`.
 
@@ -47,6 +47,12 @@ Reglas de trabajo (importantes):
 ### Punto 5: Facilidad para todos — PENDIENTE
 - Textos grandes y buen contraste (revisar modo oscuro). Zonas táctiles de 48 dp mínimo. Acciones principales abajo.
 - Recorrido de 3 pasos en el primer uso (anotar un gasto, ver el resumen) en vez de muchas pantallas de ayuda. Ya hay `HintCard` y la pantalla Ayuda.
+
+## Cambios pedidos por el usuario (fuera de los 5 puntos) — HECHOS (sin probar)
+- [x] **Ajustes en la barra inferior** (v38): quedó libre un lugar a la derecha del "+"; ahora la barra es Inicio, Movimientos, +, Ajustes, Menú. Se quitó Ajustes de la pantalla Menú. (`FloatingNavBar.kt`, `Destination.kt`, `MenuScreen.kt`)
+- [x] **Quitar "Lo que va a incluir"** al final de Ajustes (`SettingsScreen.kt`, `strings.xml`).
+- [x] **Notas de actualización en la campanilla**: se guardan al detectar la versión nueva, para poder leerlas después (`UpdateViewModel.saveNotes`, `ReleaseNotes.toPlainText`, `NotificationKind.UPDATE`). Pendiente de revisar con el usuario: que el aviso aparezca con el contador de no leídos y que el texto se lea bien.
+- Cosas que el usuario reportó antes: confirmar un cobro dejaba Inicio con el saldo viejo (arreglado en v36 con `refresh` + `inFlight`; falta confirmar en el teléfono).
 
 ## Ideas sueltas (no elegidas todavía)
 Widget "+ Gasto", recordatorio nocturno inteligente ("¿Anotaste hoy?"), resumen semanal, detección de gastos desde notificaciones (necesita ejemplos reales y lista "Detectados para confirmar"), versión Google Play con Billing, exportar CSV, filtros de movimientos, monito en mayor resolución.

@@ -1,0 +1,177 @@
+# Monea (antes YuzuFin): documento de traspaso para continuar el proyecto
+
+Pegá este documento al empezar una conversación nueva (otra cuenta de Claude, por ejemplo) y adjuntá el último zip del proyecto (`monea-proyecto-v38.zip` o el más nuevo). Sin el zip no hay código: la otra cuenta no tiene acceso a mis archivos. Este mismo archivo viaja dentro del zip (raíz del proyecto) junto con `README.md`, `NOVEDADES.md` y `PLAN_DISENO.md`.
+
+**Qué leer primero en la conversación nueva (y nada más, salvo lo necesario):** este documento, `PLAN_DISENO.md` (estado de cada punto del plan) y `NOVEDADES.md`. El `README.md` explica el modelo de datos y las reglas de negocio con detalle.
+
+## 1. Qué es
+Monea es una app Android de finanzas personales (control de gastos, ahorros, facturas, préstamos). Es **local primero**: todo queda en el teléfono, sin cuenta, sin servidor, **sin IA** y sin conexión a bancos.
+
+- Interfaz en español rioplatense con voseo ("Tenés", "Anotá", "Pagué").
+- Moneda por defecto: guaraní (Gs.). También USD, ARS, BRL y EUR.
+- Lema: "Tu dinero. Tus decisiones." (`R.string.tagline`).
+- Mascota: un monito marrón. Logo: el monito con celular, mates, alcancía y el texto MONEA con banderas de Paraguay y Argentina.
+- Objetivo de diseño (de `PLAN_DISENO.md`): **anotar un gasto tiene que costar menos de 5 segundos y con una mano**. Todo lo demás va encima de eso.
+
+### Cambio de nombre: qué cambió y qué NO
+El proyecto se llamaba **YuzuFin** y se renombró a **Monea** en todo lo visible (nombre de la app, textos, PDFs, APK `Monea-<versión>.apk`, clases `MoneaApp`, `MoneaTheme`, `MoneaCard`, `MoneaNavHost`, `MoneaApplication`, tema `Theme.Monea`).
+
+**Se dejó igual a propósito** (para que la app instalada se actualice sola y no pierda datos):
+- Paquete y applicationId: `com.yuzufin.app` (no cambiarlo: Android lo trataría como otra app).
+- Base de datos: `yuzufin.db`.
+- Repo de GitHub: `Yatsufusax/YuzuFin`. El actualizador consulta ese repo (si el usuario lo renombra, GitHub redirige).
+- `BackupManager`: las copias nuevas se marcan `app = "Monea"`, pero se aceptan las viejas con `"YuzuFin"` (`LEGACY_APP_ID`).
+
+## 2. Stack
+Kotlin 2.0.21 · Jetpack Compose (BOM 2024.12.01, Material 3 1.3.x) · Room · DataStore · WorkManager · Navigation Compose 2.8.5 · Activity Compose 1.9.3 · Android `PdfDocument` para PDFs. minSdk 26.
+
+- El dinero se guarda como `Long` en unidades mínimas. Los guaraníes no tienen decimales.
+- Los importes se muestran con `MoneyFormatter` y se leen con `AmountParser`.
+- Versión: `versionCode` = número de ejecución del CI; `versionName` = `0.2.<n>`.
+
+## 3. Cómo trabaja el usuario (muy importante)
+- **Claude no puede compilar.** No hay Gradle en el entorno de trabajo. Todo lo que se entrega está sin compilar y el usuario lo prueba con GitHub Actions. Hay que decirlo con honestidad en cada entrega.
+- **Flujo:** el usuario copia el contenido del zip a la carpeta del repo en GitHub Desktop (verifica que el nombre del repo diga YuzuFin), hace commit y push a `main`/`master`. El CI compila, corre los tests y publica un release `build-N`. La app se actualiza sola desde ese release (las actualizaciones son obligatorias).
+- **El zip va sin `.git`, `.gradle` ni `build`.** Cada entrega actualiza `NOVEDADES.md` (secciones `## Nuevo` y `## Mejorado`; es el texto de la ventana de actualización **y ahora se guarda en la campanilla**), `README.md` y, si corresponde, `PLAN_DISENO.md`.
+- **LECCIÓN CLAVE: un zip copiado encima del repo NO borra archivos.** Si se renombra o quita un archivo, el viejo queda al lado del nuevo y rompe el build (pasó con `.png` viejos junto a `.webp` nuevos: "Duplicate resources"). Reglas:
+  - Recursos nuevos o cambiados de formato, con **nombres nuevos**.
+  - El workflow `.github/workflows/build.yml` tiene un paso **"Quitar archivos viejos"** con `rm -f` de lo que se renombró o quitó (`mascot_*`, `YuzuFinApp.kt`, `YuzuNavHost.kt`, `ic_stat_yuzu.xml`, `ic_launcher_foreground.xml`). **Cada vez que se renombre o borre un archivo, agregar su línea ahí** y avisar al usuario qué borrar a mano en su carpeta local (opcional, para dejar el repo prolijo).
+- **No releer todo el código** entre pasos: el usuario se enoja si se gastan tokens recopilando de nuevo. Leer solo lo necesario, con `grep` y rangos de líneas. Si el usuario dice "solo leé tal archivo", hacerlo sin más.
+- Hay un límite diario de uso. Conviene hacer entregas completas y pequeñas, y avisar en pocas palabras qué se está haciendo cuando algo tarda.
+- Al terminar una entrega hay que **presentar el zip** (`present_files`): una vez se armó y se olvidó mostrarlo.
+- No quiere etiquetas (tags) en los movimientos ni bloqueo de la app. Rechazó la sincronización con bancos.
+- Tiene un reloj Samsung y usa el teléfono con Android 13 o superior (Samsung).
+- Hay dos cuentas de Claude trabajando en el mismo proyecto (la versión v36 trajo cambios hechos en la otra: anotar rápido, tarjeta MoneaCard, arreglo de refresco de cobros). Siempre trabajar sobre **el zip más nuevo que suba el usuario**, no sobre una copia anterior propia.
+
+## 4. Qué está hecho
+| Área | Detalle |
+|---|---|
+| Fases 1-6 | Onboarding, movimientos, ingresos fijos con confirmación manual o automática, metas de ahorro, facturas y préstamos, categorías editables/archivables, presupuestos con avisos, estadísticas. Detalle en `README.md`. |
+| Seguridad de datos | Copia de seguridad y restauración en zip (datos, ajustes y fotos). Cambio de moneda con conversión de todos los importes. |
+| Movimientos | Deslizar a la izquierda para borrar (con confirmación). Clip si tiene fotos. |
+| Fotos y PDF | Hasta 6 fotos por movimiento en `filesDir/attachments/`. Comprobante PDF por movimiento y extracto PDF general. |
+| Gastos fijos | Mensuales. Pago pendiente cada mes; "Ya pagué" (importe editable) u omitir. Avisos el día y el día anterior. |
+| Temas | Paletas de color con modo claro y oscuro. Se elige también al empezar (paso 1 de la configuración inicial, en vivo). |
+| Campanilla | Historial de avisos (`app_notifications`). **Ahora también guarda las novedades de cada versión** (`NotificationKind.UPDATE`). |
+| Renombre a Monea | Ver sección 1. |
+| Splash | `ui/splash/AnimatedSplash.kt`: logo (`monea_logo.webp`) con rebote, brillo verde, flotación y lema; ~2,8 s, se salta tocando. |
+| Monitos | 21 poses en `res/drawable-nodpi/monito_*.webp` (sección 6). |
+| Ícono de la app | Adaptativo: fondo `#0A1E46` + `ic_launcher_monea.webp`. Sin capa monocromática. |
+| Didáctica | `HintCard` por pantalla (se cierra con "Entendido") y pantalla **Ayuda** (Menú → Ayuda) con 12 preguntas. |
+| Restaurar al empezar | `RestoreBackupCard` en los dos pasos de la configuración inicial. |
+| Anotar rápido (Punto 1, otra cuenta) | "+" central: un toque = gasto nuevo directo en `QuickEntry` (teclado propio, sumas rápidas, categorías en grilla, Hoy/Ayer, frecuentes); mantener apretado = hoja con Pagar, Préstamo, Ahorro. |
+| Tarjeta de saldo (otra cuenta) | `BankCard` en Inicio: el saldo disponible como tarjeta bancaria "MoneaCard" (gradiente del tema, chip, brillo animado, ojo para ocultar). |
+| Refresco de cobros (otra cuenta) | `HomeViewModel` e `IncomesViewModel`: `refresh` + `flatMapLatest` e `inFlight` para que al confirmar un cobro Inicio se actualice y los toques repetidos no se procesen dos veces. |
+| **Inicio en 2 segundos (Punto 2)** | Orden: saldo → **una sola cosa para resolver** (`AttentionCard`: cobro por confirmar, factura vencida o que vence en ≤ 3 días, gasto fijo pendiente; "Ver N más"; si no hay nada, el monito) → consejo → atajos → resumen del mes (barra gastado vs. ingresado) → movimientos recientes → próximo cobro y vencimientos. |
+| **Barra inferior (v38)** | Inicio, Movimientos, **+**, **Ajustes**, Menú. Ajustes salió de la pantalla Menú. |
+| **Ajustes (v38)** | Se quitó el bloque "Lo que va a incluir". |
+| **Notas en la campanilla (v38)** | Al detectar una versión nueva, `UpdateViewModel.saveNotes` guarda `NOVEDADES.md` (texto plano con viñetas) como aviso "Novedades de Monea 0.2.N", una sola vez por versión (`dedupeKey = update-<build>`). |
+
+## 5. Reglas de negocio que no hay que romper
+- El saldo solo cambia cuando existe un **movimiento** real. Los cobros y gastos fijos pendientes, y las facturas sin pagar, no tocan el saldo hasta confirmarse o pagarse.
+- Los movimientos internos de préstamos (`internalTransfer`) **no cuentan** como ingreso ni gasto en las estadísticas.
+- Los aportes a metas de ahorro **no son movimientos**: no entran al saldo total ni al extracto.
+- Cada cobro o gasto fijo (fuente + fecha) existe una sola vez (índice único). La reconciliación puede correr muchas veces sin duplicar.
+- No se generan pagos anteriores a la fecha inicial de las cuentas ni de la fuente. Al reactivar algo pausado se parte de hoy.
+- **Cambio de moneda:** `CurrencyConverter.MONEY_COLUMNS` lista todas las columnas con dinero. Toda tabla nueva con importes debe agregarse ahí.
+- **Base de datos:** nunca se borra. Versión **8**, migraciones 1→8 explícitas con SQL (`exportSchema = false`). Cada cambio necesita una migración nueva. Las columnas booleanas nuevas llevan `@ColumnInfo(defaultValue = "0")`.
+- Términos de Inicio: "Saldo disponible" (saldo − apartado), "Comprometido" (facturas pendientes), "Libre estimado" (disponible − comprometido), "Ahorrado", "Patrimonio".
+- La campanilla usa `dedupeKey` único: el mismo aviso no se repite. Guarda los últimos 200.
+
+## 6. Estructura (resumen)
+Todo bajo `app/src/main/java/com/yuzufin/app/` (el paquete sigue siendo `yuzufin`):
+- `data/db/`: `Entities.kt`, `Daos.kt`, `AppDatabase.kt`.
+- `data/`: repositorios (`FinanceRepository`, `IncomeRepository`, `RecurringRepository`, `SavingsRepository`, `ObligationsRepository`, `BudgetRepository`, `AttachmentRepository`, `NotificationRepository`, `SettingsRepository`), `BackupManager`, `CurrencyConverter`, `AttachmentFileStore`, y `data/update/` (`UpdateChecker`, `ApkDownloader`, `ReleaseNotes`).
+- `domain/`: modelos y reglas puras (`Models.kt` con `AppSettings`, `AppNotification.kt`, `Income.kt`, `Recurring.kt`, `Stats.kt`, `Budget.kt`…).
+- `ui/`: una carpeta por pantalla (`home`, `movements`, `transaction`, `incomes`, `recurring`, `savings`, `obligations`, `stats`, `budgets`, `categories`, `settings`, `notifications`, `onboarding`, `help`, `menu`, `splash`, `update`), más `components/` (`Mascot.kt`, `HintCard.kt`, `Components.kt` con `MoneaCard`, `ScreenHeader`, `IconBadge`…), `common/` (`Effects.kt`: `entrance`, `rememberCountUp`, `ConfettiBurst`), `navigation/` (`Destination.kt`, `FloatingNavBar.kt`, `MoneaNavHost.kt`), `theme/`, `MoneaApp.kt` (splash → onboarding → `MainShell`).
+- `export/`: `StatementPdfWriter` y `VoucherPdfWriter` / `VoucherBuilder`.
+- `reminders/`: `ReminderWorker`, `NotificationHelper`.
+- `AppContainer.kt`: inyección manual de dependencias. Incluye `SessionInfo` (`checked`, `daysAway`).
+- Textos en `res/values/strings_*.xml` (`strings_help.xml`, `strings_attention.xml`, `strings_quick.xml`, `strings_mascot.xml`…).
+
+### Poses del monito (`MascotPose`, en `ui/components/Mascot.kt`)
+Archivo = `monito_<nombre>.webp`:
+
+| Pose | Dónde se usa |
+|---|---|
+| `WELCOME` | Inicio, mes sin movimientos |
+| `MISSED_YOU` | Inicio, 7+ días sin abrir la app (`SessionInfo.daysAway`, `SettingsRepository.markOpened`) |
+| `BROKE` | Inicio, saldo negativo |
+| `RICH` | Inicio, saldo > 0 y gastos ≤ 70 % de ingresos |
+| `OVERSPENT` | Inicio, gastos > ingresos |
+| `PROGRESS` | Inicio (resto de casos), consejo de Estadísticas |
+| `NOTIFICATION` | Tarjeta "Para resolver ahora", Notificaciones vacías |
+| `GOAL_DONE` | Ahorros, meta cumplida |
+| `SAVING` | Consejo de Ahorros |
+| `PIGGY` | Ahorros vacío |
+| `COIN_HUG` | Movimientos vacío, consejo de Ingresos |
+| `WONDER` | Movimientos sin resultados, consejo de Movimientos |
+| `CONTROL` | Consejo de Categorías |
+| `BUDGET` | Consejo de Presupuestos |
+| `PAYING` | Consejo de Facturas y préstamos |
+| `PLANNING` | Banner vacío de Inicio, paso 2 del onboarding, consejo de gastos fijos |
+| `TIP` | Consejos por defecto |
+| `QUESTION` | Pantalla Ayuda |
+| `TERERE` / `MATE` / `COFFEE` | Onboarding según moneda (PYG→tereré, ARS→mate, resto→café) |
+
+## 7. Didáctica y consejos
+- **`HintCard(hintId, titleRes, bodyRes, modifier, pose)`**: guarda el id cerrado en DataStore (`dismissed_hints`). No lleva padding horizontal propio (el que la usa pasa `Modifier.padding(horizontal = 16.dp)`; en Inicio no hace falta). Para sumar uno: `hint_<clave>_title/body` en `strings_help.xml` y `HintCard(...)` en la pantalla. Ids: `home_numbers`, `movements`, `savings`, `incomes`, `recurring`, `obligations`, `budgets`, `stats`, `categories`, `backup`.
+- **`HelpScreen`** (`Destination.Help`): preguntas `help_q_*` / `help_a_*` desplegables y botón "Volver a mostrar los consejos" (`resetHints()`).
+
+## 8. Cómo verificar sin compilar
+Revisar a mano (los scripts que se usaron fallaron alguna vez). Lo que se hizo y conviene repetir:
+- Recursos `R.string.*`, `R.plurals.*`, `R.drawable.*` inexistentes y nombres de strings duplicados.
+- Llaves y paréntesis balanceados. **Cuidado con los cortes por índice en scripts**: una vez un `s[:a] + nuevo + s[b:]` con `b < a` duplicó medio archivo y los conteos de llaves no lo delataron; usar `assert a < b` y contar apariciones de funciones.
+- **Imports faltantes** en los archivos tocados (ya hubo un CI roto por `import ...layout.size`).
+- Archivos viejos que quedan al copiar el zip (sección 3).
+- No usar `%` suelto en strings sin argumentos (escribir "por ciento").
+- `rememberSaveable` con `mutableStateOf(...)`, no con `mutableIntStateOf`.
+- `when` sobre una clase sellada o enum debe ser exhaustivo: al agregar un valor nuevo (por ejemplo `NotificationKind.UPDATE`) revisar todos los `when`.
+- Datos de las tablas nuevas en `CurrencyConverter.MONEY_COLUMNS`; el esquema de Room coincide con la migración.
+
+Errores que ya encontró el CI: un import faltante, un bug al importar fotos (`BitmapFactory.decodeStream` con `inJustDecodeBounds` siempre devuelve `null`) y "Duplicate resources" por archivos viejos.
+
+## 9. Sin probar todavía (estado honesto)
+No hay confirmación de que los últimos zips hayan compilado ni de que se hayan probado en el teléfono. Sin probar:
+- Gastos fijos (pantalla, avisos, migración 7→8), mascota, animaciones, confeti y vibraciones.
+- Renombre a Monea, splash animado, monitos nuevos, ícono nuevo.
+- Consejos, pantalla Ayuda, restaurar desde el onboarding, color al empezar, `MISSED_YOU`.
+- Anotar rápido (`QuickEntry`) y tarjeta `BankCard` (otra cuenta).
+- Punto 2 (`AttentionCard`, resumen del mes simplificado).
+- **v38:** Ajustes en la barra, Menú sin Ajustes, notas de versión en la campanilla.
+- Las fotos y el comprobante PDF sí fueron probados y funcionan.
+
+Si el build falla, el usuario pega el log y se corrige el error puntual.
+
+### Cosas a mirar en el teléfono
+- Que Ajustes en la barra se vea bien (5 elementos: 2 + "+" + 2) y que "Menú" ya no quede marcado al estar en Ajustes.
+- Que el aviso "Novedades de Monea 0.2.N" aparezca en la campanilla (con el contador de no leídos) después de que la app detecte una versión nueva, y que el texto se lea completo.
+- **Ojo con la ventana de actualización:** sigue pasando rápido (es obligatoria y descarga sola). Lo que se arregló es poder leer las notas después en la campanilla.
+- Que `budgets_intro` (y otros strings con `80%%`) muestren bien el porcentaje.
+- La tarjeta "Para resolver ahora" con 3 o más ítems desplegados.
+- Los garabatos negros de los monitos de tereré y café casi no se ven en tema oscuro.
+- Cuando se cierra un consejo dentro de una lista (LazyColumn) queda un hueco de 12 dp (cosmético).
+
+## 10. Arte y cómo se procesó (por si llega arte nuevo)
+- Todo con Python/PIL en el contenedor. Los monitos vienen como PNG RGBA con transparencia real: se recortan al bounding box (`alpha > ~10`), se reducen a 640 px de lado mayor y se guardan como WebP (calidad ~90, `method=6`) con nombre `monito_<algo>.webp`.
+- **El logo `MONEA` venía con el fondo de cuadritos pegado en los píxeles (PNG RGB sin alpha).** Se recortó con flood-fill desde los bordes sobre píxeles neutros y claros (`max-min ≤ 6`, `min ≥ 228`), dilatando 1 px para comerse el halo y suavizando el borde. Hay que repetirlo si llega otra imagen así.
+- Ícono: lienzo de 576 px, logo al 68 %, fondo azul marino `#0A1E46`.
+- Siempre **nombres nuevos** para recursos nuevos.
+
+## 11. Lo que sigue (en orden de prioridad)
+1. **Probar y arreglar** lo de la sección 9 con el log del CI y lo que vea el usuario en el teléfono.
+2. **Mismo arreglo de toques repetidos y refresco** en `RecurringViewModel.confirm/skip` ("Ya pagué") y `ObligationsViewModel.payBill` (Facturas): hoy solo Inicio e Ingresos tienen `inFlight` + `refresh`.
+3. **Punto 3 del plan**: reagrupar Menú por tema (Dinero / Planificar) y **Deshacer en vez de preguntar** al borrar un movimiento (snackbar "Borrado · Deshacer"; ojo con las fotos: no borrarlas del disco hasta que pase el tiempo).
+4. **Punto 4**: animaciones cortas con sentido (el movimiento guardado "cae" en la lista, la barra del presupuesto se llena); el monito en momentos clave.
+5. **Punto 5**: accesibilidad (textos grandes, contraste en oscuro, zonas táctiles de 48 dp) y un recorrido de 3 pasos en el primer uso.
+6. Más didáctica: textos de ayuda dentro de los formularios, y el monito/logo en los encabezados de los PDFs (hoy tienen las hojas del diseño viejo).
+7. Ideas sueltas: widget "+ Gasto", recordatorio nocturno inteligente ("¿Anotaste hoy?"), resumen semanal, detección de gastos desde notificaciones de pago (`NotificationListenerService`, lista "Detectados para confirmar", nunca guardar el texto completo; hacen falta 2 o 3 ejemplos reales con datos tapados), versión Google Play con Billing (variante sin el actualizador de GitHub; el usuario todavía no decidió qué sería premium), exportar CSV, filtros de movimientos, monito en mayor resolución.
+8. Pruebas unitarias para lo nuevo (hay tests de paletas, estadísticas, conversión de moneda, planificador de gastos fijos, mascota, actualizador y notas de versión). Candidatos: `onKey` del teclado de `QuickEntry` y el armado de `attention` de Inicio (hoy dentro del ViewModel; extraer a funciones puras).
+
+## 12. Consejos para la nueva conversación
+- Pedir primero que el usuario adjunte el zip más nuevo. Leer solo este documento, `PLAN_DISENO.md` y `NOVEDADES.md`; el resto, con `grep` puntual.
+- Antes de un cambio grande, buscar cómo funciona el equivalente existente (`IncomeRepository` sirvió de molde para `RecurringRepository`; `BackupCard` para `RestoreBackupCard`; `AppearanceCard` se reusó en el onboarding).
+- Entregar siempre el zip con `NOVEDADES.md` y `README.md` actualizados, **presentarlo con `present_files`** y decir con honestidad que no se compiló.
+- Si se renombra o borra un archivo: actualizar el paso "Quitar archivos viejos" del workflow y avisar qué borrar a mano.
+- `NOVEDADES.md` ahora se ve en la ventana de actualización **y en la campanilla**: que sea claro y corto; cuando el usuario confirme que una versión salió, empezar de cero con lo nuevo.
+- Hablar en español rioplatense (voseo), con respuestas cortas: el usuario usa el celular.

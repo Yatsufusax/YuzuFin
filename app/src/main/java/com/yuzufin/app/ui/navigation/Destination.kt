@@ -19,7 +19,7 @@ sealed class Destination(val route: String, val isTopLevel: Boolean) {
     data object Stats : Destination("stats", false)
     data object Budgets : Destination("budgets", false)
     data object Categories : Destination("categories", false)
-    data object Settings : Destination("settings", false)
+    data object Settings : Destination("settings", true)
     data object Notifications : Destination("notifications", false)
     data object Help : Destination("help", false)
 }
@@ -83,7 +83,7 @@ fun isFullScreenRoute(route: String?): Boolean =
         route?.startsWith("bill_form") == true ||
         route?.startsWith("loan_form") == true
 
-/** Las secciones que cuelgan de “Menú” marcan esa pestaña como activa. */
+/** Las secciones que cuelgan de “Menú” marcan esa pestaña como activa. Ajustes tiene su propia pestaña. */
 fun isMenuGroupRoute(route: String?): Boolean = when (route) {
     Destination.Menu.route,
     Destination.Incomes.route,
@@ -92,7 +92,6 @@ fun isMenuGroupRoute(route: String?): Boolean = when (route) {
     Destination.Stats.route,
     Destination.Budgets.route,
     Destination.Categories.route,
-    Destination.Settings.route,
     Destination.Help.route,
     -> true
     else -> false

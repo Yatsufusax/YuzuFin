@@ -5,10 +5,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.yuzufin.app.AppContainer
+import com.yuzufin.app.data.NotificationRepository
 import com.yuzufin.app.data.update.ApkDownloader
 import com.yuzufin.app.data.update.AppVersion
+import com.yuzufin.app.data.update.ReleaseNotes
 import com.yuzufin.app.data.update.UpdateChecker
 import com.yuzufin.app.data.update.UpdateInfo
+import com.yuzufin.app.domain.NotificationKind
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +41,7 @@ class UpdateViewModel(
     private val checker: UpdateChecker,
     private val downloader: ApkDownloader,
     val currentVersion: AppVersion,
+    private val notifications: NotificationRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<UpdateState>(UpdateState.Idle)
@@ -100,8 +104,29 @@ class UpdateViewModel(
                 if (s is UpdateState.Idle || s is UpdateState.Checking || s is UpdateState.Error) UpdateState.UpToDate else s
             }
         } else {
+            saveNotes(info)
             _state.value = UpdateState.Available(info)
             download()
+        }
+    }
+
+    /**
+     * Guarda las novedades de la versión nueva en la campanilla. La actualización es obligatoria y
+     * se instala enseguida, así que ahí quedan para leerlas con calma. La clave evita duplicados
+     * aunque se vuelva a encontrar la misma versión.
+     */
+    private fun saveNotes(info: UpdateInfo) {
+        val body = ReleaseNotes.toPlainText(info.notes)
+        if (body.isBlank()) return
+        val name = info.versionName.ifBlank { "build ${info.buildNumber}" }
+        viewModelScope.launch {
+            try {
+                notifications.log(NotificationKind.UPDATE, "Novedades de Monea $name", body, "update-${info.buildNumber}")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Guardar las notas no es crítico: la actualización sigue igual.
+            }
         }
     }
 
@@ -144,7 +169,12 @@ class UpdateViewModel(
 
         fun factory(container: AppContainer) = viewModelFactory {
             initializer {
-                UpdateViewModel(container.updateChecker, container.apkDownloader, container.appVersion)
+                UpdateViewModel(
+                    container.updateChecker,
+                    container.apkDownloader,
+                    container.appVersion,
+                    container.notificationRepository,
+                )
             }
         }
     }

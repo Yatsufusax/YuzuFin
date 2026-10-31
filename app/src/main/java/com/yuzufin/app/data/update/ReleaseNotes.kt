@@ -8,6 +8,15 @@ data class NotesSection(val title: String?, val items: List<String>)
  */
 object ReleaseNotes {
 
+    /**
+     * Las mismas notas como texto plano para guardarlas en la campanilla: el título de cada
+     * sección y sus puntos con viñeta, separando las secciones con una línea en blanco.
+     */
+    fun toPlainText(raw: String): String = parse(raw).joinToString("\n\n") { section ->
+        val head = section.title?.let { "$it\n" }.orEmpty()
+        head + section.items.joinToString("\n") { "• $it" }
+    }
+
     fun parse(raw: String): List<NotesSection> {
         val sections = ArrayList<NotesSection>()
         var title: String? = null

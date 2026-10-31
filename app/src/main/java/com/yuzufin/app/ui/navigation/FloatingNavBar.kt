@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +52,7 @@ private val leftEntries = listOf(
 )
 
 private val rightEntries = listOf(
+    BarEntry(Destination.Settings, R.string.menu_settings, Icons.Rounded.Settings),
     BarEntry(Destination.Menu, R.string.nav_menu, Icons.Rounded.Menu),
 )
 

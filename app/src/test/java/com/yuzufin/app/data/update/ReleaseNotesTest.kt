@@ -32,6 +32,15 @@ class ReleaseNotesTest {
         assertEquals(listOf("Mejoras varias", "Más rápido"), sections[0].items)
     }
 
+    @Test fun texto_plano_con_vinetas() {
+        val text = ReleaseNotes.toPlainText("## Nuevo\n- Uno\n- Dos\n\n## Mejorado\n- Tres")
+        assertEquals("Nuevo\n• Uno\n• Dos\n\nMejorado\n• Tres", text)
+    }
+
+    @Test fun texto_plano_vacio() {
+        assertEquals("", ReleaseNotes.toPlainText(""))
+    }
+
     @Test fun vacio_no_da_secciones() {
         assertTrue(ReleaseNotes.parse("").isEmpty())
         assertTrue(ReleaseNotes.parse("## Solo título").isEmpty())

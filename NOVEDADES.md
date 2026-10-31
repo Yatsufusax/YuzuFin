@@ -1,4 +1,6 @@
 ## Nuevo
+- Ajustes ahora está en la barra de abajo, justo antes de Menú, para entrar con un toque. Ya no hace falta pasar por Menú.
+- Las novedades de cada actualización quedan guardadas en la campanilla de notificaciones. Cuando la app se actualiza, abrí la campanilla y leé con calma todo lo que trae la versión.
 - Inicio más simple: debajo de tu tarjeta ahora ves una sola cosa para resolver (un cobro por confirmar, una factura vencida o por vencer en 3 días, o un gasto fijo que ya tocó). Si hay más, tocás "Ver N más". Si no hay nada pendiente, te saluda el monito.
 - El resumen del mes ahora es una barra simple: cuánto gastaste de lo que ingresó y cuánto te queda (o cuánto te pasaste).
 - Anotar un gasto ahora toma segundos: tocá el "+" del medio y se abre directo la pantalla de anotar, con un teclado numérico grande, sumas rápidas (+10.000, +50.000, +100.000), las categorías como botones con ícono (las que más usás van primero), "Hoy" y "Ayer" a un toque. La nota, otra fecha y las fotos quedan en "Más detalles".
@@ -23,6 +25,8 @@
 - En Movimientos se ve un clip en los movimientos que tienen fotos.
 
 ## Mejorado
+- Menú quedó más corto: Ajustes salió de ahí porque ahora tiene su lugar en la barra.
+- En Ajustes se quitó el bloque "Lo que va a incluir".
 - En Inicio, lo que no hace falta resolver hoy (próximo cobro y próximos vencimientos) pasó más abajo, después de tus movimientos recientes.
 - Al confirmar un cobro ("Ya cobré") o descartarlo, Inicio y la pantalla de Ingresos se actualizan al instante, y los toques repetidos ya no se procesan dos veces.
 - Se quitaron las imágenes del monito que ya no se usaban, así la app pesa menos.
