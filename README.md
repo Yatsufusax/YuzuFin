@@ -159,3 +159,7 @@ Ver `PLAN_DISENO.md` (estado de cada punto y lo que falta) y `MONEA_HANDOFF.md` 
 - `MenuScreen`: tres grupos con título (Dinero / Planificar y analizar / Ayuda).
 - Borrar un movimiento: `DeleteUndo` (en `ui/common`) oculta el movimiento con `FinanceRepository.hideTransaction`, muestra el aviso con "Deshacer" 5 segundos y recién después llama a `deleteTransaction`. Se ofrece a las pantallas con `LocalDeleteUndo`.
 
+## Aviso de novedades y animaciones (v40)
+- Campanilla: los avisos de versión (`NotificationKind.UPDATE`) son cortos y abren `UpdateNotesWindow` con el texto completo.
+- `ui/common/Effects.kt`: `dropIn` (movimiento recién guardado) y `rememberFillAnimation` (barras de progreso).
+

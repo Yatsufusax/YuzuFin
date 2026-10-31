@@ -3,6 +3,9 @@ package com.yuzufin.app.ui.common
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -10,9 +13,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -40,6 +46,37 @@ fun Modifier.entrance(index: Int): Modifier {
         alpha = progress.value
         translationY = (1f - progress.value) * 24.dp.toPx()
     }
+}
+
+/**
+ * Para el movimiento recién guardado: cae desde arriba con un pequeño rebote y deja un brillo
+ * suave que se apaga. Si [active] es falso no hace nada.
+ */
+@Composable
+fun Modifier.dropIn(active: Boolean): Modifier {
+    val progress = remember { Animatable(if (active) 0f else 1f) }
+    val glow = MaterialTheme.colorScheme.primary
+    LaunchedEffect(active) {
+        if (active) {
+            progress.snapTo(0f)
+            progress.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+        }
+    }
+    return this
+        .drawBehind { drawRect(glow.copy(alpha = 0.14f * (1f - progress.value).coerceIn(0f, 1f))) }
+        .graphicsLayer {
+            alpha = progress.value.coerceIn(0f, 1f)
+            translationY = -(1f - progress.value) * 36.dp.toPx()
+        }
+}
+
+/** Valor que se "llena" desde 0 hasta [target] al aparecer (y se mueve suave si cambia): para barras de progreso. */
+@Composable
+fun rememberFillAnimation(target: Float): Float {
+    var goal by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(target) { goal = target }
+    val value by animateFloatAsState(goal, tween(700, easing = FastOutSlowInEasing), label = "fill")
+    return value
 }
 
 /** Número que "cuenta" hasta [target] (desde 0 al abrir, o desde el valor anterior al cambiar). */

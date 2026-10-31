@@ -63,6 +63,8 @@ Kotlin 2.0.21 · Jetpack Compose (BOM 2024.12.01, Material 3 1.3.x) · Room · D
 | Tarjeta de saldo (otra cuenta) | `BankCard` en Inicio: el saldo disponible como tarjeta bancaria "MoneaCard" (gradiente del tema, chip, brillo animado, ojo para ocultar). |
 | Refresco de cobros (otra cuenta) | `HomeViewModel` e `IncomesViewModel`: `refresh` + `flatMapLatest` e `inFlight` para que al confirmar un cobro Inicio se actualice y los toques repetidos no se procesen dos veces. |
 | **Inicio en 2 segundos (Punto 2)** | Orden: saldo → **una sola cosa para resolver** (`AttentionCard`: cobro por confirmar, factura vencida o que vence en ≤ 3 días, gasto fijo pendiente; "Ver N más"; si no hay nada, el monito) → consejo → atajos → resumen del mes (barra gastado vs. ingresado) → movimientos recientes → próximo cobro y vencimientos. |
+| **Aviso de novedades (v40)** | La campanilla muestra "Actualización v0.2.N" + "Tocá para ver las novedades"; al tocar abre `UpdateNotesWindow` con el texto completo. |
+| **Punto 4 en curso (v40)** | `dropIn` para el movimiento recién guardado, `rememberFillAnimation` en las barras de progreso, monito `OVERSPENT` en Presupuestos. Falta el monito del primer gasto. |
 | **Menú y deshacer (Punto 3)** | Menú agrupado en Dinero / Planificar y analizar / Ayuda. Borrar un movimiento no pregunta: se oculta (`FinanceRepository.hideTransaction`) y `DeleteUndo` muestra "Deshacer" 5 s antes del borrado real. |
 | **Barra inferior (v38)** | Inicio, Movimientos, **+**, **Ajustes**, Menú. Ajustes salió de la pantalla Menú. |
 | **Ajustes (v38)** | Se quitó el bloque "Lo que va a incluir". |
@@ -139,6 +141,7 @@ No hay confirmación de que los últimos zips hayan compilado ni de que se hayan
 - Consejos, pantalla Ayuda, restaurar desde el onboarding, color al empezar, `MISSED_YOU`.
 - Anotar rápido (`QuickEntry`) y tarjeta `BankCard` (otra cuenta).
 - Punto 2 (`AttentionCard`, resumen del mes simplificado).
+- **v40:** aviso corto de actualización + ventana de novedades, animaciones del punto 4.
 - **v39:** Menú agrupado y borrar con Deshacer.
 - **v38:** Ajustes en la barra, Menú sin Ajustes, notas de versión en la campanilla.
 - Las fotos y el comprobante PDF sí fueron probados y funcionan.
@@ -164,7 +167,7 @@ Si el build falla, el usuario pega el log y se corrige el error puntual.
 1. **Probar y arreglar** lo de la sección 9 con el log del CI y lo que vea el usuario en el teléfono.
 2. **Mismo arreglo de toques repetidos y refresco** en `RecurringViewModel.confirm/skip` ("Ya pagué") y `ObligationsViewModel.payBill` (Facturas): hoy solo Inicio e Ingresos tienen `inFlight` + `refresh`.
 3. ~~Punto 3 del plan~~ (hecho en v39, sin probar). Falta, si el usuario quiere, el mismo "Deshacer" para metas, facturas y fuentes de ingreso.
-4. **Punto 4**: animaciones cortas con sentido (el movimiento guardado "cae" en la lista, la barra del presupuesto se llena); el monito en momentos clave.
+4. **Punto 4** (en curso, ver `PLAN_DISENO.md`): falta el monito del primer gasto y la identidad visual coherente.
 5. **Punto 5**: accesibilidad (textos grandes, contraste en oscuro, zonas táctiles de 48 dp) y un recorrido de 3 pasos en el primer uso.
 6. Más didáctica: textos de ayuda dentro de los formularios, y el monito/logo en los encabezados de los PDFs (hoy tienen las hojas del diseño viejo).
 7. Ideas sueltas: widget "+ Gasto", recordatorio nocturno inteligente ("¿Anotaste hoy?"), resumen semanal, detección de gastos desde notificaciones de pago (`NotificationListenerService`, lista "Detectados para confirmar", nunca guardar el texto completo; hacen falta 2 o 3 ejemplos reales con datos tapados), versión Google Play con Billing (variante sin el actualizador de GitHub; el usuario todavía no decidió qué sería premium), exportar CSV, filtros de movimientos, monito en mayor resolución.

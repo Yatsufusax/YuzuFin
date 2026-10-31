@@ -111,17 +111,17 @@ class UpdateViewModel(
     }
 
     /**
-     * Guarda las novedades de la versión nueva en la campanilla. La actualización es obligatoria y
+     * Guarda las novedades de la versión nueva en la campanilla (aviso corto “Actualización v…”; el texto completo se lee al tocarlo). La actualización es obligatoria y
      * se instala enseguida, así que ahí quedan para leerlas con calma. La clave evita duplicados
      * aunque se vuelva a encontrar la misma versión.
      */
     private fun saveNotes(info: UpdateInfo) {
         val body = ReleaseNotes.toPlainText(info.notes)
         if (body.isBlank()) return
-        val name = info.versionName.ifBlank { "build ${info.buildNumber}" }
+        val label = if (info.versionName.isBlank()) "build ${info.buildNumber}" else "v${info.versionName}"
         viewModelScope.launch {
             try {
-                notifications.log(NotificationKind.UPDATE, "Novedades de Monea $name", body, "update-${info.buildNumber}")
+                notifications.log(NotificationKind.UPDATE, "Actualización $label", body, "update-${info.buildNumber}")
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

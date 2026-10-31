@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.common.rememberFillAnimation
 import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.core.money.AmountParser
 import com.yuzufin.app.core.money.CurrencyInfo
@@ -285,8 +286,9 @@ private fun GoalCard(
             }
         }
         Spacer(Modifier.height(10.dp))
+        val filled = rememberFillAnimation(row.fraction)
         LinearProgressIndicator(
-            progress = { row.fraction },
+            progress = { filled },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp),

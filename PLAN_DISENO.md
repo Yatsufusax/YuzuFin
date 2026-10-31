@@ -40,10 +40,15 @@ Reglas de trabajo (importantes):
 - Se entrega con `LocalDeleteUndo` (CompositionLocal) desde `MainShell`; si es `null` (vista previa) las pantallas usan el borrado directo / diálogo de antes.
 - Pendiente a mirar con el usuario: que el snackbar se vea bien sobre la barra flotante, y si quiere el mismo "Deshacer" para borrar metas, facturas y fuentes de ingreso (hoy siguen con diálogo de confirmación).
 
-### Punto 4: Que se sienta viva sin cansar — PENDIENTE
-- Identidad coherente (tarjeta, monito, verde/amarillo) en todas las pantallas.
-- Animaciones cortas con sentido: el movimiento recién guardado "cae" en la lista, la barra del presupuesto se llena, el saldo cuenta. Nada que obligue a esperar. Ya existen `Modifier.entrance`, `rememberCountUp`, `ConfettiBurst` en `ui/common/Effects.kt`.
-- El monito aparece en momentos clave (primer gasto, meta cumplida, presupuesto pasado), no en todas partes.
+### Punto 4: Que se sienta viva sin cansar — EN CURSO (v40, sin probar)
+- [x] El movimiento recién guardado "cae" en la lista de Movimientos: `Modifier.dropIn` (`ui/common/Effects.kt`) + `MovementsViewModel.fresh` (ids que aparecen mientras la pantalla vive; se limpian a los 1,8 s). Solo se ve si el usuario vuelve a Movimientos desde el formulario.
+- [x] Barras de progreso que se llenan al aparecer: `rememberFillAnimation` en `ProgressBar` (Estadísticas y Presupuestos) y en la barra de metas de Ahorros.
+- [x] Monito en un momento clave: Presupuestos muestra `OVERSPENT` con las categorías pasadas del tope. (Meta cumplida ya tenía `GOAL_DONE` + confeti.)
+- [ ] Falta: monito al guardar el **primer gasto** (necesita una marca "ya celebrado" en DataStore, como `dismissed_hints`), identidad visual coherente (tarjeta/monito/verde-amarillo) en el resto de pantallas, y revisar que ninguna animación obligue a esperar.
+- Archivos: `ui/common/Effects.kt`, `ui/movements/*`, `ui/stats/StatsScreen.kt`, `ui/savings/SavingsScreen.kt`, `ui/budgets/BudgetsScreen.kt`, `strings_notes.xml`.
+
+### Aviso de novedades en la campanilla (pedido del usuario, v40)
+- `UpdateViewModel.saveNotes` guarda el aviso como "Actualización v0.2.N" (el cuerpo sigue siendo el texto completo). En la lista (`NotificationsScreen`) un aviso `NotificationKind.UPDATE` muestra solo el título y "Tocá para ver las novedades"; al tocarlo abre `UpdateNotesWindow` (ventana a pantalla completa con el monito, secciones y viñetas). Los avisos viejos "Novedades de Monea X" se muestran con el título nuevo (`displayTitle`).
 
 ### Punto 5: Facilidad para todos — PENDIENTE
 - Textos grandes y buen contraste (revisar modo oscuro). Zonas táctiles de 48 dp mínimo. Acciones principales abajo.

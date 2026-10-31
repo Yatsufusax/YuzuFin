@@ -46,6 +46,7 @@ import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.BudgetLevel
+import com.yuzufin.app.ui.common.rememberFillAnimation
 import com.yuzufin.app.domain.BudgetProgress
 import com.yuzufin.app.domain.MonthPoint
 import com.yuzufin.app.domain.Recommendation
@@ -319,7 +320,7 @@ internal fun ProgressBar(fraction: Float, color: Color, modifier: Modifier = Mod
         Box(
             Modifier
                 .fillMaxHeight()
-                .fillMaxWidth(fraction.coerceIn(0.01f, 1f))
+                .fillMaxWidth(rememberFillAnimation(fraction.coerceIn(0.01f, 1f)).coerceIn(0.01f, 1f))
                 .clip(shape)
                 .background(color),
         )

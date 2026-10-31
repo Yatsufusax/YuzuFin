@@ -29,6 +29,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.yuzufin.app.domain.BudgetLevel
+import com.yuzufin.app.domain.BudgetProgress
+import com.yuzufin.app.ui.common.entrance
+import com.yuzufin.app.ui.components.Mascot
 import com.yuzufin.app.R
 import com.yuzufin.app.ui.components.MascotPose
 import com.yuzufin.app.ui.components.HintCard
@@ -110,6 +114,22 @@ fun BudgetsScreen(contentPadding: PaddingValues, onBack: () -> Unit, modifier: M
                     modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
+            val over = current.categories.filter { c ->
+                val l = current.limits[c.id]
+                l != null && BudgetProgress(c.id, l, current.spent[c.id] ?: 0L).level == BudgetLevel.OVER
+            }
+            if (over.isNotEmpty()) {
+                MoneaCard(modifier = Modifier.padding(horizontal = 16.dp).entrance(0)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Mascot(MascotPose.OVERSPENT, size = 72.dp)
+                        Text(
+                            text = stringResource(R.string.budgets_over_banner, over.joinToString { it.name }),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
             current.categories.forEach { category ->
                 val limit = current.limits[category.id]
                 val spent = current.spent[category.id] ?: 0L
@@ -137,7 +157,7 @@ fun BudgetsScreen(contentPadding: PaddingValues, onBack: () -> Unit, modifier: M
                         }
                     }
                     if (limit != null) {
-                        val progress = com.yuzufin.app.domain.BudgetProgress(category.id, limit, spent)
+                        val progress = BudgetProgress(category.id, limit, spent)
                         Spacer(Modifier.height(10.dp))
                         ProgressBar(fraction = progress.fraction, color = budgetColor(progress.level))
                     }

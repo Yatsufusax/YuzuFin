@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -97,6 +98,30 @@ class MovementsViewModel(
             canGoToNextMonth = f.month != null && f.month.isBefore(YearMonth.now()),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MovementsUiState())
+
+    /** Movimientos que aparecieron mientras esta pantalla vivía (recién guardados): se animan al entrar. */
+    private val _fresh = MutableStateFlow<Set<Long>>(emptySet())
+    val fresh: StateFlow<Set<Long>> = _fresh
+
+    private var knownIds: Set<Long>? = null
+
+    init {
+        viewModelScope.launch {
+            finance.transactions.collect { list ->
+                val ids = list.mapTo(HashSet()) { it.id }
+                val known = knownIds
+                knownIds = ids
+                if (known != null) {
+                    val added = ids - known
+                    if (added.isNotEmpty()) _fresh.value = added
+                }
+            }
+        }
+    }
+
+    fun clearFresh() {
+        _fresh.value = emptySet()
+    }
 
     fun setQuery(query: String) = filters.update { it.copy(query = query.take(60)) }
 

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
@@ -41,7 +42,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -73,6 +76,7 @@ fun NotificationsScreen(
     val list by repository.notifications.collectAsStateWithLifecycle(initialValue = null)
     var unreadAtOpen by remember { mutableStateOf<Set<Long>?>(null) }
     var confirmClear by remember { mutableStateOf(false) }
+    var opened by remember { mutableStateOf<AppNotification?>(null) }
 
     // Se recuerda qué estaba sin leer al abrir (para resaltarlo) y se marca todo como leído.
     LaunchedEffect(list) {
@@ -114,6 +118,7 @@ fun NotificationsScreen(
                         item = item,
                         highlighted = unreadAtOpen?.contains(item.id) == true,
                         onDelete = { scope.launch { repository.delete(item.id) } },
+                        onOpen = { opened = item },
                     )
                 }
                 item {
@@ -126,6 +131,14 @@ fun NotificationsScreen(
                 }
             }
         }
+    }
+
+    opened?.let { note ->
+        UpdateNotesWindow(
+            title = displayTitle(note),
+            body = note.body,
+            onDismiss = { opened = null },
+        )
     }
 
     if (confirmClear) {
@@ -144,6 +157,14 @@ fun NotificationsScreen(
             },
         )
     }
+}
+
+/** Los avisos de versión guardados antes se llamaban “Novedades de Monea 0.2.N”: se muestran igual que los nuevos. */
+private fun displayTitle(item: AppNotification): String {
+    val legacy = "Novedades de Monea "
+    if (item.kind != NotificationKind.UPDATE || !item.title.startsWith(legacy)) return item.title
+    val version = item.title.removePrefix(legacy)
+    return if (version.startsWith("build")) "Actualización $version" else "Actualización v$version"
 }
 
 @Composable
@@ -168,8 +189,23 @@ private fun EmptyState() {
 }
 
 @Composable
-private fun NotificationRow(item: AppNotification, highlighted: Boolean, onDelete: () -> Unit) {
-    MoneaCard {
+private fun NotificationRow(
+    item: AppNotification,
+    highlighted: Boolean,
+    onDelete: () -> Unit,
+    onOpen: () -> Unit,
+) {
+    // Las novedades de una versión son largas: en la lista va un aviso corto y se leen al tocarlo.
+    val isUpdate = item.kind == NotificationKind.UPDATE
+    MoneaCard(
+        modifier = if (isUpdate) {
+            Modifier
+                .clip(MaterialTheme.shapes.large)
+                .clickable(role = Role.Button, onClick = onOpen)
+        } else {
+            Modifier
+        },
+    ) {
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             IconBadge(icon = kindIcon(item.kind))
             Column(modifier = Modifier.weight(1f)) {
@@ -182,13 +218,21 @@ private fun NotificationRow(item: AppNotification, highlighted: Boolean, onDelet
                         )
                     }
                     Text(
-                        item.title,
+                        displayTitle(item),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f),
                     )
                 }
                 Spacer(Modifier.height(2.dp))
-                Text(item.body, style = MaterialTheme.typography.bodyMedium)
+                if (isUpdate) {
+                    Text(
+                        stringResource(R.string.notif_update_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                } else {
+                    Text(item.body, style = MaterialTheme.typography.bodyMedium)
+                }
                 Spacer(Modifier.height(4.dp))
                 Text(
                     whenLabel(item.createdAt),

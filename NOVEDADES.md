@@ -1,4 +1,8 @@
 ## Nuevo
+- Las novedades de cada actualización ahora llegan a la campanilla como un aviso corto, "Actualización v…". Tocalo y se abre una ventana aparte para leer con calma todo lo que trae la versión.
+- Cuando guardás un movimiento y volvés a la lista, el nuevo cae desde arriba con un rebote y un brillo suave.
+- Las barras de presupuesto y de metas de ahorro se llenan con una animación al abrir la pantalla.
+- En Presupuestos, si te pasaste del tope en alguna categoría, el monito te avisa con cuáles.
 - Borrar un movimiento ya no pregunta: desaparece al instante y aparece "Movimiento borrado · Deshacer" durante 5 segundos. Si tocás Deshacer, vuelve tal cual estaba (con sus fotos). Funciona deslizando en Movimientos y con el tachito dentro del movimiento.
 - El Menú ahora está ordenado por tema: Dinero (cobros, gastos fijos, obligaciones), Planificar y analizar (presupuestos, estadísticas, categorías) y Ayuda.
 - Ajustes ahora está en la barra de abajo, justo antes de Menú, para entrar con un toque. Ya no hace falta pasar por Menú.

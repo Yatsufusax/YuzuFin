@@ -57,8 +57,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import com.yuzufin.app.R
 import com.yuzufin.app.ui.common.LocalDeleteUndo
+import com.yuzufin.app.ui.common.dropIn
 import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.core.money.MoneyFormatter
 import com.yuzufin.app.domain.TransactionType
@@ -88,6 +91,13 @@ fun MovementsScreen(
     val filters = state.filters
     var showExport by rememberSaveable { mutableStateOf(false) }
     val deleteUndo = LocalDeleteUndo.current
+    val freshIds by viewModel.fresh.collectAsStateWithLifecycle()
+    LaunchedEffect(freshIds) {
+        if (freshIds.isNotEmpty()) {
+            delay(1800)
+            viewModel.clearFresh()
+        }
+    }
     val photoIds by container.attachmentRepository.transactionIdsWithPhotos.collectAsStateWithLifecycle(emptySet())
     val scope = rememberCoroutineScope()
     if (showExport) StatementExportDialog(onDismiss = { showExport = false })
@@ -244,6 +254,7 @@ fun MovementsScreen(
                             item = item,
                             state = state,
                             hasPhoto = item.id in photoIds,
+                            fresh = item.id in freshIds,
                             onClick = { if (!item.isInternal) onEdit(item.id) },
                             onRequestDelete = {
                                 if (deleteUndo != null) {
@@ -266,12 +277,13 @@ private fun SwipeableMovementRow(
     item: MovementItem,
     state: MovementsUiState,
     hasPhoto: Boolean,
+    fresh: Boolean,
     onClick: () -> Unit,
     onRequestDelete: () -> Unit,
 ) {
     // Los movimientos de préstamos se gestionan desde Obligaciones: no se deslizan.
     if (item.isInternal) {
-        MovementListRow(item = item, state = state, hasPhoto = hasPhoto, onClick = onClick)
+        MovementListRow(item = item, state = state, hasPhoto = hasPhoto, fresh = fresh, onClick = onClick)
         return
     }
     val dismissState = rememberSwipeToDismissBoxState(
@@ -304,7 +316,7 @@ private fun SwipeableMovementRow(
         },
     ) {
         Box(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
-            MovementListRow(item = item, state = state, hasPhoto = hasPhoto, onClick = onClick)
+            MovementListRow(item = item, state = state, hasPhoto = hasPhoto, fresh = fresh, onClick = onClick)
         }
     }
 }
@@ -347,11 +359,12 @@ private fun MonthSelector(state: MovementsUiState, viewModel: MovementsViewModel
 }
 
 @Composable
-private fun MovementListRow(item: MovementItem, state: MovementsUiState, hasPhoto: Boolean, onClick: () -> Unit) {
+private fun MovementListRow(item: MovementItem, state: MovementsUiState, hasPhoto: Boolean, fresh: Boolean, onClick: () -> Unit) {
     val colors = MaterialTheme.monea
     val isIncome = item.type == TransactionType.INCOME
     Row(
         modifier = Modifier
+            .dropIn(fresh)
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
             .clickable(role = Role.Button, onClick = onClick)

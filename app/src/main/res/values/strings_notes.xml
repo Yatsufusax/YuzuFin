@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Aviso de actualización en la campanilla y su ventana -->
+    <string name="notif_update_hint">Tocá para ver las novedades</string>
+    <string name="notes_window_heading">Lo nuevo en esta versión</string>
+    <string name="notes_close">Entendido</string>
+
+    <!-- Presupuestos: monito cuando te pasás -->
+    <string name="budgets_over_banner">Te pasaste del tope en: %1$s. Todavía podés frenar los gastos del resto del mes.</string>
+</resources>
