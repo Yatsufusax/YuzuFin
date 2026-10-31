@@ -1,6 +1,6 @@
 # Monea (antes YuzuFin): documento de traspaso para continuar el proyecto
 
-Pegá este documento al empezar una conversación nueva (otra cuenta de Claude, por ejemplo) y adjuntá el último zip del proyecto (`monea-proyecto-v41.zip` o el más nuevo). Sin el zip no hay código: la otra cuenta no tiene acceso a mis archivos. Este mismo archivo viaja dentro del zip (raíz del proyecto) junto con `README.md`, `NOVEDADES.md` y `PLAN_DISENO.md`.
+Pegá este documento al empezar una conversación nueva (otra cuenta de Claude, por ejemplo) y adjuntá el último zip del proyecto (`monea-proyecto-v42.zip` o el más nuevo). Sin el zip no hay código: la otra cuenta no tiene acceso a mis archivos. Este mismo archivo viaja dentro del zip (raíz del proyecto) junto con `README.md`, `NOVEDADES.md` y `PLAN_DISENO.md`.
 
 **Qué leer primero en la conversación nueva (y nada más, salvo lo necesario):** este documento, `PLAN_DISENO.md` (estado de cada punto del plan) y `NOVEDADES.md`. El `README.md` explica el modelo de datos y las reglas de negocio con detalle.
 
@@ -142,6 +142,7 @@ No hay confirmación de que los últimos zips hayan compilado ni de que se hayan
 - Consejos, pantalla Ayuda, restaurar desde el onboarding, color al empezar, `MISSED_YOU`.
 - Anotar rápido (`QuickEntry`) y tarjeta `BankCard` (otra cuenta).
 - Punto 2 (`AttentionCard`, resumen del mes simplificado).
+- **v42:** títulos del onboarding en oscuro (`LocalContentColor`) y botones de diálogos con `navigationBarsPadding`.
 - **v41:** tamaño del texto, recorrido de 3 pasos, colores con más contraste, botones de 48 dp.
 - **v40:** aviso corto de actualización + ventana de novedades, animaciones del punto 4.
 - **v39:** Menú agrupado y borrar con Deshacer.

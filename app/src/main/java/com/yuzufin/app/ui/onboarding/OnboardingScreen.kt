@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,8 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
@@ -81,78 +84,81 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
 
     BackHandler(enabled = state.step > 0) { viewModel.back() }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .imePadding(),
-    ) {
+    // Sin esto el texto sin color propio sale negro, y en modo oscuro no se ve.
+    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .imePadding(),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MintTile),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("M", color = Forest, style = MaterialTheme.typography.titleMedium)
-                }
-                Text(
-                    text = stringResource(R.string.onboarding_step, state.step + 1, 2),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            LinearProgressIndicator(
-                progress = { (state.step + 1) / 2f },
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            MascotHeader(state)
-
-            if (state.step == 0) {
-                // Quien viene de otro teléfono puede restaurar su copia antes de completar nada.
-                RestoreBackupCard()
-                CurrencyStep(state, viewModel)
-                ThemeStep()
-            } else {
-                StartStep(state, viewModel)
-                RestoreBackupCard()
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            if (state.step > 0) {
-                OutlinedButton(onClick = viewModel::back, modifier = Modifier.height(52.dp)) {
-                    Text(stringResource(R.string.action_back))
-                }
-            }
-            Button(
-                onClick = if (state.step == 0) viewModel::next else viewModel::finish,
-                enabled = !state.saving,
+            Column(
                 modifier = Modifier
                     .weight(1f)
-                    .height(52.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(
-                    stringResource(
-                        if (state.step == 0) R.string.onboarding_continue else R.string.onboarding_start,
-                    ),
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MintTile),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("M", color = Forest, style = MaterialTheme.typography.titleMedium)
+                    }
+                    Text(
+                        text = stringResource(R.string.onboarding_step, state.step + 1, 2),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                LinearProgressIndicator(
+                    progress = { (state.step + 1) / 2f },
+                    modifier = Modifier.fillMaxWidth(),
                 )
+
+                MascotHeader(state)
+
+                if (state.step == 0) {
+                    // Quien viene de otro teléfono puede restaurar su copia antes de completar nada.
+                    RestoreBackupCard()
+                    CurrencyStep(state, viewModel)
+                    ThemeStep()
+                } else {
+                    StartStep(state, viewModel)
+                    RestoreBackupCard()
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (state.step > 0) {
+                    OutlinedButton(onClick = viewModel::back, modifier = Modifier.heightIn(min = 52.dp)) {
+                        Text(stringResource(R.string.action_back))
+                    }
+                }
+                Button(
+                    onClick = if (state.step == 0) viewModel::next else viewModel::finish,
+                    enabled = !state.saving,
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 52.dp),
+                ) {
+                    Text(
+                        stringResource(
+                            if (state.step == 0) R.string.onboarding_continue else R.string.onboarding_start,
+                        ),
+                    )
+                }
             }
         }
     }
