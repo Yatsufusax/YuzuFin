@@ -83,11 +83,14 @@ fun FloatingNavBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            leftEntries.forEach { entry ->
-                NavItem(entry, isSelected(entry, currentRoute)) { onNavigate(entry.destination) }
+            // Mitades iguales a cada lado: el “+” queda justo en el centro.
+            Row(modifier = Modifier.weight(1f)) {
+                leftEntries.forEach { entry ->
+                    NavItem(entry, isSelected(entry, currentRoute)) { onNavigate(entry.destination) }
+                }
             }
 
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
                 Surface(
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.primary,
@@ -118,8 +121,10 @@ fun FloatingNavBar(
                 }
             }
 
-            rightEntries.forEach { entry ->
-                NavItem(entry, isSelected(entry, currentRoute)) { onNavigate(entry.destination) }
+            Row(modifier = Modifier.weight(1f)) {
+                rightEntries.forEach { entry ->
+                    NavItem(entry, isSelected(entry, currentRoute)) { onNavigate(entry.destination) }
+                }
             }
         }
     }
