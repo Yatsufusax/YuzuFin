@@ -18,6 +18,7 @@ Reglas de trabajo (importantes):
 - [x] Categorías como grilla de botones con ícono, ordenadas por uso real.
 - [x] Fecha "Hoy" por defecto, "Ayer" a un toque; nota, otra fecha y fotos en "Más detalles".
 - [x] Gastos frecuentes: tocar uno completa importe, categoría y nota (después se toca Guardar; no registra solo para evitar errores).
+- [x] Pedido del usuario (v35): barra inferior = Inicio, Movimientos, +, Menú (sin Ahorros); atajos de Inicio y hoja del "+" = solo Pagar, Préstamo, Ahorro (`QuickAction.shortcuts`). Ahorros sigue abierto desde esos atajos. La barra quedó con el "+" un poco corrido a la derecha del centro; si molesta, evaluar 3 destinos + "+" centrado.
 - Archivos: `ui/transaction/QuickEntry.kt` (nuevo), `TransactionFormViewModel.kt`, `TransactionFormScreen.kt`, `ui/navigation/FloatingNavBar.kt`, `ui/MainShell.kt`, `res/values/strings_quick.xml`.
 - Pendiente de revisar con el usuario: cómo se ve en pantallas chicas (teclado + botón Guardar ocupan ~310 dp fijos y el resto scrollea), modo oscuro, y si prefiere que tocar un frecuente guarde directo.
 - Idea para después: pruebas unitarias de `onKey` (hoy está dentro del ViewModel; se podría extraer a una función pura).

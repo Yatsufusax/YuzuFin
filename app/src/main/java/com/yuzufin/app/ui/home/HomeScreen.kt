@@ -678,7 +678,7 @@ private fun ShortcutsCard(onQuickAction: (QuickAction) -> Unit) {
         }
         Spacer(Modifier.height(16.dp))
         Row(modifier = Modifier.fillMaxWidth()) {
-            QuickAction.entries.forEach { action ->
+            QuickAction.shortcuts.forEach { action ->
                 Column(
                     modifier = Modifier
                         .weight(1f)

@@ -1,7 +1,8 @@
 ## Nuevo
 - Anotar un gasto ahora toma segundos: tocá el "+" del medio y se abre directo la pantalla de anotar, con un teclado numérico grande, sumas rápidas (+10.000, +50.000, +100.000), las categorías como botones con ícono (las que más usás van primero), "Hoy" y "Ayer" a un toque. La nota, otra fecha y las fotos quedan en "Más detalles".
 - Tus gastos frecuentes (los que repetís con el mismo texto, importe y categoría) aparecen arriba como atajos: tocás uno y se completa todo.
-- Mantené apretado el "+" para ver las demás acciones (ingreso, pagar, préstamo, ahorro).
+- Mantené apretado el "+" para ver las demás acciones (pagar, préstamo, ahorro). Para anotar un ingreso, tocá "+" y cambiá a "Ingreso" arriba.
+- Barra inferior más simple: se quitó "Ahorros" (sigue en los atajos de Inicio) y de los atajos se quitaron "Ingreso" y "Gasto", que ya se hacen con el "+".
 - Tu saldo disponible ahora se ve como una tarjeta bancaria: "MoneaCard", con chip, pago sin contacto, tu nombre y un brillo que la recorre de vez en cuando. Toma los colores del tema que elijas.
 - Elegí el color de la app desde el primer momento: en la configuración inicial podés probar cada color (y el modo claro u oscuro) y la pantalla cambia al instante.
 - Nuevo ícono de la app: el logo de Monea con el gráfico de crecimiento y las monedas.

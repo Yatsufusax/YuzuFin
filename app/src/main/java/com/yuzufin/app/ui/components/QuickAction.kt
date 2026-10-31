@@ -37,6 +37,15 @@ enum class QuickAction(
     Pay(R.string.shortcut_pay, Icons.Rounded.Payments, 5),
     Loan(R.string.shortcut_loan, Icons.Rounded.SwapHoriz, 5),
     Save(R.string.shortcut_save, Icons.Rounded.Savings, 4),
+    ;
+
+    companion object {
+        /**
+         * Atajos que se muestran en Inicio y en la hoja del “+”. Ingreso y gasto no van: se anotan
+         * con el “+” (el cambio de gasto a ingreso está dentro de esa pantalla).
+         */
+        val shortcuts: List<QuickAction> = listOf(Pay, Loan, Save)
+    }
 }
 
 /** Contenido de la hoja que abre el botón central “+”. */
@@ -52,7 +61,7 @@ fun QuickActionsSheetContent(onSelect: (QuickAction) -> Unit) {
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(bottom = 12.dp),
         )
-        QuickAction.entries.forEach { action ->
+        QuickAction.shortcuts.forEach { action ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
