@@ -5,8 +5,13 @@
     <string name="settings_mode_system">Como el teléfono</string>
     <string name="settings_mode_light">Claro</string>
     <string name="settings_mode_dark">Oscuro</string>
+    <string name="settings_text_size_label">Tamaño del texto</string>
+    <string name="settings_text_normal">Normal</string>
+    <string name="settings_text_large">Grande</string>
+    <string name="settings_text_xlarge">Muy grande</string>
+    <string name="settings_text_size_sample">Así se va a leer el texto de Monea.</string>
     <string name="settings_palette_label">Color</string>
-    <string name="settings_appearance_note">Cada color tiene su versión clara y su versión oscura. El cambio se aplica al instante.</string>
+    <string name="settings_appearance_note">Cada color tiene su versión clara y su versión oscura. El cambio se aplica al instante. El tamaño del texto se suma al que ya tengas en el teléfono.</string>
     <string name="palette_green">Verde</string>
     <string name="palette_violet">Violeta</string>
     <string name="palette_navy">Azul marino</string>

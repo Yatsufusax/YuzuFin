@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Recorrido del primer uso (3 pasos) -->
+    <string name="tour_skip">Saltar</string>
+    <string name="tour_back">Atrás</string>
+    <string name="tour_next">Siguiente</string>
+    <string name="tour_done">¡Empezar!</string>
+    <string name="tour_step_of">Paso %1$d de %2$d</string>
+    <string name="tour_1_title">Anotá un gasto en segundos</string>
+    <string name="tour_1_body">Tocá el «+» del medio de la barra de abajo, poné el importe con el teclado grande y elegí la categoría. Si lo dejás apretado, ves también Pagar, Préstamo y Ahorro.</string>
+    <string name="tour_2_title">Mirá tu resumen en Inicio</string>
+    <string name="tour_2_body">Arriba está tu saldo disponible. Debajo ves una sola cosa para resolver (un cobro, una factura o un gasto fijo) y cuánto gastaste de lo que ingresó este mes.</string>
+    <string name="tour_3_title">Ayuda cuando la necesites</string>
+    <string name="tour_3_body">En cada pantalla el monito te deja un consejo. Y en Menú, Ayuda, están las respuestas a las dudas más comunes. Podés volver a ver este recorrido desde ahí.</string>
+    <string name="help_tour_again">Ver el recorrido de nuevo</string>
+</resources>

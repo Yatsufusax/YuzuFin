@@ -66,6 +66,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
+import com.yuzufin.app.ui.common.CapFontScale
 import com.yuzufin.app.ui.common.entrance
 import com.yuzufin.app.ui.common.rememberCountUp
 import com.yuzufin.app.ui.common.rememberHaptic
@@ -82,6 +83,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.unit.sp
 import com.yuzufin.app.R
@@ -476,6 +478,7 @@ private fun BalanceCard(
         if (state.saved > 0L) {
             Row(
                 modifier = Modifier
+                    .heightIn(min = 48.dp)
                     .clip(MaterialTheme.shapes.small)
                     .clickable(role = Role.Button, onClick = onGoSavings)
                     .padding(horizontal = 4.dp, vertical = 4.dp),
@@ -525,6 +528,12 @@ private fun BalanceCard(
  */
 @Composable
 private fun BankCard(state: HomeUiState, visible: Boolean, shownBalance: Long, onToggleVisible: () -> Unit) {
+    // La tarjeta tiene proporción fija: con letra enorme el texto se saldría, así que acá el tope es 1,15.
+    CapFontScale(max = 1.15f) { BankCardContent(state, visible, shownBalance, onToggleVisible) }
+}
+
+@Composable
+private fun BankCardContent(state: HomeUiState, visible: Boolean, shownBalance: Long, onToggleVisible: () -> Unit) {
     val colors = MaterialTheme.monea
     val ink = colors.onBanner
     val shape = RoundedCornerShape(24.dp)
@@ -597,7 +606,7 @@ private fun BankCard(state: HomeUiState, visible: Boolean, shownBalance: Long, o
                 }
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .clickable(role = Role.Button, onClick = onToggleVisible),
                     contentAlignment = Alignment.Center,
@@ -625,7 +634,7 @@ private fun BankCard(state: HomeUiState, visible: Boolean, shownBalance: Long, o
             Column(modifier = Modifier.padding(end = 8.dp)) {
                 Text(
                     text = stringResource(R.string.home_balance_label),
-                    color = ink.copy(alpha = 0.75f),
+                    color = ink.copy(alpha = 0.85f),
                     style = MaterialTheme.typography.labelMedium,
                 )
                 Text(

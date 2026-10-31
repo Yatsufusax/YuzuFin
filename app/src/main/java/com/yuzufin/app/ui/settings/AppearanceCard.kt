@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.yuzufin.app.R
+import com.yuzufin.app.domain.TextScale
 import com.yuzufin.app.domain.ThemeMode
 import com.yuzufin.app.domain.ThemePalette
 import com.yuzufin.app.ui.components.MoneaCard
@@ -40,8 +41,10 @@ import androidx.compose.foundation.selection.selectable
 fun AppearanceCard(
     palette: ThemePalette,
     mode: ThemeMode,
+    textScale: TextScale,
     onPaletteChange: (ThemePalette) -> Unit,
     onModeChange: (ThemeMode) -> Unit,
+    onTextScaleChange: (TextScale) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val previewDark = when (mode) {
@@ -59,6 +62,19 @@ fun AppearanceCard(
             ModeChip(R.string.settings_mode_light, mode == ThemeMode.LIGHT) { onModeChange(ThemeMode.LIGHT) }
             ModeChip(R.string.settings_mode_dark, mode == ThemeMode.DARK) { onModeChange(ThemeMode.DARK) }
         }
+        Spacer(Modifier.height(16.dp))
+        Text(stringResource(R.string.settings_text_size_label), style = MaterialTheme.typography.labelLarge)
+        Spacer(Modifier.height(8.dp))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ModeChip(R.string.settings_text_normal, textScale == TextScale.NORMAL) { onTextScaleChange(TextScale.NORMAL) }
+            ModeChip(R.string.settings_text_large, textScale == TextScale.LARGE) { onTextScaleChange(TextScale.LARGE) }
+            ModeChip(R.string.settings_text_xlarge, textScale == TextScale.XLARGE) { onTextScaleChange(TextScale.XLARGE) }
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = stringResource(R.string.settings_text_size_sample),
+            style = MaterialTheme.typography.bodyLarge,
+        )
         Spacer(Modifier.height(16.dp))
         Text(stringResource(R.string.settings_palette_label), style = MaterialTheme.typography.labelLarge)
         Spacer(Modifier.height(8.dp))

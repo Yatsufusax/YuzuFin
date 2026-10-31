@@ -240,11 +240,12 @@ private fun NotificationRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+            // Botón de 48 dp (el tamaño táctil mínimo); el ícono se queda chico.
+            IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Rounded.Close,
                     contentDescription = stringResource(R.string.notif_delete),
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }

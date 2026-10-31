@@ -163,3 +163,10 @@ Ver `PLAN_DISENO.md` (estado de cada punto y lo que falta) y `MONEA_HANDOFF.md` 
 - Campanilla: los avisos de versión (`NotificationKind.UPDATE`) son cortos y abren `UpdateNotesWindow` con el texto completo.
 - `ui/common/Effects.kt`: `dropIn` (movimiento recién guardado) y `rememberFillAnimation` (barras de progreso).
 
+## Accesibilidad y primer uso (punto 5)
+- **Contraste:** los colores de `Color.kt` y `Palettes.kt` se ajustaron para cumplir WCAG AA en todas las paletas, claro y oscuro (texto 4,5 a 1; bordes 3 a 1). `PalettesTest.textHasEnoughContrastInEveryPalette` lo vigila: si se cambia un color y baja del mínimo, el CI falla y dice qué par.
+- **Tamaño del texto:** `TextScale` (`NORMAL` 1,0 / `LARGE` 1,15 / `XLARGE` 1,3) en `AppSettings.textScale`, guardado en DataStore (`text_scale`) y en la copia de seguridad (`textScale`). `ProvideTextScale` (`ui/common/Accessibility.kt`, usado en `MoneaApp`) multiplica el `fontScale` del teléfono por ese factor, con tope 2,0. `CapFontScale` limita la letra en zonas de tamaño fijo: barra inferior (1,3) y tarjeta del saldo (1,15). El selector está en `AppearanceCard` (Ajustes y configuración inicial).
+- **Zonas táctiles:** mínimo 48 dp en el botón de borrar de la campanilla, quitar foto, ojo de la tarjeta, "Ahorrado" de Inicio e íconos de categoría. Los botones fijos de 52 dp de las ventanas pasaron a `heightIn(min = 52.dp)` para crecer con la letra.
+- **Recorrido del primer uso:** `ui/tour/FirstUseTour.kt`, diálogo a pantalla completa de 3 pasos (anotar un gasto, resumen de Inicio, ayuda) con "Saltar", "Atrás" y "Siguiente" abajo. Se muestra desde `MainShell` mientras `AppSettings.tourPending` sea verdadero. `SettingsRepository.completeOnboarding` lo activa; `finishTour` lo apaga; `restartTour` (botón en Ayuda) lo vuelve a activar. Quien restaura una copia o ya tenía la app no lo ve solo.
+- Tests nuevos: contraste en `PalettesTest` y `TextScaleTest`.
+

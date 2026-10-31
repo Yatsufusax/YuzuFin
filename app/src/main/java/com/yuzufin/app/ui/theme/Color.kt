@@ -20,7 +20,7 @@ internal val Forest = Color(0xFF0F2A24)
 // Tema claro
 // ---------------------------------------------------------------------------
 internal val LightColors = lightColorScheme(
-    primary = Color(0xFF0F8A5A),
+    primary = Color(0xFF0D7B50),
     onPrimary = Color.White,
     primaryContainer = Color(0xFFE3F4EB),
     onPrimaryContainer = Color(0xFF0B4F37),
@@ -28,7 +28,7 @@ internal val LightColors = lightColorScheme(
     onSecondary = Color.White,
     secondaryContainer = Color(0xFFD7EFE3),
     onSecondaryContainer = Color(0xFF0B3D31),
-    tertiary = Color(0xFFB26A00),
+    tertiary = Color(0xFF9E5E00),
     onTertiary = Color.White,
     tertiaryContainer = Color(0xFFFFEFD5),
     onTertiaryContainer = Color(0xFF5C3600),
@@ -38,9 +38,9 @@ internal val LightColors = lightColorScheme(
     onSurface = Color(0xFF16201C),
     surfaceVariant = Color(0xFFE4EBE7),
     onSurfaceVariant = Color(0xFF55625C),
-    outline = Color(0xFF8A9791),
+    outline = Color(0xFF7F8D87),
     outlineVariant = Color(0xFFD3DCD7),
-    error = Color(0xFFD14343),
+    error = Color(0xFFC73131),
     onError = Color.White,
     errorContainer = Color(0xFFFDE7E7),
     onErrorContainer = Color(0xFF7A1212),
@@ -107,8 +107,8 @@ data class MoneaColors(
 )
 
 internal val LightMoneaColors = MoneaColors(
-    income = Color(0xFF0F8A5A),
-    expense = Color(0xFFD14343),
+    income = Color(0xFF0D7B50),
+    expense = Color(0xFFC73131),
     headerTop = Color(0xFF30DA8B),
     bannerStart = Color(0xFF35EA83),
     bannerEnd = Color(0xFF2ACB7C),
@@ -121,7 +121,7 @@ internal val DarkMoneaColors = MoneaColors(
     income = Color(0xFF3DDC97),
     expense = Color(0xFFFF8A84),
     headerTop = Color(0xFF0F3D2E),
-    bannerStart = Color(0xFF1FA56C),
+    bannerStart = Color(0xFF198658),
     bannerEnd = Color(0xFF168059),
     onBanner = Color.White,
     strongButton = Color(0xFFE1EAE5),

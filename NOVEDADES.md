@@ -1,40 +1,8 @@
 ## Nuevo
-- Las novedades de cada actualización ahora llegan a la campanilla como un aviso corto, "Actualización v…". Tocalo y se abre una ventana aparte para leer con calma todo lo que trae la versión.
-- Cuando guardás un movimiento y volvés a la lista, el nuevo cae desde arriba con un rebote y un brillo suave.
-- Las barras de presupuesto y de metas de ahorro se llenan con una animación al abrir la pantalla.
-- En Presupuestos, si te pasaste del tope en alguna categoría, el monito te avisa con cuáles.
-- Borrar un movimiento ya no pregunta: desaparece al instante y aparece "Movimiento borrado · Deshacer" durante 5 segundos. Si tocás Deshacer, vuelve tal cual estaba (con sus fotos). Funciona deslizando en Movimientos y con el tachito dentro del movimiento.
-- El Menú ahora está ordenado por tema: Dinero (cobros, gastos fijos, obligaciones), Planificar y analizar (presupuestos, estadísticas, categorías) y Ayuda.
-- Ajustes ahora está en la barra de abajo, justo antes de Menú, para entrar con un toque. Ya no hace falta pasar por Menú.
-- Las novedades de cada actualización quedan guardadas en la campanilla de notificaciones. Cuando la app se actualiza, abrí la campanilla y leé con calma todo lo que trae la versión.
-- Inicio más simple: debajo de tu tarjeta ahora ves una sola cosa para resolver (un cobro por confirmar, una factura vencida o por vencer en 3 días, o un gasto fijo que ya tocó). Si hay más, tocás "Ver N más". Si no hay nada pendiente, te saluda el monito.
-- El resumen del mes ahora es una barra simple: cuánto gastaste de lo que ingresó y cuánto te queda (o cuánto te pasaste).
-- Anotar un gasto ahora toma segundos: tocá el "+" del medio y se abre directo la pantalla de anotar, con un teclado numérico grande, sumas rápidas (+10.000, +50.000, +100.000), las categorías como botones con ícono (las que más usás van primero), "Hoy" y "Ayer" a un toque. La nota, otra fecha y las fotos quedan en "Más detalles".
-- Tus gastos frecuentes (los que repetís con el mismo texto, importe y categoría) aparecen arriba como atajos: tocás uno y se completa todo.
-- Mantené apretado el "+" para ver las demás acciones (pagar, préstamo, ahorro). Para anotar un ingreso, tocá "+" y cambiá a "Ingreso" arriba.
-- Barra inferior más simple: el "+" quedó justo en el centro y se quitó "Ahorros" (sigue en los atajos de Inicio) y de los atajos se quitaron "Ingreso" y "Gasto", que ya se hacen con el "+".
-- Tu saldo disponible ahora se ve como una tarjeta bancaria: "MoneaCard", con chip, pago sin contacto, tu nombre y un brillo que la recorre de vez en cuando. Toma los colores del tema que elijas.
-- Elegí el color de la app desde el primer momento: en la configuración inicial podés probar cada color (y el modo claro u oscuro) y la pantalla cambia al instante.
-- Nuevo ícono de la app: el logo de Monea con el gráfico de crecimiento y las monedas.
-- Monitos nuevos y más expresivos. Ahora el monito reacciona a lo que pasa: te extraña si pasás una semana sin entrar, se pone triste si se acaba la plata, te aprieta si gastaste de más y festeja cuando tenés plata de sobra o cumplís una meta.
-- Consejos del monito en cada pantalla (Inicio, Movimientos, Ahorros, Ingresos y gastos fijos, Facturas, Presupuestos, Estadísticas, Categorías y Ajustes). Los cerrás con "Entendido".
-- Nueva sección Ayuda (Menú → Ayuda) con preguntas y respuestas sobre cómo funciona todo, y un botón para volver a mostrar los consejos.
-- Al empezar, si ya tenías una copia de seguridad, podés restaurarla desde la configuración inicial (en el primer paso y también al cargar el saldo inicial).
-- ¡YuzuFin ahora se llama Monea! Nuevo nombre y nuevo logo. Tus datos, tus copias de seguridad y las actualizaciones siguen funcionando igual.
-- Al abrir la app, el logo de Monea aparece con un rebote suave sobre un brillo verde, flota despacio y debajo se revela el lema.
-- ¡Llegó el monito de Monea! Te saluda en Inicio según la hora y te comenta cómo viene el mes. Tocalo y pega un salto. Al empezar, aparece con tereré (guaraníes), mate (pesos) o café (otras monedas).
-- Inicio más vivo: el saldo cuenta hasta su valor, las tarjetas aparecen con animación y las pantallas se deslizan suave.
-- Festejos: confeti y vibración al cumplir una meta de ahorro, y vibración corta al guardar un movimiento o confirmar un cobro o gasto fijo.
-- Gastos fijos (Menú → Gastos fijos): cargá lo que pagás todos los meses (internet, alquiler…). Cuando llega la fecha la app te avisa y con "Ya pagué" lo registrás, pudiendo cambiar el importe si la factura vino distinta.
-- Fotos en tus movimientos: adjuntá el ticket o la factura (sacando una foto o desde la galería, hasta 6 por movimiento). Quedan solo en tu teléfono.
-- Comprobante en PDF de un movimiento: abrí el movimiento y tocá "Generar comprobante en PDF". Incluye los datos registrados y las fotos adjuntas, y es independiente del extracto general.
-- En Movimientos se ve un clip en los movimientos que tienen fotos.
+- Tamaño del texto: en Ajustes (y al empezar) elegí Normal, Grande o Muy grande. Se suma al tamaño de letra de tu teléfono.
+- Recorrido de 3 pasos la primera vez que usás la app: anotar un gasto, mirar el resumen y saber dónde pedir ayuda. Se puede saltar, y lo volvés a ver en Menú → Ayuda.
 
 ## Mejorado
-- Menú quedó más corto: Ajustes salió de ahí porque ahora tiene su lugar en la barra.
-- En Ajustes se quitó el bloque "Lo que va a incluir".
-- En Inicio, lo que no hace falta resolver hoy (próximo cobro y próximos vencimientos) pasó más abajo, después de tus movimientos recientes.
-- Al confirmar un cobro ("Ya cobré") o descartarlo, Inicio y la pantalla de Ingresos se actualizan al instante, y los toques repetidos ya no se procesan dos veces.
-- Se quitaron las imágenes del monito que ya no se usaban, así la app pesa menos.
-- Los monitos de la configuración inicial (tereré, mate y café) ahora tienen mejor calidad y un recorte limpio.
-- La copia de seguridad ahora incluye también las fotos adjuntas.
+- Más contraste en todos los colores, en modo claro y oscuro: los textos, los bordes y el texto sobre la tarjeta se leen mejor.
+- Botones más fáciles de tocar: borrar un aviso, quitar una foto, el ojo de la tarjeta, "Ahorrado" en Inicio y los íconos de categoría.
+- Con letra grande, la barra de abajo y la tarjeta del saldo no se desarman.

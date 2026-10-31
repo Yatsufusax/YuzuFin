@@ -1,6 +1,6 @@
 # Monea (antes YuzuFin): documento de traspaso para continuar el proyecto
 
-Pegá este documento al empezar una conversación nueva (otra cuenta de Claude, por ejemplo) y adjuntá el último zip del proyecto (`monea-proyecto-v38.zip` o el más nuevo). Sin el zip no hay código: la otra cuenta no tiene acceso a mis archivos. Este mismo archivo viaja dentro del zip (raíz del proyecto) junto con `README.md`, `NOVEDADES.md` y `PLAN_DISENO.md`.
+Pegá este documento al empezar una conversación nueva (otra cuenta de Claude, por ejemplo) y adjuntá el último zip del proyecto (`monea-proyecto-v41.zip` o el más nuevo). Sin el zip no hay código: la otra cuenta no tiene acceso a mis archivos. Este mismo archivo viaja dentro del zip (raíz del proyecto) junto con `README.md`, `NOVEDADES.md` y `PLAN_DISENO.md`.
 
 **Qué leer primero en la conversación nueva (y nada más, salvo lo necesario):** este documento, `PLAN_DISENO.md` (estado de cada punto del plan) y `NOVEDADES.md`. El `README.md` explica el modelo de datos y las reglas de negocio con detalle.
 
@@ -66,6 +66,7 @@ Kotlin 2.0.21 · Jetpack Compose (BOM 2024.12.01, Material 3 1.3.x) · Room · D
 | **Aviso de novedades (v40)** | La campanilla muestra "Actualización v0.2.N" + "Tocá para ver las novedades"; al tocar abre `UpdateNotesWindow` con el texto completo. |
 | **Punto 4 en curso (v40)** | `dropIn` para el movimiento recién guardado, `rememberFillAnimation` en las barras de progreso, monito `OVERSPENT` en Presupuestos. Falta el monito del primer gasto. |
 | **Menú y deshacer (Punto 3)** | Menú agrupado en Dinero / Planificar y analizar / Ayuda. Borrar un movimiento no pregunta: se oculta (`FinanceRepository.hideTransaction`) y `DeleteUndo` muestra "Deshacer" 5 s antes del borrado real. |
+| **Punto 5 (v41)** | Contraste AA en todas las paletas (con test), tamaño del texto Normal/Grande/Muy grande (`TextScale`, `ProvideTextScale`, `CapFontScale`), zonas táctiles de 48 dp y recorrido de 3 pasos del primer uso (`FirstUseTour`, `AppSettings.tourPending`; repetible desde Ayuda). |
 | **Barra inferior (v38)** | Inicio, Movimientos, **+**, **Ajustes**, Menú. Ajustes salió de la pantalla Menú. |
 | **Ajustes (v38)** | Se quitó el bloque "Lo que va a incluir". |
 | **Notas en la campanilla (v38)** | Al detectar una versión nueva, `UpdateViewModel.saveNotes` guarda `NOVEDADES.md` (texto plano con viñetas) como aviso "Novedades de Monea 0.2.N", una sola vez por versión (`dedupeKey = update-<build>`). |
@@ -141,6 +142,7 @@ No hay confirmación de que los últimos zips hayan compilado ni de que se hayan
 - Consejos, pantalla Ayuda, restaurar desde el onboarding, color al empezar, `MISSED_YOU`.
 - Anotar rápido (`QuickEntry`) y tarjeta `BankCard` (otra cuenta).
 - Punto 2 (`AttentionCard`, resumen del mes simplificado).
+- **v41:** tamaño del texto, recorrido de 3 pasos, colores con más contraste, botones de 48 dp.
 - **v40:** aviso corto de actualización + ventana de novedades, animaciones del punto 4.
 - **v39:** Menú agrupado y borrar con Deshacer.
 - **v38:** Ajustes en la barra, Menú sin Ajustes, notas de versión en la campanilla.
@@ -168,7 +170,7 @@ Si el build falla, el usuario pega el log y se corrige el error puntual.
 2. **Mismo arreglo de toques repetidos y refresco** en `RecurringViewModel.confirm/skip` ("Ya pagué") y `ObligationsViewModel.payBill` (Facturas): hoy solo Inicio e Ingresos tienen `inFlight` + `refresh`.
 3. ~~Punto 3 del plan~~ (hecho en v39, sin probar). Falta, si el usuario quiere, el mismo "Deshacer" para metas, facturas y fuentes de ingreso.
 4. **Punto 4** (en curso, ver `PLAN_DISENO.md`): falta el monito del primer gasto y la identidad visual coherente.
-5. **Punto 5**: accesibilidad (textos grandes, contraste en oscuro, zonas táctiles de 48 dp) y un recorrido de 3 pasos en el primer uso.
+5. ~~Punto 5~~ (hecho en v41, sin probar). Falta mirar en el teléfono con letra grande y TalkBack (ver `PLAN_DISENO.md`).
 6. Más didáctica: textos de ayuda dentro de los formularios, y el monito/logo en los encabezados de los PDFs (hoy tienen las hojas del diseño viejo).
 7. Ideas sueltas: widget "+ Gasto", recordatorio nocturno inteligente ("¿Anotaste hoy?"), resumen semanal, detección de gastos desde notificaciones de pago (`NotificationListenerService`, lista "Detectados para confirmar", nunca guardar el texto completo; hacen falta 2 o 3 ejemplos reales con datos tapados), versión Google Play con Billing (variante sin el actualizador de GitHub; el usuario todavía no decidió qué sería premium), exportar CSV, filtros de movimientos, monito en mayor resolución.
 8. Pruebas unitarias para lo nuevo (hay tests de paletas, estadísticas, conversión de moneda, planificador de gastos fijos, mascota, actualizador y notas de versión). Candidatos: `onKey` del teclado de `QuickEntry` y el armado de `attention` de Inicio (hoy dentro del ViewModel; extraer a funciones puras).
@@ -178,5 +180,5 @@ Si el build falla, el usuario pega el log y se corrige el error puntual.
 - Antes de un cambio grande, buscar cómo funciona el equivalente existente (`IncomeRepository` sirvió de molde para `RecurringRepository`; `BackupCard` para `RestoreBackupCard`; `AppearanceCard` se reusó en el onboarding).
 - Entregar siempre el zip con `NOVEDADES.md` y `README.md` actualizados, **presentarlo con `present_files`** y decir con honestidad que no se compiló.
 - Si se renombra o borra un archivo: actualizar el paso "Quitar archivos viejos" del workflow y avisar qué borrar a mano.
-- `NOVEDADES.md` ahora se ve en la ventana de actualización **y en la campanilla**: que sea claro y corto; cuando el usuario confirme que una versión salió, empezar de cero con lo nuevo.
+- `NOVEDADES.md` se ve en la ventana de actualización **y en la campanilla**: pedido del usuario, que lleve **solo lo nuevo de esa entrega** (no el historial) y sea corto. Desde v41 se reinició: cada entrega reemplaza el archivo entero.
 - Hablar en español rioplatense (voseo), con respuestas cortas: el usuario usa el celular.

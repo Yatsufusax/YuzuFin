@@ -50,9 +50,13 @@ Reglas de trabajo (importantes):
 ### Aviso de novedades en la campanilla (pedido del usuario, v40)
 - `UpdateViewModel.saveNotes` guarda el aviso como "Actualización v0.2.N" (el cuerpo sigue siendo el texto completo). En la lista (`NotificationsScreen`) un aviso `NotificationKind.UPDATE` muestra solo el título y "Tocá para ver las novedades"; al tocarlo abre `UpdateNotesWindow` (ventana a pantalla completa con el monito, secciones y viñetas). Los avisos viejos "Novedades de Monea X" se muestran con el título nuevo (`displayTitle`).
 
-### Punto 5: Facilidad para todos — PENDIENTE
-- Textos grandes y buen contraste (revisar modo oscuro). Zonas táctiles de 48 dp mínimo. Acciones principales abajo.
-- Recorrido de 3 pasos en el primer uso (anotar un gasto, ver el resumen) en vez de muchas pantallas de ayuda. Ya hay `HintCard` y la pantalla Ayuda.
+### Punto 5: Facilidad para todos — HECHO (v41, sin probar)
+- [x] **Contraste** (WCAG AA) en las 7 paletas, claro y oscuro: ajustes en `Color.kt` y `Palettes.kt` (verde/rojo/naranja de texto, bordes, texto sobre el banner). Vigilado por `PalettesTest.textHasEnoughContrastInEveryPalette`.
+- [x] **Tamaño del texto** Normal / Grande / Muy grande (se suma al del teléfono), en Ajustes y en la configuración inicial. Barra inferior y tarjeta del saldo con tope de escala (`CapFontScale`).
+- [x] **Zonas táctiles de 48 dp** donde faltaban (campanilla, quitar foto, ojo de la tarjeta, "Ahorrado", íconos de categoría).
+- [x] **Recorrido de 3 pasos** al terminar la configuración inicial (`ui/tour/FirstUseTour.kt`); se repite desde Menú → Ayuda. Acciones principales abajo.
+- Pendiente de revisar con el usuario en el teléfono: Grande y Muy grande en Inicio, Movimientos y el teclado de anotar rápido (alturas fijas), el recorrido con letra grande, y TalkBack en la barra inferior y el recorrido.
+- Para otra vuelta: botones de 54 dp del teclado numérico (`KeyButton`) con letra enorme; auditar `contentDescription` de íconos clickeables con TalkBack.
 
 ## Cambios pedidos por el usuario (fuera de los 5 puntos) — HECHOS (sin probar)
 - [x] **Ajustes en la barra inferior** (v38): quedó libre un lugar a la derecha del "+"; ahora la barra es Inicio, Movimientos, +, Ajustes, Menú. Se quitó Ajustes de la pantalla Menú. (`FloatingNavBar.kt`, `Destination.kt`, `MenuScreen.kt`)

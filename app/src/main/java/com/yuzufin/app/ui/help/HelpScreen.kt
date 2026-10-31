@@ -143,6 +143,13 @@ fun HelpScreen(
         }
 
         OutlinedButton(
+            onClick = { scope.launch { container.settingsRepository.restartTour() } },
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(),
+        ) { Text(stringResource(R.string.help_tour_again)) }
+
+        OutlinedButton(
             onClick = {
                 scope.launch {
                     container.settingsRepository.resetHints()

@@ -15,10 +15,12 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.time.LocalDate
+import com.yuzufin.app.domain.TextScale
 import com.yuzufin.app.domain.ThemeMode
 import com.yuzufin.app.domain.ThemePalette
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.onboarding.OnboardingScreen
+import com.yuzufin.app.ui.common.ProvideTextScale
 import com.yuzufin.app.ui.splash.AnimatedSplash
 import com.yuzufin.app.ui.theme.MoneaTheme
 
@@ -64,15 +66,17 @@ fun MoneaApp() {
         // La splash es oscura: iconos claros. En las demás pantallas, oscuros solo con tema claro.
         SystemBarIcons(darkIcons = stage != Stage.Splash && !darkTheme)
 
-        Crossfade(
-            targetState = stage,
-            animationSpec = tween(450),
-            label = "stage",
-        ) { current ->
-            when (current) {
-                Stage.Splash -> AnimatedSplash(onFinished = { showSplash = false })
-                Stage.Onboarding -> OnboardingScreen()
-                Stage.Main -> MainShell()
+        ProvideTextScale(settings?.textScale ?: TextScale.NORMAL) {
+            Crossfade(
+                targetState = stage,
+                animationSpec = tween(450),
+                label = "stage",
+            ) { current ->
+                when (current) {
+                    Stage.Splash -> AnimatedSplash(onFinished = { showSplash = false })
+                    Stage.Onboarding -> OnboardingScreen()
+                    Stage.Main -> MainShell()
+                }
             }
         }
     }

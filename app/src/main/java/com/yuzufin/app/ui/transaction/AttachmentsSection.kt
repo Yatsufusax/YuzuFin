@@ -75,20 +75,24 @@ fun AttachmentsSection(
             items(state.photos, key = { it.fileName }) { item ->
                 Box {
                     Thumbnail(files, item.fileName, Modifier.size(88.dp).clip(RoundedCornerShape(12.dp)).clickable { viewing = item })
+                    // Zona táctil de 48 dp; el círculo oscuro visible sigue siendo chico.
                     IconButton(
                         onClick = { onRemove(item) },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(2.dp)
-                            .size(24.dp)
-                            .background(Color.Black.copy(alpha = 0.55f), CircleShape),
+                        modifier = Modifier.align(Alignment.TopEnd),
                     ) {
-                        Icon(
-                            Icons.Rounded.Close,
-                            contentDescription = stringResource(R.string.photos_remove),
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp),
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(26.dp)
+                                .background(Color.Black.copy(alpha = 0.65f), CircleShape),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Rounded.Close,
+                                contentDescription = stringResource(R.string.photos_remove),
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
                     }
                 }
             }

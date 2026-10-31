@@ -58,4 +58,8 @@ data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     /** Consejos del monito que la persona ya cerró con “Entendido”. */
     val dismissedHints: Set<String> = emptySet(),
+    /** Tamaño del texto de la app (se suma al del teléfono). */
+    val textScale: TextScale = TextScale.NORMAL,
+    /** Verdadero hasta que la persona termina o saltea el recorrido del primer uso. */
+    val tourPending: Boolean = false,
 )

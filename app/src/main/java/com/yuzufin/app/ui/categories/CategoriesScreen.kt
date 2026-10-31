@@ -259,7 +259,7 @@ private fun CategoryDialog(
                         val selected = key == iconKey
                         Box(
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(48.dp)
                                 .clip(CircleShape)
                                 .background(
                                     if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,

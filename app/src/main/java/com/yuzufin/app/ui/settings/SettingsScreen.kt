@@ -94,8 +94,10 @@ fun SettingsScreen(
             AppearanceCard(
                 palette = current.themePalette,
                 mode = current.themeMode,
+                textScale = current.textScale,
                 onPaletteChange = { value -> scope.launch { container.settingsRepository.setThemePalette(value) } },
                 onModeChange = { value -> scope.launch { container.settingsRepository.setThemeMode(value) } },
+                onTextScaleChange = { value -> scope.launch { container.settingsRepository.setTextScale(value) } },
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
             RemindersCard(

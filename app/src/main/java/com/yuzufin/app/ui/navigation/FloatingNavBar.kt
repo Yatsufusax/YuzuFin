@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.common.CapFontScale
 
 private data class BarEntry(
     val destination: Destination,
@@ -70,62 +71,65 @@ fun FloatingNavBar(
     modifier: Modifier = Modifier,
 ) {
     val haptic = LocalHapticFeedback.current
-    Surface(
-        modifier = modifier
-            .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 12.dp),
-        shape = RoundedCornerShape(32.dp),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 12.dp,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+    // La barra tiene cinco lugares fijos: con letra enorme las etiquetas no entrarían.
+    CapFontScale(max = 1.3f) {
+        Surface(
+            modifier = modifier
+                .navigationBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            shape = RoundedCornerShape(32.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 12.dp,
         ) {
-            // Mitades iguales a cada lado: el “+” queda justo en el centro.
-            Row(modifier = Modifier.weight(1f)) {
-                leftEntries.forEach { entry ->
-                    NavItem(entry, isSelected(entry, currentRoute)) { onNavigate(entry.destination) }
-                }
-            }
-
-            Box(modifier = Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shadowElevation = 6.dp,
-                    modifier = Modifier.size(58.dp),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape)
-                            .combinedClickable(
-                                role = Role.Button,
-                                onClick = onAddClick,
-                                onLongClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    onAddLongClick()
-                                },
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = stringResource(R.string.nav_add),
-                            modifier = Modifier.size(30.dp),
-                        )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                // Mitades iguales a cada lado: el “+” queda justo en el centro.
+                Row(modifier = Modifier.weight(1f)) {
+                    leftEntries.forEach { entry ->
+                        NavItem(entry, isSelected(entry, currentRoute)) { onNavigate(entry.destination) }
                     }
                 }
-            }
 
-            Row(modifier = Modifier.weight(1f)) {
-                rightEntries.forEach { entry ->
-                    NavItem(entry, isSelected(entry, currentRoute)) { onNavigate(entry.destination) }
+                Box(modifier = Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        shadowElevation = 6.dp,
+                        modifier = Modifier.size(58.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape)
+                                .combinedClickable(
+                                    role = Role.Button,
+                                    onClick = onAddClick,
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onAddLongClick()
+                                    },
+                                ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Add,
+                                contentDescription = stringResource(R.string.nav_add),
+                                modifier = Modifier.size(30.dp),
+                            )
+                        }
+                    }
+                }
+
+                Row(modifier = Modifier.weight(1f)) {
+                    rightEntries.forEach { entry ->
+                        NavItem(entry, isSelected(entry, currentRoute)) { onNavigate(entry.destination) }
+                    }
                 }
             }
         }

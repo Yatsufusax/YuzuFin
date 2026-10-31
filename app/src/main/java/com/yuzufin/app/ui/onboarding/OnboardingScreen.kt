@@ -265,8 +265,10 @@ private fun ThemeStep() {
     AppearanceCard(
         palette = current.themePalette,
         mode = current.themeMode,
+        textScale = current.textScale,
         onPaletteChange = { value -> scope.launch { repository.setThemePalette(value) } },
         onModeChange = { value -> scope.launch { repository.setThemeMode(value) } },
+        onTextScaleChange = { value -> scope.launch { repository.setTextScale(value) } },
     )
 }
 

@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.domain.AppSettings
+import com.yuzufin.app.domain.TextScale
 import com.yuzufin.app.domain.ThemeMode
 import com.yuzufin.app.domain.ThemePalette
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,8 @@ class SettingsRepository(private val context: Context) {
             themePalette = ThemePalette.fromName(prefs[THEME_PALETTE]),
             themeMode = ThemeMode.fromName(prefs[THEME_MODE]),
             dismissedHints = prefs[DISMISSED_HINTS] ?: emptySet(),
+            textScale = TextScale.fromName(prefs[TEXT_SCALE]),
+            tourPending = prefs[TOUR_PENDING] ?: false,
         )
     }
 
@@ -41,7 +44,19 @@ class SettingsRepository(private val context: Context) {
             prefs[CURRENCY_CODE] = currency.code
             prefs[USER_NAME] = userName.trim().take(MAX_NAME_LENGTH)
             prefs[ONBOARDING_DONE] = true
+            // Solo quien acaba de configurar la app ve el recorrido; quien restaura una copia, no.
+            prefs[TOUR_PENDING] = true
         }
+    }
+
+    /** El recorrido del primer uso ya se vio (o se salteó): no vuelve a aparecer solo. */
+    suspend fun finishTour() {
+        context.settingsDataStore.edit { prefs -> prefs[TOUR_PENDING] = false }
+    }
+
+    /** Pide que el recorrido se muestre otra vez (botón de Ayuda). */
+    suspend fun restartTour() {
+        context.settingsDataStore.edit { prefs -> prefs[TOUR_PENDING] = true }
     }
 
     suspend fun setUserName(name: String) {
@@ -76,6 +91,7 @@ class SettingsRepository(private val context: Context) {
             put("showAmounts", prefs[SHOW_AMOUNTS] ?: false)
             put("themePalette", prefs[THEME_PALETTE] ?: ThemePalette.GREEN.name)
             put("themeMode", prefs[THEME_MODE] ?: ThemeMode.SYSTEM.name)
+            put("textScale", prefs[TEXT_SCALE] ?: TextScale.NORMAL.name)
         }.toString()
     }
 
@@ -92,6 +108,7 @@ class SettingsRepository(private val context: Context) {
             prefs[SHOW_AMOUNTS] = json.optBoolean("showAmounts", false)
             prefs[THEME_PALETTE] = ThemePalette.fromName(json.optString("themePalette")).name
             prefs[THEME_MODE] = ThemeMode.fromName(json.optString("themeMode")).name
+            prefs[TEXT_SCALE] = TextScale.fromName(json.optString("textScale")).name
         }
     }
 
@@ -122,6 +139,10 @@ class SettingsRepository(private val context: Context) {
         context.settingsDataStore.edit { prefs -> prefs[THEME_PALETTE] = palette.name }
     }
 
+    suspend fun setTextScale(scale: TextScale) {
+        context.settingsDataStore.edit { prefs -> prefs[TEXT_SCALE] = scale.name }
+    }
+
     suspend fun setThemeMode(mode: ThemeMode) {
         context.settingsDataStore.edit { prefs -> prefs[THEME_MODE] = mode.name }
     }
@@ -137,6 +158,8 @@ class SettingsRepository(private val context: Context) {
         private val SHOW_AMOUNTS = booleanPreferencesKey("show_amounts_in_notifications")
         private val THEME_PALETTE = stringPreferencesKey("theme_palette")
         private val THEME_MODE = stringPreferencesKey("theme_mode")
+        private val TEXT_SCALE = stringPreferencesKey("text_scale")
+        private val TOUR_PENDING = booleanPreferencesKey("tour_pending")
         private val DISMISSED_HINTS = stringSetPreferencesKey("dismissed_hints")
         private val LAST_OPEN_DAY = longPreferencesKey("last_open_day")
     }
