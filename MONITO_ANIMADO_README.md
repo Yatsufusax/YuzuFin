@@ -1,0 +1,77 @@
+# Monito animado y mensajes rotativos: estado y cómo seguir
+
+Este archivo es para retomar el trabajo en una conversación nueva (por el límite de uso). Se lee junto con `MONEA_HANDOFF.md` (reglas del proyecto, flujo con GitHub, lecciones) y `PROMPTS_FLOW_MONITOS.md` (prompts de cada pose). Adjuntá el último zip del proyecto: sin el zip no hay código.
+
+## 1. Qué estamos haciendo
+Darle más vida al monito de Monea de dos maneras:
+1. **Animaciones**: pequeños clips del monito (generados con Google Flow a partir de las poses que ya existen) que se reproducen cuando se toca al monito.
+2. **Mensajes que hablan**: el globo de texto del monito en Inicio ya no es fijo. Rota solo, cambia al tocarlo, a veces trae un botón que lleva a la pantalla de la que habla, y no usa audio.
+
+## 2. Estado (v50)
+| Cosa | Estado |
+|---|---|
+| Clip de `RICH` (monito con monedas, 4 s) | Hecho: `res/drawable-nodpi/monito_clip_con_plata.webp` |
+| Reproductor de clips (`MascotClip.kt`) | Escrito, **sin compilar** |
+| `Mascot` con parámetro `clip` en la pose y `onClick` | Escrito, **sin compilar** |
+| Mensajes rotativos y con botón (`MascotTalk.kt`, `strings_mascot_talk.xml`) | Escrito, **sin compilar** |
+| Tarjeta del monito en Inicio usa `TalkingMascot` | Escrito, **sin compilar** |
+| Tests (`MascotTalkTest.kt`) | Escritos, **sin correr** |
+| Clips de las otras 20 poses | Pendiente (prompts listos en `PROMPTS_FLOW_MONITOS.md`) |
+
+**Claude no puede compilar este proyecto.** Lo probás vos con GitHub Actions. Si el build falla, pegá el error en la conversación y se corrige.
+
+## 3. Decisiones y por qué
+- **WebP animado con transparencia, no video**, para el monito chico: el video de Android no soporta transparencia y el monito aparece sobre fondos de muchas paletas, en modo claro y oscuro. El video queda para pantalla completa (la intro ya es así).
+- **Sin librerías nuevas** (no Coil): se usa `ImageDecoder` y `AnimatedImageDrawable` de Android. Requiere Android 9 (API 28). En Android 8 (`minSdk` 26) el toque sigue haciendo el saltito de siempre, sin clip.
+- **Fondo verde puro (#00FF00) en Flow**, y el verde se quita después con `tools/clip_verde_a_webp.py`. Así sirve para cualquier paleta. El script quita el verde por dominancia de color (no por tono), porque el método común de ffmpeg (`chromakey` + `despill`) volvía anaranjadas las monedas doradas.
+- **El clip se recorta justo al monito**, igual que las poses estáticas, para que al pasar de la imagen fija al clip no cambie el tamaño.
+- **Duración**: 2 a 4 s, 12 cuadros por segundo, alto 440 px. Pesa unos 900 KB por clip; vigilar el peso del APK si se suman muchos (probar `--alto 380`, `--fps 10`, `--calidad 40`).
+- **Los clips se reproducen una sola vez** y vuelven a la imagen fija. Por eso cada video debe terminar en la misma pose en la que empieza.
+- **Mensajes**: cada ánimo (`MascotMood`) tiene 3 o 4 mensajes (`MascotTalk.lines`). Cambian cada 12 s (`MascotTalk.ROTATE_MS`), al tocar al monito o al globo, y nunca repiten el mismo seguido. No rotan solos con TalkBack activado ni con las animaciones del teléfono apagadas. Algunos mensajes usan el número de días sin entrar o el porcentaje gastado del ingreso.
+- Los textos están en voseo, como el resto de la app.
+
+## 4. Archivos tocados en v50
+Nuevos:
+- `app/src/main/res/drawable-nodpi/monito_clip_con_plata.webp`
+- `app/src/main/java/com/yuzufin/app/ui/components/MascotClip.kt`
+- `app/src/main/java/com/yuzufin/app/ui/components/MascotTalk.kt`
+- `app/src/main/res/values/strings_mascot_talk.xml`
+- `app/src/test/java/com/yuzufin/app/ui/MascotTalkTest.kt`
+- `tools/clip_verde_a_webp.py`, `PROMPTS_FLOW_MONITOS.md`, este archivo
+
+Modificados:
+- `ui/components/Mascot.kt`: `MascotPose` tiene un segundo valor opcional `clip`; `Mascot` recibe `onClick` y reproduce el clip al tocar.
+- `ui/home/HomeScreen.kt`: `MascotCard` ahora recibe `onNavigate` y `onQuickAction` y usa `TalkingMascot`.
+- `NOVEDADES.md`, `MONEA_HANDOFF.md`.
+
+No se renombró ni borró ningún archivo, así que `build.yml` no necesita cambios.
+
+## 5. Cómo sumar un clip nuevo
+1. Sacá de `monitos_fondo_verde_16x9.zip` la imagen `monito_<pose>_verde.png`, subila a Flow como cuadro inicial (y final) y pegá el prompt de esa pose de `PROMPTS_FLOW_MONITOS.md`.
+2. Convertí el video: `python tools/clip_verde_a_webp.py video.mp4 app/src/main/res/drawable-nodpi/monito_clip_<pose>.webp --desde 0.3 --hasta 3.3`. Necesita ffmpeg y `pip install pillow numpy`. Mirá el resultado sobre un fondo claro y uno oscuro antes de aceptarlo.
+3. En `Mascot.kt`, agregá el clip a la pose: `MISSED_YOU(R.drawable.monito_te_extrana, R.drawable.monito_clip_te_extrana),`.
+4. Listo: al tocar al monito con esa pose, se reproduce.
+5. Nombres de recursos nuevos, nunca reutilizar uno viejo con otro formato (ver la lección del zip en `MONEA_HANDOFF.md`).
+
+## 6. Cómo probar en el teléfono (Android 9 o superior)
+1. En Inicio, el monito con monedas (`RICH`) aparece cuando tenés saldo positivo y gastaste el 70 % o menos de lo que ingresó este mes. Con otros datos sale otra pose: es normal, y esas todavía no tienen clip.
+2. Tocá al monito: salta, vibra, reproduce el clip una vez y vuelve a la imagen fija. El mensaje cambia.
+3. Tocá el globo: cambia el mensaje. Esperá 12 s sin tocar: cambia solo.
+4. Los mensajes con botón (por ejemplo "Anotar un gasto" o "Ver presupuestos") tienen que abrir la pantalla correcta.
+5. Probalo en modo claro y oscuro y con el tamaño de texto "Muy grande".
+6. En Android 8: el toque hace el saltito y cambia el mensaje, sin clip.
+
+## 7. Riesgos conocidos
+- Nada se compiló. Los puntos más probables de error: el parámetro `onRelease` de `AndroidView` (depende de la versión de Compose), la inferencia de tipos en `slideInVertically` dentro de `AnimatedContent`, y imports no usados que solo dan avisos.
+- Si el WebP animado no se reproduce, el código cae a la imagen fija sin romper nada.
+- `monito_clip_con_plata.webp` se generó una sola vez con el video de Flow; si se regenera, que mantenga el mismo recorte (usar el script).
+
+## 8. Próximos pasos sugeridos
+1. Compilar y probar v50 (sección 6).
+2. Generar los clips de prioridad 1 (`MISSED_YOU`, `OVERSPENT`, `BROKE`, `NOTIFICATION`, `WELCOME`, `PROGRESS`, `GOAL_DONE`).
+3. Reproducir el clip de `GOAL_DONE` solo en el festejo de meta cumplida y en `FirstExpenseCelebration`.
+4. Usar `TalkingMascot` en otras pantallas (presupuestos, ahorros) con sus propios ánimos y mensajes.
+5. Opcional: reproducir el clip una vez cuando aparece la tarjeta, no solo al tocar.
+
+## 9. Para pegar al empezar la conversación nueva
+> Seguimos con Monea. Leé `MONEA_HANDOFF.md` y `MONITO_ANIMADO_README.md` del zip adjunto y no releas todo el código. Estoy en el punto 8.1: te paso el resultado del build de v50. Respondé en voseo y avisá si algo quedó sin compilar.

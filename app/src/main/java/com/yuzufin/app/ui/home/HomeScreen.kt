@@ -71,7 +71,11 @@ import com.yuzufin.app.ui.common.entrance
 import com.yuzufin.app.ui.common.rememberCountUp
 import com.yuzufin.app.ui.common.rememberHaptic
 import com.yuzufin.app.ui.components.Mascot
+import com.yuzufin.app.ui.components.MascotAction
+import com.yuzufin.app.ui.components.MascotMood
 import com.yuzufin.app.ui.components.MascotPose
+import com.yuzufin.app.ui.components.MascotTalk
+import com.yuzufin.app.ui.components.TalkingMascot
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -174,7 +178,7 @@ fun HomeScreen(
                     )
                 }
             } else if (state.hasMovements) {
-                Box(Modifier.entrance(1)) { MascotCard(state) }
+                Box(Modifier.entrance(1)) { MascotCard(state, onNavigate, onQuickAction) }
             }
             HintCard(
                 hintId = "home_numbers",
@@ -813,9 +817,16 @@ private fun EmptyBanner(onRegister: () -> Unit) {
     }
 }
 
-/** El monito saluda según la hora y comenta cómo viene el mes. */
+/**
+ * El monito saluda según la hora y comenta cómo viene el mes. Los mensajes rotan solos y al
+ * tocarlo, y algunos traen un botón que lleva a la pantalla de la que hablan.
+ */
 @Composable
-private fun MascotCard(state: HomeUiState) {
+private fun MascotCard(
+    state: HomeUiState,
+    onNavigate: (Destination) -> Unit,
+    onQuickAction: (QuickAction) -> Unit,
+) {
     val hour = remember { java.time.LocalTime.now().hour }
     val suffix = if (state.userName.isBlank()) "" else ", ${state.userName.trim()}"
     val greeting = stringResource(
@@ -828,59 +839,34 @@ private fun MascotCard(state: HomeUiState) {
     )
     val daysAway = rememberAppContainer().sessionInfo.daysAway
     val comfortable = state.balance > 0 && state.monthIncome > 0 && state.monthExpense * 10 <= state.monthIncome * 7
-    val pose: MascotPose
-    val message: String
-    when {
-        daysAway >= 7 -> {
-            pose = MascotPose.MISSED_YOU
-            message = stringResource(R.string.mascot_msg_away, daysAway)
-        }
-        state.balance < 0 -> {
-            pose = MascotPose.BROKE
-            message = stringResource(R.string.mascot_msg_negative)
-        }
-        state.pendingIncomes.isNotEmpty() -> {
-            pose = MascotPose.NOTIFICATION
-            message = stringResource(R.string.mascot_msg_pending)
-        }
-        state.monthIncome == 0L && state.monthExpense == 0L -> {
-            pose = MascotPose.WELCOME
-            message = stringResource(R.string.mascot_msg_empty_month)
-        }
-        state.monthExpense > state.monthIncome -> {
-            pose = MascotPose.OVERSPENT
-            message = stringResource(R.string.mascot_msg_careful)
-        }
-        comfortable -> {
-            pose = MascotPose.RICH
-            message = stringResource(R.string.mascot_msg_rich)
-        }
-        else -> {
-            pose = MascotPose.PROGRESS
-            message = stringResource(R.string.mascot_msg_good)
-        }
+    val mood = when {
+        daysAway >= 7 -> MascotMood.AWAY
+        state.balance < 0 -> MascotMood.NEGATIVE
+        state.pendingIncomes.isNotEmpty() -> MascotMood.PENDING
+        state.monthIncome == 0L && state.monthExpense == 0L -> MascotMood.EMPTY
+        state.monthExpense > state.monthIncome -> MascotMood.CAREFUL
+        comfortable -> MascotMood.RICH
+        else -> MascotMood.GOOD
     }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Mascot(pose, size = 96.dp)
-        Surface(
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.weight(1f),
-        ) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(greeting, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                Text(
-                    message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+    val number = if (mood == MascotMood.AWAY) {
+        daysAway
+    } else {
+        MascotTalk.spentPercent(state.monthExpense, state.monthIncome)
+    }
+    TalkingMascot(
+        mood = mood,
+        greeting = greeting,
+        number = number,
+        onAction = { action ->
+            when (action) {
+                MascotAction.ADD_EXPENSE -> onQuickAction(QuickAction.Expense)
+                MascotAction.SEE_BUDGETS -> onNavigate(Destination.Budgets)
+                MascotAction.SEE_SAVINGS -> onNavigate(Destination.Savings)
+                MascotAction.SEE_STATS -> onNavigate(Destination.Stats)
+                MascotAction.SEE_INCOMES -> onNavigate(Destination.Incomes)
             }
-        }
-    }
+        },
+    )
 }
 
 @Composable

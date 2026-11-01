@@ -2,7 +2,7 @@
 
 Pegá este documento al empezar una conversación nueva (otra cuenta de Claude, por ejemplo) y adjuntá el último zip del proyecto (`monea-proyecto-v44.zip` o el más nuevo). Sin el zip no hay código: la otra cuenta no tiene acceso a mis archivos. Este mismo archivo viaja dentro del zip (raíz del proyecto) junto con `README.md`, `NOVEDADES.md` y `PLAN_DISENO.md`.
 
-**Qué leer primero en la conversación nueva (y nada más, salvo lo necesario):** este documento, `PLAN_DISENO.md` (estado de cada punto del plan) y `NOVEDADES.md`. El `README.md` explica el modelo de datos y las reglas de negocio con detalle.
+**Qué leer primero en la conversación nueva (y nada más, salvo lo necesario):** este documento, `MONITO_ANIMADO_README.md` si el tema es el monito animado, `PLAN_DISENO.md` (estado de cada punto del plan) y `NOVEDADES.md`. El `README.md` explica el modelo de datos y las reglas de negocio con detalle.
 
 ## 1. Qué es
 Monea es una app Android de finanzas personales (control de gastos, ahorros, facturas, préstamos). Es **local primero**: todo queda en el teléfono, sin cuenta, sin servidor, **sin IA** y sin conexión a bancos.
@@ -67,6 +67,7 @@ Kotlin 2.0.21 · Jetpack Compose (BOM 2024.12.01, Material 3 1.3.x) · Room · D
 | **Punto 4 (v40, v43)** | `dropIn` para el movimiento recién guardado, `rememberFillAnimation` en las barras de progreso, monito `OVERSPENT` en Presupuestos y festejo del primer gasto (`FirstExpenseCelebration`). Falta solo la identidad visual coherente en el resto de pantallas. |
 | **Menú y deshacer (Punto 3)** | Menú agrupado en Dinero / Planificar y analizar / Ayuda. Borrar un movimiento no pregunta: se oculta (`FinanceRepository.hideTransaction`) y `DeleteUndo` muestra "Deshacer" 5 s antes del borrado real. |
 | **Intro en video (v48, video nuevo en v49)** | `ui/splash/VideoSplash.kt` reproduce `res/raw/monea_intro.mp4` (vertical 720x1280, entero, sobre `#112825`) y dibuja debajo del logo la frase "Tu dinero. Tus decisiones." con fundido; `AnimatedSplash` es el respaldo. Se salta tocando, no suena en silencio, no se muestra desde el widget. |
+| **Monito animado y mensajes rotativos (v50, sin compilar)** | Clip WebP animado al tocar al monito con monedas (`MascotClip.kt`, `monito_clip_con_plata.webp`) y globo de texto que rota, cambia al tocar y a veces trae un botón de acción (`MascotTalk.kt`). Estado, decisiones y pasos en `MONITO_ANIMADO_README.md`; prompts de Flow en `PROMPTS_FLOW_MONITOS.md`; script en `tools/clip_verde_a_webp.py`. |
 | **Punto 5 (v41)** | Contraste AA en todas las paletas (con test), tamaño del texto Normal/Grande/Muy grande (`TextScale`, `ProvideTextScale`, `CapFontScale`), zonas táctiles de 48 dp y recorrido de 3 pasos del primer uso (`FirstUseTour`, `AppSettings.tourPending`; repetible desde Ayuda). |
 | **Barra inferior (v38)** | Inicio, Movimientos, **+**, **Ajustes**, Menú. Ajustes salió de la pantalla Menú. |
 | **Ajustes (v38)** | Se quitó el bloque "Lo que va a incluir". |

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mascot_act_add_expense">Anotar un gasto</string>
+    <string name="mascot_act_budgets">Ver presupuestos</string>
+    <string name="mascot_act_savings">Ver ahorros</string>
+    <string name="mascot_act_stats">Ver estadísticas</string>
+    <string name="mascot_act_incomes">Ver cobros</string>
+    <string name="mascot_next_hint">Ver otro mensaje del monito</string>
+
+    <string name="mascot_away_2">Qué bueno verte de nuevo. Con un par de toques ponemos todo al día.</string>
+    <string name="mascot_away_3">Pasaron %1$d días. No pasa nada: anotá lo que te acuerdes y listo.</string>
+    <string name="mascot_away_4">Me quedé cuidando tus monedas mientras no estabas.</string>
+
+    <string name="mascot_negative_2">Un mes difícil le pasa a cualquiera. Lo importante es ver adónde se va la plata.</string>
+    <string name="mascot_negative_3">Un respiro: revisemos los presupuestos y ajustemos lo que se pueda.</string>
+    <string name="mascot_negative_4">Tranqui, de a poquito se arregla. Anotá todo para no perder el hilo.</string>
+
+    <string name="mascot_pending_2">¡Llegó plata! Confirmá tu cobro para que entre al saldo.</string>
+    <string name="mascot_pending_3">Ojo: tu cobro todavía no suma al saldo. Falta tu confirmación.</string>
+
+    <string name="mascot_empty_2">Mes nuevo, hoja en blanco. ¿Anotamos el primer gasto?</string>
+    <string name="mascot_empty_3">Anotar un gasto lleva menos de 5 segundos. ¡Probalo!</string>
+
+    <string name="mascot_careful_2">Ya gastaste el %1$d%% de lo que ingresó este mes.</string>
+    <string name="mascot_careful_3">Vamos con calma el resto del mes. ¿Miramos tus presupuestos?</string>
+    <string name="mascot_careful_4">Si frenamos un poquito los gustos, llegamos bien a fin de mes.</string>
+
+    <string name="mascot_rich_2">Hasta ahora gastaste solo el %1$d%% de lo que ingresó. ¡Bien ahí!</string>
+    <string name="mascot_rich_3">¿Y si apartamos algo para una meta? El monito aprueba.</string>
+    <string name="mascot_rich_4">Qué orden. Así da gusto juntar monedas.</string>
+
+    <string name="mascot_good_2">Llevás gastado el %1$d%% de lo que ingresó este mes.</string>
+    <string name="mascot_good_3">Constancia: anotar todo es lo que más ayuda.</string>
+    <string name="mascot_good_4">Cada gasto anotado es una decisión tuya. ¡Seguí así!</string>
+</resources>

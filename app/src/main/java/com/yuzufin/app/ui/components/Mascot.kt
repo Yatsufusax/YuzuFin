@@ -1,5 +1,6 @@
 package com.yuzufin.app.ui.components
 
+import android.os.Build
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
@@ -21,9 +22,12 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -38,9 +42,10 @@ import kotlinx.coroutines.launch
 
 /**
  * Las poses del monito. Cada una es una imagen con fondo transparente en res/drawable-nodpi.
- * El comentario de cada una dice cuándo aparece.
+ * El comentario de cada una dice cuándo aparece. [clip] es, si la pose lo tiene, un WebP animado
+ * (monito_clip_*.webp) que se reproduce una vez al tocar al monito (Android 9 o más).
  */
-enum class MascotPose(@DrawableRes val res: Int) {
+enum class MascotPose(@DrawableRes val res: Int, @DrawableRes val clip: Int? = null) {
     /** Al entrar a la app sin novedades: arranque del mes. */
     WELCOME(R.drawable.monito_bienvenida),
     /** Hace muchos días que no abrías la app. */
@@ -48,7 +53,7 @@ enum class MascotPose(@DrawableRes val res: Int) {
     /** Se te acabó la plata (saldo negativo). */
     BROKE(R.drawable.monito_sin_plata),
     /** Tenés plata de sobra este mes. */
-    RICH(R.drawable.monito_con_plata),
+    RICH(R.drawable.monito_con_plata, R.drawable.monito_clip_con_plata),
     /** Gastaste más de lo que ingresó. */
     OVERSPENT(R.drawable.monito_gasto_de_mas),
     /** Meta cumplida. */
@@ -92,7 +97,8 @@ fun mascotForCurrency(currencyCode: String): MascotPose = when (currencyCode) {
 
 /**
  * El monito de Monea. Respira suave todo el tiempo, cambia de pose con un efecto y, si se lo toca,
- * pega un saltito con una vibración corta.
+ * pega un saltito con una vibración corta (y, si la pose tiene clip, lo reproduce). [onClick] se
+ * llama en cada toque.
  */
 @Composable
 fun Mascot(
@@ -100,6 +106,7 @@ fun Mascot(
     modifier: Modifier = Modifier,
     size: Dp = 120.dp,
     lively: Boolean = true,
+    onClick: (() -> Unit)? = null,
 ) {
     val transition = rememberInfiniteTransition(label = "mascot")
     val breathe by transition.animateFloat(
@@ -111,6 +118,9 @@ fun Mascot(
     val jump = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
+    var playing by remember { mutableStateOf(false) }
+    val animationsOn = animationsEnabled()
+    LaunchedEffect(pose) { playing = false }
 
     AnimatedContent(
         targetState = pose,
@@ -131,6 +141,8 @@ fun Mascot(
                 indication = null,
             ) {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                if (pose.clip != null && animationsOn && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) playing = true
+                onClick?.invoke()
                 scope.launch {
                     jump.animateTo(1f, tween(140, easing = FastOutSlowInEasing))
                     jump.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
@@ -138,11 +150,16 @@ fun Mascot(
             },
         label = "mascotPose",
     ) { current ->
-        Image(
-            painter = painterResource(current.res),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.fillMaxSize(),
-        )
+        val clip = current.clip
+        if (playing && clip != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            MascotClipPlayer(clip, onEnd = { playing = false }, modifier = Modifier.fillMaxSize())
+        } else {
+            Image(
+                painter = painterResource(current.res),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 }
