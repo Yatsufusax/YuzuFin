@@ -24,6 +24,7 @@ jobs:
       - name: Quitar archivos viejos
         run: |
           rm -f app/src/main/res/drawable-nodpi/mascot_*
+          rm -f app/src/main/res/drawable-nodpi/monito_clip_mate.webp
           rm -f app/src/main/java/com/yuzufin/app/ui/YuzuFinApp.kt
           rm -f app/src/main/java/com/yuzufin/app/ui/navigation/YuzuNavHost.kt
           rm -f app/src/main/res/drawable/ic_stat_yuzu.xml

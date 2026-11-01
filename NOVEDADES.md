@@ -1,4 +1,8 @@
+## Nuevo
+- El monito de Inicio, cuando tu mes viene normal, ahora toma tereré (guaraníes), mate (pesos) o café (otras monedas) y se anima solo.
+
 ## Mejorado
-- El monito de Inicio ahora se anima solo, sin que lo toques: hace su animación al aparecer y la repite cada tanto (Android 9 o superior).
-- Sus mensajes salen como si te hablara: se van escribiendo letra por letra, quedan un rato y pasa al siguiente. Si tocás el globo mientras escribe, lo completa; si lo tocás de nuevo (o tocás al monito), pasa al otro mensaje.
-- Se quitaron los botones de los mensajes.
+- Los monitos de la configuración inicial (tereré, mate y café) se animan solos, en mejor calidad.
+- Si ocultás el saldo con el ojo, queda oculto la próxima vez que abras la app.
+- El monito ya no cambia de tamaño entre su animación y su imagen fija.
+- Los mensajes del monito se escriben letra por letra (sin botones).

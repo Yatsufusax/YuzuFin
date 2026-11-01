@@ -70,4 +70,6 @@ data class AppSettings(
     val tourPending: Boolean = false,
     /** Verdadero justo después de anotar el primer gasto, hasta que se cierra el festejo del monito. */
     val firstExpensePending: Boolean = false,
+    /** El saldo de Inicio se muestra tapado (ojo cerrado); se recuerda entre aperturas. */
+    val balanceHidden: Boolean = false,
 )

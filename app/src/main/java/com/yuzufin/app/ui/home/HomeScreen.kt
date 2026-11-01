@@ -72,6 +72,7 @@ import com.yuzufin.app.ui.common.rememberCountUp
 import com.yuzufin.app.ui.common.rememberHaptic
 import com.yuzufin.app.ui.components.Mascot
 import com.yuzufin.app.ui.components.MascotMood
+import com.yuzufin.app.ui.components.mascotForCurrency
 import com.yuzufin.app.ui.components.MascotPose
 import com.yuzufin.app.ui.components.MascotTalk
 import com.yuzufin.app.ui.components.TalkingMascot
@@ -128,11 +129,11 @@ fun HomeScreen(
     onEditMovement: (Long) -> Unit,
     onConfirmIncome: (occurrenceId: Long, amountMinor: Long) -> Unit,
     onSkipIncome: (occurrenceId: Long) -> Unit,
+    onBalanceHiddenChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var confirming by remember { mutableStateOf<PendingIncome?>(null) }
     val haptic = rememberHaptic()
-    var balanceVisible by rememberSaveable { mutableStateOf(true) }
     val headerTop = MaterialTheme.monea.headerTop
     val background = MaterialTheme.colorScheme.background
 
@@ -160,8 +161,8 @@ fun HomeScreen(
             Box(Modifier.entrance(0)) {
                 BalanceCard(
                     state = state,
-                    visible = balanceVisible,
-                    onToggleVisible = { balanceVisible = !balanceVisible },
+                    visible = !state.balanceHidden,
+                    onToggleVisible = { onBalanceHiddenChange(!state.balanceHidden) },
                     onGoMovements = { onNavigate(Destination.Movements) },
                     onGoSavings = { onNavigate(Destination.Savings) },
                 )
@@ -852,6 +853,8 @@ private fun MascotCard(state: HomeUiState) {
         mood = mood,
         greeting = greeting,
         number = number,
+        // Cuando todo viene normal, el monito toma la bebida de tu moneda (tereré, mate o café).
+        pose = if (mood == MascotMood.GOOD) mascotForCurrency(state.currency.code) else mood.pose,
     )
 }
 

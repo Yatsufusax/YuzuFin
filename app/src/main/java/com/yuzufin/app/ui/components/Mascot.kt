@@ -44,11 +44,28 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
+ * Ajuste de un clip para que el monito mida y quede igual que en la imagen fija (si no, al empezar
+ * o terminar el clip "salta" de tamaño). El clip se recorta con aire alrededor, y la imagen fija
+ * justo al monito: [scale] = alto del lienzo del clip / alto del monito en su primer cuadro, y
+ * [dx], [dy] = distancia del centro del monito (primer cuadro) al centro del lienzo, como fracción
+ * del alto del lienzo. Ver MONITO_ANIMADO_README.md.
+ */
+data class ClipFit(val scale: Float = 1f, val dx: Float = 0f, val dy: Float = 0f) {
+    companion object {
+        val None = ClipFit()
+    }
+}
+
+/**
  * Las poses del monito. Cada una es una imagen con fondo transparente en res/drawable-nodpi.
  * El comentario de cada una dice cuándo aparece. [clip] es, si la pose lo tiene, un WebP animado
  * (monito_clip_*.webp) que se reproduce una vez al tocar al monito (Android 9 o más).
  */
-enum class MascotPose(@DrawableRes val res: Int, @DrawableRes val clip: Int? = null) {
+enum class MascotPose(
+    @DrawableRes val res: Int,
+    @DrawableRes val clip: Int? = null,
+    val clipFit: ClipFit = ClipFit.None,
+) {
     /** Al entrar a la app sin novedades: arranque del mes. */
     WELCOME(R.drawable.monito_bienvenida),
     /** Hace muchos días que no abrías la app. */
@@ -56,7 +73,7 @@ enum class MascotPose(@DrawableRes val res: Int, @DrawableRes val clip: Int? = n
     /** Se te acabó la plata (saldo negativo). */
     BROKE(R.drawable.monito_sin_plata),
     /** Tenés plata de sobra este mes. */
-    RICH(R.drawable.monito_con_plata, R.drawable.monito_clip_con_plata),
+    RICH(R.drawable.monito_con_plata, R.drawable.monito_clip_con_plata, ClipFit(scale = 440f / 411f, dx = 17.5f / 440f, dy = 12.5f / 440f)),
     /** Gastaste más de lo que ingresó. */
     OVERSPENT(R.drawable.monito_gasto_de_mas),
     /** Meta cumplida. */
@@ -86,9 +103,9 @@ enum class MascotPose(@DrawableRes val res: Int, @DrawableRes val clip: Int? = n
     /** Preguntas: centro de ayuda. */
     QUESTION(R.drawable.monito_preguntas),
     /** Configuración inicial según la moneda. */
-    MATE(R.drawable.monito_mate),
-    COFFEE(R.drawable.monito_cafe),
-    TERERE(R.drawable.monito_terere),
+    MATE(R.drawable.monito_mate, R.drawable.monito_clip_mate_hd, ClipFit(scale = 440f / 436f, dx = -16.5f / 440f, dy = 1f / 440f)),
+    COFFEE(R.drawable.monito_cafe, R.drawable.monito_clip_cafe, ClipFit(scale = 440f / 388f, dx = -8f / 440f, dy = 25f / 440f)),
+    TERERE(R.drawable.monito_terere, R.drawable.monito_clip_terere, ClipFit(scale = 440f / 433f, dx = -1.5f / 440f, dy = 2.5f / 440f)),
 }
 
 /** Guaraníes: tereré con la camiseta de Paraguay. Pesos: mate con la de Argentina. Otras monedas: café. */
@@ -169,7 +186,7 @@ fun Mascot(
     ) { current ->
         val clip = current.clip
         if (playing && clip != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            MascotClipPlayer(clip, onEnd = { playing = false }, modifier = Modifier.fillMaxSize())
+            MascotClipPlayer(clip, current.clipFit, onEnd = { playing = false }, modifier = Modifier.fillMaxSize())
         } else {
             Image(
                 painter = painterResource(current.res),

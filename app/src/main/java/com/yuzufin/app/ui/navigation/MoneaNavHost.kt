@@ -85,6 +85,7 @@ fun MoneaNavHost(
                 onEditMovement = { id -> openForm(id, TransactionType.EXPENSE) },
                 onConfirmIncome = homeViewModel::confirmIncome,
                 onSkipIncome = homeViewModel::skipIncome,
+                onBalanceHiddenChange = homeViewModel::setBalanceHidden,
             )
         }
         composable(Destination.Movements.route) {

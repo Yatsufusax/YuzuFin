@@ -186,7 +186,7 @@ private fun MascotHeader(state: OnboardingState) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Mascot(pose, size = 130.dp)
+        Mascot(pose, size = 130.dp, autoClip = true)
         Surface(
             shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.primaryContainer,

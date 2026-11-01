@@ -95,7 +95,7 @@ def main():
             duration=round(1000 / args.fps),
             loop=0 if args.bucle else 1,
             quality=args.calidad,
-            method=6,
+            method=4,
             exact=True,
         )
         kb = os.path.getsize(args.salida) / 1024

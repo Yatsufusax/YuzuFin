@@ -129,7 +129,7 @@ private fun rememberAutoRotate(): Boolean {
 }
 
 /**
- * El monito con su globo de texto, como si te estuviera hablando: cada mensaje se va "tipeando"
+ * El monito con su globo de texto ([pose] reemplaza a la del ánimo), como si te estuviera hablando: cada mensaje se va "tipeando"
  * letra por letra, queda un rato completo y pasa solo al siguiente (siempre distinto). Tocar el
  * globo mientras tipea lo completa; tocarlo completo, o tocar al monito, pasa al próximo mensaje.
  * Con las animaciones del teléfono apagadas el texto aparece entero, y con TalkBack no cambia solo
@@ -141,6 +141,7 @@ fun TalkingMascot(
     greeting: String,
     number: Int,
     modifier: Modifier = Modifier,
+    pose: MascotPose = mood.pose,
 ) {
     val lines = remember(mood) { MascotTalk.lines(mood) }
     var index by rememberSaveable(mood) { mutableStateOf(Random.nextInt(lines.size)) }
@@ -177,7 +178,7 @@ fun TalkingMascot(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Mascot(
-            pose = mood.pose,
+            pose = pose,
             size = 96.dp,
             autoClip = true,
             onClick = { advance() },

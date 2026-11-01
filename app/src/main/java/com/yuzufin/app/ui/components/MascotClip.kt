@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 
@@ -26,12 +27,19 @@ import androidx.compose.ui.viewinterop.AndroidView
 @Composable
 internal fun MascotClipPlayer(
     @DrawableRes res: Int,
+    fit: ClipFit,
     onEnd: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val end by rememberUpdatedState(onEnd)
     AndroidView(
-        modifier = modifier,
+        modifier = modifier.graphicsLayer {
+            // Iguala el tamaño y la posición del monito con los de la imagen fija.
+            scaleX = fit.scale
+            scaleY = fit.scale
+            translationX = -fit.dx * size.height * fit.scale
+            translationY = -fit.dy * size.height * fit.scale
+        },
         factory = { ctx ->
             ImageView(ctx).apply {
                 scaleType = ImageView.ScaleType.FIT_CENTER

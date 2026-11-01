@@ -41,6 +41,7 @@ class SettingsRepository(private val context: Context) {
             textScale = TextScale.fromName(prefs[TEXT_SCALE]),
             tourPending = prefs[TOUR_PENDING] ?: false,
             firstExpensePending = prefs[FIRST_EXPENSE_PENDING] ?: false,
+            balanceHidden = prefs[BALANCE_HIDDEN] ?: false,
         )
     }
 
@@ -57,6 +58,10 @@ class SettingsRepository(private val context: Context) {
     /** El recorrido del primer uso ya se vio (o se salteó): no vuelve a aparecer solo. */
     suspend fun finishTour() {
         context.settingsDataStore.edit { prefs -> prefs[TOUR_PENDING] = false }
+    }
+
+    suspend fun setBalanceHidden(hidden: Boolean) {
+        context.settingsDataStore.edit { prefs -> prefs[BALANCE_HIDDEN] = hidden }
     }
 
     /** Anotó su primer gasto: se festeja una sola vez en la vida de la app. */
@@ -207,6 +212,7 @@ class SettingsRepository(private val context: Context) {
         private val TEXT_SCALE = stringPreferencesKey("text_scale")
         private val FIRST_EXPENSE_DONE = booleanPreferencesKey("first_expense_done")
         private val FIRST_EXPENSE_PENDING = booleanPreferencesKey("first_expense_pending")
+        private val BALANCE_HIDDEN = booleanPreferencesKey("balance_hidden")
         private val TOUR_PENDING = booleanPreferencesKey("tour_pending")
         private val DISMISSED_HINTS = stringSetPreferencesKey("dismissed_hints")
         private val LAST_OPEN_DAY = longPreferencesKey("last_open_day")

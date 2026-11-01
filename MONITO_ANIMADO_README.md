@@ -10,6 +10,14 @@ Darle más vida al monito de Monea de dos maneras:
 ## 2. Estado (v51, sobre v50 que compiló y el usuario aprobó)
 Cambios de v51 (sin compilar): (a) el clip se reproduce **solo** (`Mascot(autoClip = true)`: a los 0,9 s de aparecer y luego cada 4 s tras terminar, `AUTO_CLIP_*` en `Mascot.kt`; solo si la pose tiene clip, Android 9+ y animaciones activas); (b) el globo **tipea** cada mensaje letra por letra (`MascotTalk.TYPE_MS` = 32 ms), lo deja `HOLD_MS` = 5 s y pasa al siguiente; el texto entero invisible reserva el alto; tocar el globo mientras tipea lo completa, y completo (o tocar al monito) pasa al próximo; (c) **se quitaron los botones** (`MascotAction`, strings `mascot_act_*`, `onAction`). Nada se renombró ni borró como archivo.
 
+**Ajuste de tamaño (v51):** el clip se recorta con aire y la imagen fija justo al monito, así que al pasar de una a otro el monito cambiaba de tamaño. `MascotPose.clipFit` (`ClipFit`) corrige el clip con `graphicsLayer` (escala y desplazamiento). Para un clip nuevo: en el primer cuadro medir el recuadro del monito (alpha > 10); `scale` = alto del lienzo / alto del recuadro; `dx`, `dy` = (centro del recuadro − centro del lienzo) / alto del lienzo. Para `RICH`: lienzo 387x440, recuadro (43,27)-(379,438). Más fácil: recortar el clip al recuadro del primer cuadro (sin perder lo que se mueve fuera) y dejar `ClipFit.None`.
+
+**Clips de bebidas (v53):** `monito_clip_mate_hd.webp` (reemplaza a `monito_clip_mate.webp`, que se borra en el workflow), `monito_clip_terere.webp` y `monito_clip_cafe.webp`, de videos HD de 4 s (1280x720, 12 fps, alto 440, ~1 MB cada uno), cada uno con su `ClipFit`. En Inicio, cuando el ánimo es `GOOD` (todo normal), el monito usa la pose de la moneda (`mascotForCurrency`: PYG tereré, ARS mate, resto café) y se anima solo; los otros ánimos conservan su pose. Los símbolos que flotan (corazones, copos) hacen el lienzo más ancho: el `ClipFit` compensa.
+
+**Clip del mate (v52, reemplazado en v53):** `monito_clip_mate.webp` (267x320, 80 cuadros a 10 fps, ~1 MB, sale del video de 8 s del usuario, 640x360) en la pose `MATE` con su `ClipFit`; solo se ve en la configuración inicial con pesos argentinos (ARS), donde el monito se anima solo (`autoClip`). `tools/clip_verde_a_webp.py` ahora usa `method=4` (con 6 tardaba más de 2 minutos). El video de origen es chico: no conviene pasar de `--alto 320`.
+
+**Saldo oculto (v52):** el ojo de la tarjeta de saldo ahora se guarda en los ajustes (`AppSettings.balanceHidden`, `SettingsRepository.setBalanceHidden`) y Inicio abre con el saldo tapado si así se dejó.
+
 ### Estado de v50
 | Cosa | Estado |
 |---|---|

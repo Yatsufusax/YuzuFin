@@ -38,6 +38,8 @@ import java.time.YearMonth
 
 data class HomeUiState(
     val loading: Boolean = true,
+    /** El saldo se muestra tapado; viene de los ajustes para que no aparezca un instante al abrir. */
+    val balanceHidden: Boolean = false,
     val currency: CurrencyInfo = CurrencyInfo.PYG,
     /** Disponible: saldo total menos lo apartado en metas (puede ser negativo). */
     val balance: Long = 0L,
@@ -96,7 +98,7 @@ class HomeViewModel(
     private val income: IncomeRepository,
     savings: SavingsRepository,
     obligations: ObligationsRepository,
-    settings: SettingsRepository,
+    private val settings: SettingsRepository,
     recurring: RecurringRepository,
 ) : ViewModel() {
 
@@ -135,7 +137,7 @@ class HomeViewModel(
         val occurrences = incomeData.occurrences
         val savingEntries = incomeData.savingEntries
         if (initial == null) {
-            HomeUiState(userName = appSettings.userName)
+            HomeUiState(userName = appSettings.userName, balanceHidden = appSettings.balanceHidden)
         } else {
             val saved = savingEntries.sumOf { it.amountMinor }
             // Lo apartado sigue siendo tuyo, pero no está disponible para gastar.
@@ -164,6 +166,7 @@ class HomeViewModel(
                 recent = buildMovementItems(transactions.take(4), categories),
                 hasMovements = transactions.isNotEmpty(),
                 userName = appSettings.userName,
+                balanceHidden = appSettings.balanceHidden,
                 pendingIncomes = pendingIncomes,
                 nextIncome = buildUpcoming(sources, today).firstOrNull(),
                 upcomingBills = incomeData.bills
@@ -179,6 +182,10 @@ class HomeViewModel(
             )
         }
     } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+
+    fun setBalanceHidden(hidden: Boolean) {
+        viewModelScope.launch { runCatching { settings.setBalanceHidden(hidden) } }
+    }
 
     /** Ignora toques repetidos sobre el mismo cobro y, al terminar, fuerza que Inicio se actualice. */
     fun confirmIncome(occurrenceId: Long, amountMinor: Long) {
