@@ -1,2 +1,4 @@
-## Nuevo
-- El monito de Inicio ahora cambia de mensaje solo, o cuando lo tocás a él o a su globo. Algunos mensajes traen un botón que te lleva directo a lo que comenta (anotar un gasto, ver presupuestos, ahorros o estadísticas). Cuando te sobra plata, tocalo y festeja con una animación (Android 9 o superior).
+## Mejorado
+- El monito de Inicio ahora se anima solo, sin que lo toques: hace su animación al aparecer y la repite cada tanto (Android 9 o superior).
+- Sus mensajes salen como si te hablara: se van escribiendo letra por letra, quedan un rato y pasa al siguiente. Si tocás el globo mientras escribe, lo completa; si lo tocás de nuevo (o tocás al monito), pasa al otro mensaje.
+- Se quitaron los botones de los mensajes.

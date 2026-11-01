@@ -71,7 +71,6 @@ import com.yuzufin.app.ui.common.entrance
 import com.yuzufin.app.ui.common.rememberCountUp
 import com.yuzufin.app.ui.common.rememberHaptic
 import com.yuzufin.app.ui.components.Mascot
-import com.yuzufin.app.ui.components.MascotAction
 import com.yuzufin.app.ui.components.MascotMood
 import com.yuzufin.app.ui.components.MascotPose
 import com.yuzufin.app.ui.components.MascotTalk
@@ -178,7 +177,7 @@ fun HomeScreen(
                     )
                 }
             } else if (state.hasMovements) {
-                Box(Modifier.entrance(1)) { MascotCard(state, onNavigate, onQuickAction) }
+                Box(Modifier.entrance(1)) { MascotCard(state) }
             }
             HintCard(
                 hintId = "home_numbers",
@@ -818,15 +817,11 @@ private fun EmptyBanner(onRegister: () -> Unit) {
 }
 
 /**
- * El monito saluda según la hora y comenta cómo viene el mes. Los mensajes rotan solos y al
- * tocarlo, y algunos traen un botón que lleva a la pantalla de la que hablan.
+ * El monito saluda según la hora y comenta cómo viene el mes. Sus mensajes se van
+ * tipeando solos, uno tras otro, y el monito se anima sin que lo toquen.
  */
 @Composable
-private fun MascotCard(
-    state: HomeUiState,
-    onNavigate: (Destination) -> Unit,
-    onQuickAction: (QuickAction) -> Unit,
-) {
+private fun MascotCard(state: HomeUiState) {
     val hour = remember { java.time.LocalTime.now().hour }
     val suffix = if (state.userName.isBlank()) "" else ", ${state.userName.trim()}"
     val greeting = stringResource(
@@ -857,15 +852,6 @@ private fun MascotCard(
         mood = mood,
         greeting = greeting,
         number = number,
-        onAction = { action ->
-            when (action) {
-                MascotAction.ADD_EXPENSE -> onQuickAction(QuickAction.Expense)
-                MascotAction.SEE_BUDGETS -> onNavigate(Destination.Budgets)
-                MascotAction.SEE_SAVINGS -> onNavigate(Destination.Savings)
-                MascotAction.SEE_STATS -> onNavigate(Destination.Stats)
-                MascotAction.SEE_INCOMES -> onNavigate(Destination.Incomes)
-            }
-        },
     )
 }
 

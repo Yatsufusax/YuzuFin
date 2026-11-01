@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="mascot_act_add_expense">Anotar un gasto</string>
-    <string name="mascot_act_budgets">Ver presupuestos</string>
-    <string name="mascot_act_savings">Ver ahorros</string>
-    <string name="mascot_act_stats">Ver estadísticas</string>
-    <string name="mascot_act_incomes">Ver cobros</string>
     <string name="mascot_next_hint">Ver otro mensaje del monito</string>
 
     <string name="mascot_away_2">Qué bueno verte de nuevo. Con un par de toques ponemos todo al día.</string>

@@ -5,9 +5,12 @@ Este archivo es para retomar el trabajo en una conversación nueva (por el lími
 ## 1. Qué estamos haciendo
 Darle más vida al monito de Monea de dos maneras:
 1. **Animaciones**: pequeños clips del monito (generados con Google Flow a partir de las poses que ya existen) que se reproducen cuando se toca al monito.
-2. **Mensajes que hablan**: el globo de texto del monito en Inicio ya no es fijo. Rota solo, cambia al tocarlo, a veces trae un botón que lleva a la pantalla de la que habla, y no usa audio.
+2. **Mensajes que hablan**: el globo de texto del monito en Inicio ya no es fijo. Se tipea solo letra por letra, rota solo, cambia al tocarlo y no usa audio (sin botones desde v51).
 
-## 2. Estado (v50)
+## 2. Estado (v51, sobre v50 que compiló y el usuario aprobó)
+Cambios de v51 (sin compilar): (a) el clip se reproduce **solo** (`Mascot(autoClip = true)`: a los 0,9 s de aparecer y luego cada 4 s tras terminar, `AUTO_CLIP_*` en `Mascot.kt`; solo si la pose tiene clip, Android 9+ y animaciones activas); (b) el globo **tipea** cada mensaje letra por letra (`MascotTalk.TYPE_MS` = 32 ms), lo deja `HOLD_MS` = 5 s y pasa al siguiente; el texto entero invisible reserva el alto; tocar el globo mientras tipea lo completa, y completo (o tocar al monito) pasa al próximo; (c) **se quitaron los botones** (`MascotAction`, strings `mascot_act_*`, `onAction`). Nada se renombró ni borró como archivo.
+
+### Estado de v50
 | Cosa | Estado |
 |---|---|
 | Clip de `RICH` (monito con monedas, 4 s) | Hecho: `res/drawable-nodpi/monito_clip_con_plata.webp` |
@@ -27,7 +30,7 @@ Darle más vida al monito de Monea de dos maneras:
 - **El clip se recorta justo al monito**, igual que las poses estáticas, para que al pasar de la imagen fija al clip no cambie el tamaño.
 - **Duración**: 2 a 4 s, 12 cuadros por segundo, alto 440 px. Pesa unos 900 KB por clip; vigilar el peso del APK si se suman muchos (probar `--alto 380`, `--fps 10`, `--calidad 40`).
 - **Los clips se reproducen una sola vez** y vuelven a la imagen fija. Por eso cada video debe terminar en la misma pose en la que empieza.
-- **Mensajes**: cada ánimo (`MascotMood`) tiene 3 o 4 mensajes (`MascotTalk.lines`). Cambian cada 12 s (`MascotTalk.ROTATE_MS`), al tocar al monito o al globo, y nunca repiten el mismo seguido. No rotan solos con TalkBack activado ni con las animaciones del teléfono apagadas. Algunos mensajes usan el número de días sin entrar o el porcentaje gastado del ingreso.
+- **Mensajes**: cada ánimo (`MascotMood`) tiene 3 o 4 mensajes (`MascotTalk.lines`). Se tipean y quedan 5 s (`TYPE_MS`, `HOLD_MS`), o cambian al tocar al monito o al globo, y nunca repiten el mismo seguido. No rotan solos con TalkBack activado ni con las animaciones del teléfono apagadas. Algunos mensajes usan el número de días sin entrar o el porcentaje gastado del ingreso.
 - Los textos están en voseo, como el resto de la app.
 
 ## 4. Archivos tocados en v50
@@ -55,9 +58,9 @@ No se renombró ni borró ningún archivo, así que `build.yml` no necesita camb
 
 ## 6. Cómo probar en el teléfono (Android 9 o superior)
 1. En Inicio, el monito con monedas (`RICH`) aparece cuando tenés saldo positivo y gastaste el 70 % o menos de lo que ingresó este mes. Con otros datos sale otra pose: es normal, y esas todavía no tienen clip.
-2. Tocá al monito: salta, vibra, reproduce el clip una vez y vuelve a la imagen fija. El mensaje cambia.
-3. Tocá el globo: cambia el mensaje. Esperá 12 s sin tocar: cambia solo.
-4. Los mensajes con botón (por ejemplo "Anotar un gasto" o "Ver presupuestos") tienen que abrir la pantalla correcta.
+2. Tocá al monito: salta, vibra, reproduce el clip y cambia el mensaje.
+3. Sin tocar nada: el monito con monedas hace su animación solo a los ~1 s y la repite cada pocos segundos; el mensaje se escribe letra por letra y pasa al siguiente solo.
+4. Tocá el globo mientras escribe: se completa. Tocalo de nuevo: pasa al otro mensaje. La tarjeta no tiene que saltar de alto al escribir.
 5. Probalo en modo claro y oscuro y con el tamaño de texto "Muy grande".
 6. En Android 8: el toque hace el saltito y cambia el mensaje, sin clip.
 

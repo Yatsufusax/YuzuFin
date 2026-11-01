@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -38,6 +39,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yuzufin.app.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -95,10 +98,13 @@ fun mascotForCurrency(currencyCode: String): MascotPose = when (currencyCode) {
     else -> MascotPose.COFFEE
 }
 
+private const val AUTO_CLIP_FIRST_MS = 900L
+private const val AUTO_CLIP_PAUSE_MS = 4_000L
+
 /**
  * El monito de Monea. Respira suave todo el tiempo, cambia de pose con un efecto y, si se lo toca,
  * pega un saltito con una vibración corta (y, si la pose tiene clip, lo reproduce). [onClick] se
- * llama en cada toque.
+ * llama en cada toque. Con [autoClip], el clip de la pose se reproduce solo y se repite cada pocos segundos.
  */
 @Composable
 fun Mascot(
@@ -106,6 +112,7 @@ fun Mascot(
     modifier: Modifier = Modifier,
     size: Dp = 120.dp,
     lively: Boolean = true,
+    autoClip: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
     val transition = rememberInfiniteTransition(label = "mascot")
@@ -120,7 +127,17 @@ fun Mascot(
     val haptic = LocalHapticFeedback.current
     var playing by remember { mutableStateOf(false) }
     val animationsOn = animationsEnabled()
-    LaunchedEffect(pose) { playing = false }
+    // Con autoClip, el clip se reproduce solo: al aparecer y después cada tanto, sin que lo toquen.
+    LaunchedEffect(pose, autoClip, animationsOn) {
+        playing = false
+        if (!autoClip || pose.clip == null || !animationsOn || Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return@LaunchedEffect
+        delay(AUTO_CLIP_FIRST_MS)
+        while (true) {
+            playing = true
+            snapshotFlow { playing }.first { !it }
+            delay(AUTO_CLIP_PAUSE_MS)
+        }
+    }
 
     AnimatedContent(
         targetState = pose,
