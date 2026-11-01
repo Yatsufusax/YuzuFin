@@ -18,6 +18,8 @@ Cambios de v51 (sin compilar): (a) el clip se reproduce **solo** (`Mascot(autoCl
 
 **Saldo oculto (v52):** el ojo de la tarjeta de saldo ahora se guarda en los ajustes (`AppSettings.balanceHidden`, `SettingsRepository.setBalanceHidden`) y Inicio abre con el saldo tapado si así se dejó.
 
+**Festejo del Mundial en la tarjeta (v54, sin compilar):** `monito_clip_mundial.webp` (462x260, 80 cuadros a 8 fps, ~1 MB) sale del video del usuario (1280x720, 10 s, fondo verde, con papelitos y cañones de confeti). Se convirtió con `sacar_verde` de `tools/clip_verde_a_webp.py` pero guardando con `exact=False`, `alpha_quality=60`, calidad 30, método 4 y alfa menor a 24 en cero (con los ajustes por defecto pesaba 2,5 MB por los papelitos). Lo reproduce `CardMonkey` (no `Mascot`): solo con ARS, al tocar la tarjeta del monito; ver `README.md`. El audio del video no se usa (WebP no tiene sonido).
+
 ### Estado de v50
 | Cosa | Estado |
 |---|---|

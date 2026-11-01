@@ -28,12 +28,10 @@
 
     <!-- Inicio -->
     <string name="home_notifications">Recordatorios</string>
-    <string name="home_balance_label">Saldo disponible</string>
     <string name="home_show_balance">Mostrar saldo</string>
     <string name="home_hide_balance">Ocultar saldo</string>
     <string name="home_committed">Comprometido</string>
     <string name="home_free">Libre estimado</string>
-    <string name="home_go_movements">Ver movimientos</string>
     <string name="home_saved">Ahorrado</string>
     <string name="home_reserved_warning">Gastaste dinero que tenías apartado para tus metas.</string>
     <string name="home_net_worth">Patrimonio</string>
@@ -41,7 +39,6 @@
     <string name="home_next_income">Próximo cobro</string>
     <string name="home_planned">Previsto</string>
     <string name="home_view_incomes">Ver cobros</string>
-    <string name="home_month_title">Este mes</string>
     <string name="home_income_real">Ingresos reales</string>
     <string name="home_expense_real">Gastos reales</string>
     <string name="home_month_ratio">Gastaste el %1$d%% de tus ingresos reales</string>

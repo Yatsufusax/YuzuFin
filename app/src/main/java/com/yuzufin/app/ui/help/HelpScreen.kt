@@ -46,6 +46,7 @@ import kotlinx.coroutines.launch
 private data class HelpItem(@StringRes val question: Int, @StringRes val answer: Int)
 
 private val helpItems = listOf(
+    HelpItem(R.string.help_q_card_budget, R.string.help_a_card_budget),
     HelpItem(R.string.help_q_balance, R.string.help_a_balance),
     HelpItem(R.string.help_q_free, R.string.help_a_free),
     HelpItem(R.string.help_q_add, R.string.help_a_add),

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tarjeta de resumen de Inicio (reemplaza a la tarjeta bancaria y al bloque "Este mes") -->
+    <string name="summary_card_title">Resumen de %1$s</string>
+    <string name="summary_card_budget">Presupuesto disponible</string>
+    <string name="summary_card_pick_month">Elegir otro mes</string>
+    <string name="summary_card_open_stats">Ver estadísticas</string>
+    <string name="summary_card_percent">%1$d%%</string>
+    <string name="summary_card_percent_none">—</string>
+    <string name="summary_card_monkey">Tu monito</string>
+    <string name="summary_card_monkey_ars">Tu monito con la camiseta de Argentina</string>
+    <string name="summary_card_monkey_ars_action">Hacer que festeje</string>
+</resources>

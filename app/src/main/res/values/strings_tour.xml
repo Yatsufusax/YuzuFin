@@ -9,7 +9,7 @@
     <string name="tour_1_title">Anotá un gasto en segundos</string>
     <string name="tour_1_body">Tocá el «+» del medio de la barra de abajo, poné el importe con el teclado grande y elegí la categoría. Si lo dejás apretado, ves también Pagar, Préstamo y Ahorro.</string>
     <string name="tour_2_title">Mirá tu resumen en Inicio</string>
-    <string name="tour_2_body">Arriba está tu saldo disponible. Debajo ves una sola cosa para resolver (un cobro, una factura o un gasto fijo) y cuánto gastaste de lo que ingresó este mes.</string>
+    <string name="tour_2_body">Arriba está el resumen del mes: cuánto te queda de lo que ingresó y cuánto gastaste. Debajo ves una sola cosa para resolver (un cobro, una factura o un gasto fijo).</string>
     <string name="tour_3_title">Ayuda cuando la necesites</string>
     <string name="tour_3_body">En cada pantalla el monito te deja un consejo. Y en Menú, Ayuda, están las respuestas a las dudas más comunes. Podés volver a ver este recorrido desde ahí.</string>
     <string name="first_expense_title">¡Anotaste tu primer gasto!</string>

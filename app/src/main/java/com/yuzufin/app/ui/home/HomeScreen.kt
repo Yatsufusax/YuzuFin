@@ -1,20 +1,5 @@
 package com.yuzufin.app.ui.home
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.draw.shadow
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,16 +18,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Apps
-import androidx.compose.material.icons.rounded.ArrowDownward
-import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.icons.rounded.Payments
 import androidx.compose.material.icons.rounded.Savings
-import androidx.compose.material.icons.rounded.Visibility
-import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -51,7 +29,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -59,17 +36,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
-import com.yuzufin.app.ui.common.CapFontScale
 import com.yuzufin.app.ui.common.entrance
-import com.yuzufin.app.ui.common.rememberCountUp
 import com.yuzufin.app.ui.common.rememberHaptic
 import com.yuzufin.app.ui.components.Mascot
 import com.yuzufin.app.ui.components.MascotMood
@@ -77,24 +52,18 @@ import com.yuzufin.app.ui.components.mascotForCurrency
 import com.yuzufin.app.ui.components.MascotPose
 import com.yuzufin.app.ui.components.MascotTalk
 import com.yuzufin.app.ui.components.TalkingMascot
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.ui.unit.sp
 import com.yuzufin.app.R
 import com.yuzufin.app.ui.assistant.MonkiAvatar
+import java.time.YearMonth
 import com.yuzufin.app.ui.assistant.MonkiIntroCard
 import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.rememberAppContainer
@@ -134,6 +103,7 @@ fun HomeScreen(
     onConfirmIncome: (occurrenceId: Long, amountMinor: Long) -> Unit,
     onSkipIncome: (occurrenceId: Long) -> Unit,
     onBalanceHiddenChange: (Boolean) -> Unit,
+    onMonthChange: (YearMonth) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var confirming by remember { mutableStateOf<PendingIncome?>(null) }
@@ -174,7 +144,8 @@ fun HomeScreen(
                     state = state,
                     visible = !state.balanceHidden,
                     onToggleVisible = { onBalanceHiddenChange(!state.balanceHidden) },
-                    onGoMovements = { onNavigate(Destination.Movements) },
+                    onMonthChange = onMonthChange,
+                    onGoStats = { onNavigate(Destination.Stats) },
                     onGoSavings = { onNavigate(Destination.Savings) },
                 )
             }
@@ -203,7 +174,6 @@ fun HomeScreen(
                     EmptyBanner(onRegister = { onQuickAction(QuickAction.Expense) })
                 }
             }
-            Box(Modifier.entrance(4)) { MonthSummaryCard(state) }
             if (state.recent.isNotEmpty()) {
                 Box(Modifier.entrance(5)) {
                     RecentMovementsCard(
@@ -466,18 +436,23 @@ private fun BalanceCard(
     state: HomeUiState,
     visible: Boolean,
     onToggleVisible: () -> Unit,
-    onGoMovements: () -> Unit,
+    onMonthChange: (YearMonth) -> Unit,
+    onGoStats: () -> Unit,
     onGoSavings: () -> Unit,
 ) {
     val currency = state.currency
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    val negative = state.balance < 0
-    val shownBalance = rememberCountUp(state.balance)
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        BankCard(state = state, visible = visible, shownBalance = shownBalance, onToggleVisible = onToggleVisible)
+        SummaryCard(
+            state = state,
+            visible = visible,
+            onToggleVisible = onToggleVisible,
+            onMonthChange = onMonthChange,
+            onOpenStats = onGoStats,
+        )
 
-        if (negative) {
+        if (state.balance < 0) {
             Text(
                 text = stringResource(
                     if (state.saved > 0L) R.string.home_reserved_warning else R.string.home_negative_warning,
@@ -513,230 +488,15 @@ private fun BalanceCard(
             }
         }
 
-        if (state.committed > 0L) {
-            Text(
-                text = stringResource(R.string.home_free) + ": " +
-                    if (visible) MoneyFormatter.format(state.freeEstimate, currency) else "••••••",
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (state.freeEstimate < 0) MaterialTheme.monea.expense else muted,
-                modifier = Modifier.padding(horizontal = 4.dp),
-            )
-        }
-
-        FilledTonalButton(
-            onClick = onGoMovements,
-            colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            ),
-        ) {
-            Text(stringResource(R.string.home_go_movements))
-        }
-    }
-}
-
-/**
- * El saldo disponible dibujado como una tarjeta bancaria: "MoneaCard", con chip, símbolo de pago sin
- * contacto, el nombre de la persona y un brillo que la recorre de vez en cuando. Usa los colores del tema.
- */
-@Composable
-private fun BankCard(state: HomeUiState, visible: Boolean, shownBalance: Long, onToggleVisible: () -> Unit) {
-    // La tarjeta tiene proporción fija: con letra enorme el texto se saldría, así que acá el tope es 1,15.
-    CapFontScale(max = 1.15f) { BankCardContent(state, visible, shownBalance, onToggleVisible) }
-}
-
-@Composable
-private fun BankCardContent(state: HomeUiState, visible: Boolean, shownBalance: Long, onToggleVisible: () -> Unit) {
-    val colors = MaterialTheme.monea
-    val ink = colors.onBanner
-    val shape = RoundedCornerShape(24.dp)
-    val transition = rememberInfiniteTransition(label = "sheen")
-    val sweep by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            keyframes {
-                durationMillis = 5200
-                0f at 0
-                1f at 1600 using FastOutSlowInEasing
-                1f at 5200
-            },
-        ),
-        label = "sweep",
-    )
-    val amountText = if (visible) MoneyFormatter.formatNumber(shownBalance, state.currency) else "••••••"
-    val holder = state.userName.trim().ifBlank { stringResource(R.string.bank_card_holder_default) }.uppercase()
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1.6f)
-            .shadow(10.dp, shape)
-            .clip(shape)
-            .background(Brush.linearGradient(listOf(colors.bannerStart, colors.bannerEnd))),
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val w = size.width
-            val h = size.height
-            drawCircle(Color.White.copy(alpha = 0.16f), radius = h * 0.80f, center = Offset(w * 0.98f, -h * 0.08f))
-            drawCircle(Color.White.copy(alpha = 0.10f), radius = h * 0.55f, center = Offset(w * 0.04f, h * 1.08f))
-            val bandWidth = w * 0.26f
-            val x = -w * 0.35f + sweep * w * 1.7f
-            rotate(degrees = 20f, pivot = center) {
-                drawRect(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.28f), Color.Transparent),
-                        startX = x,
-                        endX = x + bandWidth,
-                    ),
-                    topLeft = Offset(x, -h),
-                    size = Size(bandWidth, h * 3f),
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        text = "Monea",
-                        color = ink,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-                    Text(
-                        text = "Card",
-                        color = ink.copy(alpha = 0.80f),
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Light,
-                        modifier = Modifier.padding(start = 3.dp),
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .clickable(role = Role.Button, onClick = onToggleVisible),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = if (visible) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
-                        contentDescription = stringResource(
-                            if (visible) R.string.home_hide_balance else R.string.home_show_balance,
-                        ),
-                        tint = ink,
-                        modifier = Modifier.size(22.dp),
-                    )
-                }
-            }
-
-            Row(
-                modifier = Modifier.padding(end = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                CardChip()
-                ContactlessMark(ink)
-            }
-
-            Column(modifier = Modifier.padding(end = 8.dp)) {
-                Text(
-                    text = stringResource(R.string.home_balance_label),
-                    color = ink.copy(alpha = 0.85f),
-                    style = MaterialTheme.typography.labelMedium,
-                )
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(SpanStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium)) {
-                            append("${state.currency.symbol} ")
-                        }
-                        append(amountText)
-                    },
-                    color = ink,
-                    fontSize = if (amountText.length > 13) 24.sp else 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-
-            Row(
-                modifier = Modifier.padding(end = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = holder,
-                    color = ink.copy(alpha = 0.85f),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 1.6.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                PaymentMark()
-            }
-        }
-    }
-}
-
-/** El chip dorado de las tarjetas. */
-@Composable
-private fun CardChip() {
-    Canvas(modifier = Modifier.size(width = 46.dp, height = 34.dp)) {
-        val w = size.width
-        val h = size.height
-        drawRoundRect(
-            brush = Brush.linearGradient(listOf(Color(0xFFF3DE96), Color(0xFFC9A24A))),
-            cornerRadius = CornerRadius(7.dp.toPx()),
+        // Libre estimado: tu saldo disponible menos las facturas pendientes. Si no hay facturas
+        // pendientes, es igual al saldo disponible; por eso se muestra siempre.
+        Text(
+            text = stringResource(R.string.home_free) + ": " +
+                if (visible) MoneyFormatter.format(state.freeEstimate, currency) else "••••••",
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (state.freeEstimate < 0) MaterialTheme.monea.expense else muted,
+            modifier = Modifier.padding(horizontal = 4.dp),
         )
-        val line = Color(0xFF7A5E22).copy(alpha = 0.55f)
-        val stroke = 1.dp.toPx()
-        drawLine(line, Offset(0f, h / 2f), Offset(w, h / 2f), stroke)
-        drawLine(line, Offset(w / 3f, 0f), Offset(w / 3f, h), stroke)
-        drawLine(line, Offset(2f * w / 3f, 0f), Offset(2f * w / 3f, h), stroke)
-        drawRoundRect(
-            color = line,
-            topLeft = Offset(w / 3f, h * 0.25f),
-            size = Size(w / 3f, h * 0.5f),
-            cornerRadius = CornerRadius(3.dp.toPx()),
-            style = Stroke(width = stroke),
-        )
-    }
-}
-
-/** Las ondas del pago sin contacto. */
-@Composable
-private fun ContactlessMark(color: Color) {
-    Canvas(modifier = Modifier.size(26.dp)) {
-        val stroke = Stroke(width = 2.2.dp.toPx(), cap = StrokeCap.Round)
-        listOf(0.38f, 0.68f, 0.98f).forEach { fraction ->
-            val radius = size.minDimension * fraction
-            drawArc(
-                color = color.copy(alpha = 0.85f),
-                startAngle = -45f,
-                sweepAngle = 90f,
-                useCenter = false,
-                topLeft = Offset(-radius, size.height / 2f - radius),
-                size = Size(radius * 2f, radius * 2f),
-                style = stroke,
-            )
-        }
-    }
-}
-
-/** Dos círculos que se cruzan, como el símbolo de las redes de pago (diseño propio de Monea). */
-@Composable
-private fun PaymentMark() {
-    Canvas(modifier = Modifier.size(width = 54.dp, height = 33.dp)) {
-        val r = size.height / 2f
-        drawCircle(Color(0xFF1B8A4C).copy(alpha = 0.92f), radius = r, center = Offset(r, r))
-        drawCircle(Color(0xFFF4C430).copy(alpha = 0.92f), radius = r, center = Offset(r + r * 1.25f, r))
     }
 }
 
@@ -865,80 +625,6 @@ private fun MascotCard(state: HomeUiState) {
         // Cuando todo viene normal, el monito toma la bebida de tu moneda (tereré, mate o café).
         pose = if (mood == MascotMood.GOOD) mascotForCurrency(state.currency.code) else mood.pose,
     )
-}
-
-@Composable
-private fun MonthSummaryCard(state: HomeUiState) {
-    val colors = MaterialTheme.monea
-    val currency = state.currency
-    val income = state.monthIncome
-    val expense = state.monthExpense
-    val difference = income - expense
-    // La proporción solo sirve para dibujar la barra; los importes son enteros.
-    val fraction = if (income > 0) (expense.toFloat() / income.toFloat()).coerceIn(0f, 1f) else 0f
-    val over = income > 0 && expense > income
-
-    MoneaCard {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(R.string.home_month_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f),
-            )
-            if (income > 0) {
-                Text(
-                    text = if (difference >= 0) {
-                        stringResource(R.string.home_month_left, MoneyFormatter.format(difference, currency))
-                    } else {
-                        stringResource(R.string.home_month_over, MoneyFormatter.format(-difference, currency))
-                    },
-                    style = MaterialTheme.typography.titleSmall,
-                    color = if (difference >= 0) colors.income else colors.expense,
-                )
-            }
-        }
-        Spacer(Modifier.height(12.dp))
-        if (income > 0) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(12.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(fraction)
-                        .clip(CircleShape)
-                        .background(if (over) MaterialTheme.colorScheme.error else colors.expense),
-                )
-            }
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = stringResource(
-                    R.string.home_month_spent_of,
-                    MoneyFormatter.format(expense, currency),
-                    MoneyFormatter.format(income, currency),
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            Text(
-                text = stringResource(R.string.home_no_income_month),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (expense > 0) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = stringResource(R.string.home_month_spent, MoneyFormatter.format(expense, currency)),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
-    }
 }
 
 @Composable

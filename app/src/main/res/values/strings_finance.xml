@@ -72,7 +72,6 @@
     <string name="home_empty_title">Registrá tu primer movimiento</string>
     <string name="home_empty_body">Anotá un gasto o un ingreso y tu saldo se actualiza al instante.</string>
     <string name="home_empty_action">Registrar gasto</string>
-    <string name="home_no_income_month">Todavía no registraste ingresos este mes.</string>
 
     <!-- Ajustes y actualizaciones -->
     <string name="settings_name_title">Tu nombre</string>

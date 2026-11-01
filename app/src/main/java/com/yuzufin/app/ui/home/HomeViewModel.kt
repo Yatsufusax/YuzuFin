@@ -40,6 +40,10 @@ data class HomeUiState(
     val loading: Boolean = true,
     /** El saldo se muestra tapado; viene de los ajustes para que no aparezca un instante al abrir. */
     val balanceHidden: Boolean = false,
+    /** Mes que muestra la tarjeta de resumen (por defecto, el actual). */
+    val selectedMonth: YearMonth = YearMonth.now(),
+    /** Primer mes con datos posibles (el del saldo inicial): el selector de mes no baja de ahí. */
+    val firstMonth: YearMonth = YearMonth.now(),
     val currency: CurrencyInfo = CurrencyInfo.PYG,
     /** Disponible: saldo total menos lo apartado en metas (puede ser negativo). */
     val balance: Long = 0L,
@@ -48,8 +52,12 @@ data class HomeUiState(
     val freeEstimate: Long = 0L,
     /** Total apartado en metas de ahorro. */
     val saved: Long = 0L,
+    /** Ingresos y gastos del mes ACTUAL: el ánimo y los mensajes del monito siempre hablan de este mes. */
     val monthIncome: Long = 0L,
     val monthExpense: Long = 0L,
+    /** Ingresos y gastos del mes elegido en la tarjeta de resumen (igual al actual si no se cambió). */
+    val shownIncome: Long = 0L,
+    val shownExpense: Long = 0L,
     val recent: List<MovementItem> = emptyList(),
     val hasMovements: Boolean = false,
     /** Nombre elegido por la persona; vacío si no puso ninguno. */
@@ -106,8 +114,15 @@ class HomeViewModel(
     private val refresh = MutableStateFlow(0)
     private val inFlight = HashSet<Long>()
 
+    /** Mes del resumen de Inicio. Al cambiarlo, el estado se vuelve a calcular con ese mes. */
+    private val selectedMonth = MutableStateFlow(YearMonth.now())
+
+    fun selectMonth(month: YearMonth) {
+        selectedMonth.value = month
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<HomeUiState> = refresh.flatMapLatest { combine(
+    val uiState: StateFlow<HomeUiState> = combine(refresh, selectedMonth) { _, month -> month }.flatMapLatest { selected -> combine(
         finance.initialBalance,
         finance.transactions,
         finance.categories,
@@ -143,6 +158,7 @@ class HomeViewModel(
             // Lo apartado sigue siendo tuyo, pero no está disponible para gastar.
             val balance = SavingsMath.spendable(BalanceCalculator.availableBalance(initial, transactions), saved)
             val month = BalanceCalculator.monthTotals(initial, transactions, YearMonth.now())
+            val shown = BalanceCalculator.monthTotals(initial, transactions, selected)
             val today = LocalDate.now()
             val committed = ObligationMath.committed(incomeData.bills)
             val pendingIncomes = buildPending(sources, occurrences)
@@ -156,6 +172,8 @@ class HomeViewModel(
                 .filter { it.daysLeft <= BILL_ATTENTION_DAYS }
             HomeUiState(
                 loading = false,
+                selectedMonth = selected,
+                firstMonth = YearMonth.from(initial.startDate),
                 currency = CurrencyInfo.fromCode(appSettings.currencyCode),
                 balance = balance,
                 committed = committed,
@@ -163,6 +181,8 @@ class HomeViewModel(
                 saved = saved,
                 monthIncome = month.income,
                 monthExpense = month.expense,
+                shownIncome = shown.income,
+                shownExpense = shown.expense,
                 recent = buildMovementItems(transactions.take(4), categories),
                 hasMovements = transactions.isNotEmpty(),
                 userName = appSettings.userName,

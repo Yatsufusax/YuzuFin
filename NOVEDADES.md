@@ -1,8 +1,10 @@
 ## Nuevo
-- Monki AI: tocá a Monki, arriba a la izquierda en Inicio, y charlá con Monki sobre tus gastos, ingresos y categorías. Usa solo los datos de tu teléfono y no puede cambiarlos.
-- La primera vez te aparece una tarjeta en Inicio que te presenta a Monki, para que sepas que está ahí.
-- Monki cambia según tu moneda: con camiseta de Paraguay (guaraníes), de Argentina (pesos) o neutral (dólares, euros y reales).
-- Atajos con las preguntas más comunes para empezar a charlar con un toque.
+- Tarjeta de resumen nueva en Inicio: arriba elegís el mes (podés mirar los anteriores), ves cuánto te queda del presupuesto del mes, cuánto de lo que ingresó ya gastaste y tus ingresos y gastos. Conserva el brillo que la recorre.
+- El monito de la tarjeta cambia según tu moneda: camiseta de Paraguay (guaraníes), de Argentina (pesos) o sin camiseta (dólares, euros y reales).
+- Con pesos argentinos, tocá al monito: gira como una carta y aparece festejando con la copa y papelitos. Volvé a tocarlo para cortarlo.
 
 ## Mejorado
-- El chat se ve bien con el teclado, no se pierde al girar la pantalla y baja solo hasta el último mensaje.
+- Inicio quedó más limpio: el bloque "Este mes" y el botón "Ver movimientos" se fueron porque la tarjeta nueva ya muestra eso.
+- "Libre estimado" ahora se ve siempre debajo de la tarjeta: es tu saldo disponible menos las facturas que todavía no pagaste.
+- El ojo sigue tapando los importes, ahora también los de ingresos y gastos.
+- Ayuda: nueva pregunta sobre el presupuesto disponible, y los consejos de Inicio explican la tarjeta nueva.

@@ -89,6 +89,7 @@ fun MoneaNavHost(
                 onConfirmIncome = homeViewModel::confirmIncome,
                 onSkipIncome = homeViewModel::skipIncome,
                 onBalanceHiddenChange = homeViewModel::setBalanceHidden,
+                onMonthChange = homeViewModel::selectMonth,
             )
         }
         composable(Destination.Monki.route) {

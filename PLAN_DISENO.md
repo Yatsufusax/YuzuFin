@@ -24,11 +24,11 @@ Reglas de trabajo (importantes):
 - Idea para después: pruebas unitarias de `onKey` (hoy está dentro del ViewModel; se podría extraer a una función pura).
 
 ### Punto 2: Inicio que se entienda en 2 segundos — HECHO (sin probar)
-- [x] MoneaCard arriba (ya existía).
+- [x] Tarjeta de resumen arriba (`SummaryCard`, v54; antes la tarjeta bancaria MoneaCard).
 - [x] Debajo, **una sola cosa que requiere atención** (`AttentionCard`): cobros por confirmar, luego facturas vencidas o que vencen en 3 días o menos, luego gastos fijos pendientes. Muestra el primero; "Ver N más" despliega el resto. Si no hay nada, se muestra el monito (`MascotCard`).
   - Cobros: "Ya cobré" / "Omitir" ahí mismo (mismo diálogo y mismo `inFlight`/`refresh` de antes, intactos).
   - Facturas y gastos fijos: botón "Ver" que abre Facturas o Gastos fijos (no se paga desde Inicio, a propósito, para no sumar más diálogos).
-- [x] Resumen del mes: una barra gastado vs. ingresado, "Te quedan X" / "Te pasaste X" y "Gastaste X de Y que ingresaron". Sin ingresos: texto de siempre y lo gastado.
+- [x] Resumen del mes: ahora vive dentro de la tarjeta de arriba (v54): barra y % gastado, ingresos y gastos, con selector de mes. Se quitó el bloque "Este mes" para no repetirlo.
 - [x] Orden: saldo → para resolver → consejo → atajos → resumen → movimientos recientes → próximo cobro y próximos vencimientos (lo previsto, abajo).
 - Archivos: `ui/home/HomeScreen.kt`, `ui/home/HomeViewModel.kt` (ahora recibe `RecurringRepository`; `HomeUiState.attention`, `AttentionItem`), `res/values/strings_attention.xml`.
 - Pendiente de revisar con el usuario: cómo se ve con 3 o más ítems desplegados, el monito de 56 dp en la tarjeta, y si quiere poder pagar facturas y confirmar gastos fijos desde Inicio.

@@ -10,9 +10,4 @@
     <string name="home_attention_in_days">Vence en %1$d días</string>
     <string name="home_attention_recurring">Gasto fijo · %1$s</string>
 
-    <!-- Inicio: resumen del mes -->
-    <string name="home_month_left">Te quedan %1$s</string>
-    <string name="home_month_over">Te pasaste %1$s</string>
-    <string name="home_month_spent_of">Gastaste %1$s de %2$s que ingresaron</string>
-    <string name="home_month_spent">Gastaste %1$s</string>
 </resources>

@@ -29,6 +29,7 @@ jobs:
           rm -f app/src/main/java/com/yuzufin/app/ui/navigation/YuzuNavHost.kt
           rm -f app/src/main/res/drawable/ic_stat_yuzu.xml
           rm -f app/src/main/res/drawable/ic_launcher_foreground.xml
+          rm -f app/src/main/res/values/strings_bankcard.xml
 
       - uses: actions/setup-java@v4
         with:
