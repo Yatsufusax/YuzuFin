@@ -66,8 +66,19 @@ object VoiceParser {
         val words = normalize(text).split(' ').filter { it.isNotEmpty() }
         val amount = extractAmount(text)
         val category = matchCategory(words, categories.filter { it.type == type })
-        return Result(type, amount, category?.id, description(words, category))
+        return Result(type, amount, category?.id, description(words, displayWords(text), category))
     }
+
+    /**
+     * Las mismas palabras que devuelve [normalize] pero como las dijo la persona (con tildes), una
+     * por una y en el mismo orden, para armar una descripción que se lea bien ("Súper", no "super").
+     */
+    private fun displayWords(text: String): List<String> =
+        text.lowercase().split(Regex("\\s+")).flatMap { token ->
+            val pieces = normalize(token).split(' ').filter { it.isNotEmpty() }
+            val shown = token.replace(Regex("[^\\p{L}\\p{N}]"), "")
+            pieces.map { if (pieces.size == 1) shown.ifEmpty { it } else it }
+        }
 
     private val UNITS = mapOf(
         "cero" to 0, "un" to 1, "uno" to 1, "una" to 1, "dos" to 2, "tres" to 3, "cuatro" to 4, "cinco" to 5,
@@ -133,18 +144,19 @@ object VoiceParser {
         return categories.firstOrNull { c -> KEYWORDS[c.iconKey]?.any { it in set } == true }
     }
 
-    private fun description(words: List<String>, category: Category?): String {
+    private fun description(words: List<String>, shown: List<String>, category: Category?): String {
         val consumed = BooleanArray(words.size)
         // Marca las palabras del importe para no repetirlas en la descripción.
         words.forEachIndexed { i, w -> if (numberOf(w) != null || w in setOf("mil", "millon", "millones", "medio", "media")) consumed[i] = true }
         val afterPrep = words.indices.firstOrNull { i -> words[i] in setOf("en", "de", "por", "para") && words.take(i).any { numberOf(it) != null } }
-        val candidates = (if (afterPrep != null) words.drop(afterPrep + 1) else words)
-            .filterIndexed { idx, _ -> !consumed[idx + (afterPrep?.plus(1) ?: 0)] }
-            .filter { it !in FILLER }
-        val text = candidates.joinToString(" ").trim()
+        val start = afterPrep?.plus(1) ?: 0
+        // Si la lista de palabras mostradas no coincide con la normalizada, se usa la normalizada.
+        val display = if (shown.size == words.size) shown else words
+        val kept = (start until words.size).filter { !consumed[it] && words[it] !in FILLER }
+        val text = kept.joinToString(" ") { display[it] }.trim()
         if (text.isEmpty() || text.length > 40) return ""
         // Si solo repite el nombre de la categoría, no aporta.
-        if (category != null && text == normalize(category.name)) return ""
+        if (category != null && kept.joinToString(" ") { words[it] } == normalize(category.name)) return ""
         return text.replaceFirstChar { it.uppercase() }
     }
 }
