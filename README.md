@@ -199,3 +199,4 @@ Ver `PLAN_DISENO.md` (estado de cada punto y lo que falta) y `MONEA_HANDOFF.md` 
 - Se salta tocando; sin sonido si el teléfono está en silencio o vibración; no pide foco de audio; si falla, cae a `AnimatedSplash` (que también lleva la frase). No se muestra si la app se abre desde el widget "+ Gasto".
 - `tools/key_checkerboard_video.py` quedó para cuando llegue un video **horizontal** con fondo de cuadritos "transparente" (Python + ffmpeg + scipy; flood-fill de los píxeles neutros y claros que tocan el borde). El video actual no lo necesita.
 
+- Anotar con la voz: mantener apretado el "+" abre `VoiceEntryScreen` (`SpeechRecognizer`, prefiere reconocer sin conexión). `VoiceParser` interpreta la frase con reglas (importe, gasto/ingreso, categoría, descripción) y el formulario se abre prellenado vía el argumento `say` de `TransactionRoute`. Un toque abre el formulario a mano. Permiso `RECORD_AUDIO`.

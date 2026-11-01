@@ -29,13 +29,19 @@ sealed class Destination(val route: String, val isTopLevel: Boolean) {
 object TransactionRoute {
     const val ARG_ID = "id"
     const val ARG_TYPE = "type"
-    const val PATTERN = "transaction?$ARG_ID={$ARG_ID}&$ARG_TYPE={$ARG_TYPE}"
+    const val ARG_SAY = "say"
+    const val PATTERN = "transaction?$ARG_ID={$ARG_ID}&$ARG_TYPE={$ARG_TYPE}&$ARG_SAY={$ARG_SAY}"
 
     /** [id] = 0 crea un movimiento nuevo; otro valor edita ese movimiento. */
-    fun create(id: Long = 0L, type: TransactionType = TransactionType.EXPENSE): String =
-        "transaction?$ARG_ID=$id&$ARG_TYPE=${type.name}"
+    fun create(id: Long = 0L, type: TransactionType = TransactionType.EXPENSE, say: String = ""): String =
+        "transaction?$ARG_ID=$id&$ARG_TYPE=${type.name}&$ARG_SAY=${android.net.Uri.encode(say)}"
 
     fun isFormRoute(route: String?): Boolean = route?.startsWith("transaction") == true
+}
+
+/** Pantalla de anotar con la voz (se abre manteniendo apretado el "+"). Ocupa toda la pantalla. */
+object VoiceRoute {
+    const val ROUTE = "voice"
 }
 
 /** Formulario para crear o editar una fuente de ingreso programado. Oculta la barra inferior. */
@@ -78,7 +84,8 @@ object LoanFormRoute {
 
 /** Pantallas de formulario que ocupan todo el alto: no muestran la barra inferior. */
 fun isFullScreenRoute(route: String?): Boolean =
-    route?.startsWith("transaction") == true ||
+    route == VoiceRoute.ROUTE ||
+        route?.startsWith("transaction") == true ||
         route?.startsWith("income_form") == true ||
         route?.startsWith("savings_goal_form") == true ||
         route?.startsWith("bill_form") == true ||

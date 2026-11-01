@@ -4,11 +4,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -38,13 +36,13 @@ import com.yuzufin.app.R
 import com.yuzufin.app.ui.common.DeleteUndo
 import com.yuzufin.app.ui.common.LocalDeleteUndo
 import com.yuzufin.app.ui.components.QuickAction
-import com.yuzufin.app.ui.components.QuickActionsSheetContent
 import com.yuzufin.app.ui.navigation.BillFormRoute
 import com.yuzufin.app.ui.navigation.Destination
 import com.yuzufin.app.ui.navigation.FloatingNavBar
 import com.yuzufin.app.ui.navigation.LoanFormRoute
 import com.yuzufin.app.ui.navigation.QuickLaunch
 import com.yuzufin.app.ui.navigation.TransactionRoute
+import com.yuzufin.app.ui.navigation.VoiceRoute
 import com.yuzufin.app.ui.navigation.MoneaNavHost
 import com.yuzufin.app.ui.navigation.isFullScreenRoute
 import com.yuzufin.app.ui.navigation.navigateTo
@@ -70,8 +68,6 @@ fun MainShell(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {
     val deleteUndo = remember(container, scope, snackbarHostState, undoMessage, undoLabel) {
         DeleteUndo(container.financeRepository, scope, snackbarHostState, undoMessage, undoLabel)
     }
-    var showQuickSheet by rememberSaveable { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val updateViewModel: UpdateViewModel = viewModel(factory = UpdateViewModel.factory(container))
     // Busca actualizaciones cada minuto mientras la app está a la vista.
@@ -138,7 +134,8 @@ fun MainShell(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {
                         currentRoute = currentRoute,
                         onNavigate = navController::navigateTo,
                         onAddClick = { onQuickAction(QuickAction.Expense) },
-                        onAddLongClick = { showQuickSheet = true },
+                        // Un toque: anotar a mano. Mantener apretado: anotar con la voz.
+                        onAddLongClick = { navController.navigate(VoiceRoute.ROUTE) { launchSingleTop = true } },
                     )
                 }
             },
@@ -161,21 +158,5 @@ fun MainShell(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {
 
     if (appSettings?.firstExpensePending == true) {
         FirstExpenseCelebration(onDismiss = { scope.launch { container.settingsRepository.dismissFirstExpense() } })
-    }
-
-    if (showQuickSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showQuickSheet = false },
-            sheetState = sheetState,
-        ) {
-            QuickActionsSheetContent(
-                onSelect = { action ->
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) showQuickSheet = false
-                    }
-                    onQuickAction(action)
-                },
-            )
-        }
     }
 }

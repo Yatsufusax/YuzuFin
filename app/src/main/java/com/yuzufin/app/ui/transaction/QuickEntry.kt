@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -114,6 +115,8 @@ fun ColumnScope.QuickEntryBody(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
+        if (state.fromVoice) VoiceFilledNotice()
+
         AmountDisplay(state)
 
         // Sumas rápidas: 10.000 / 50.000 / 100.000 (o 5 / 10 / 50 en monedas con decimales).
@@ -417,5 +420,27 @@ private fun KeyButton(key: String, onKey: (String) -> Unit, modifier: Modifier =
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
+    }
+}
+
+/** Cartelito que avisa que el movimiento se completó con la voz y que conviene revisarlo. */
+@Composable
+private fun VoiceFilledNotice() {
+    val color = MaterialTheme.colorScheme.primary
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(color.copy(alpha = 0.12f))
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(Icons.Rounded.Mic, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
+        Text(
+            stringResource(R.string.voice_filled_notice),
+            style = MaterialTheme.typography.bodySmall,
+            color = color,
+        )
     }
 }

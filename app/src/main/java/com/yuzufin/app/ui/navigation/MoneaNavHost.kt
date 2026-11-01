@@ -18,6 +18,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.yuzufin.app.domain.LoanDirection
 import com.yuzufin.app.domain.TransactionType
+import com.yuzufin.app.domain.AppSettings
+import com.yuzufin.app.domain.VoiceParser
+import com.yuzufin.app.ui.voice.VoiceEntryDefaults
+import com.yuzufin.app.ui.voice.VoiceEntryScreen
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.components.QuickAction
 import com.yuzufin.app.ui.home.HomeScreen
@@ -217,20 +221,36 @@ fun MoneaNavHost(
             )
             LoanFormScreen(viewModel = formViewModel, onClose = goBack)
         }
+        composable(VoiceRoute.ROUTE) {
+            val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = AppSettings())
+            val toForm: (TransactionType, String) -> Unit = { type, say ->
+                navController.navigate(TransactionRoute.create(type = type, say = say)) {
+                    popUpTo(VoiceRoute.ROUTE) { inclusive = true }
+                }
+            }
+            VoiceEntryScreen(
+                languageTag = VoiceEntryDefaults.languageTag(settings.currencyCode),
+                onResult = { text -> toForm(VoiceParser.detectType(text), text) },
+                onManual = { toForm(TransactionType.EXPENSE, "") },
+                onClose = goBack,
+            )
+        }
         composable(
             route = TransactionRoute.PATTERN,
             arguments = listOf(
                 navArgument(TransactionRoute.ARG_ID) { type = NavType.LongType; defaultValue = 0L },
                 navArgument(TransactionRoute.ARG_TYPE) { type = NavType.StringType; defaultValue = TransactionType.EXPENSE.name },
+                navArgument(TransactionRoute.ARG_SAY) { type = NavType.StringType; defaultValue = "" },
             ),
         ) { entry ->
             val id = entry.arguments?.getLong(TransactionRoute.ARG_ID) ?: 0L
             val type = runCatching {
                 TransactionType.valueOf(entry.arguments?.getString(TransactionRoute.ARG_TYPE).orEmpty())
             }.getOrDefault(TransactionType.EXPENSE)
+            val say = entry.arguments?.getString(TransactionRoute.ARG_SAY).orEmpty()
             val formViewModel: TransactionFormViewModel = viewModel(
-                key = "form-$id-${type.name}",
-                factory = TransactionFormViewModel.factory(container, id, type),
+                key = "form-$id-${type.name}-${say.hashCode()}",
+                factory = TransactionFormViewModel.factory(container, id, type, say),
             )
             TransactionFormScreen(viewModel = formViewModel, onClose = goBack)
         }

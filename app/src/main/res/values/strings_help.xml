@@ -52,7 +52,7 @@
     <string name="help_a_free">«Comprometido» es lo que tenés que pagar pronto (facturas pendientes). «Libre estimado» es tu saldo disponible menos eso: te muestra cuánto te queda de verdad si pagás todo. Son una guía; tu saldo no baja hasta que marcás cada pago.</string>
 
     <string name="help_q_add">¿Cómo anoto un gasto o un ingreso?</string>
-    <string name="help_a_add">Tocá el «+» del medio de la barra de abajo, poné el importe y elegí la categoría. Para anotar un ingreso, cambiá a «Ingreso» arriba. Si dejás apretado el «+», ves también Pagar, Préstamo y Ahorro. Si querés, agregale hasta 6 fotos (por ejemplo, del ticket).</string>
+    <string name="help_a_add">Tocá el «+» del medio de la barra de abajo, poné el importe y elegí la categoría. Para anotar un ingreso, cambiá a «Ingreso» arriba. Si dejás apretado el «+», anotás con la voz: decí, por ejemplo, «gasté veinte mil en el súper» y se completa solo. Pagar, Préstamo y Ahorro están en los atajos de Inicio. Si querés, agregale hasta 6 fotos (por ejemplo, del ticket).</string>
 
     <string name="help_q_incomes">¿Para qué sirven los ingresos fijos?</string>
     <string name="help_a_incomes">Para tu sueldo u otros cobros que se repiten (mensual, quincenal o fechas sueltas). Monea te recuerda cuando toca cobrar y vos confirmás el importe. Podés dejar que se confirmen solos si siempre cobrás lo mismo.</string>

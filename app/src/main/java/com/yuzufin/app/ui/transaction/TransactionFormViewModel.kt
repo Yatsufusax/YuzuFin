@@ -19,6 +19,7 @@ import com.yuzufin.app.domain.Category
 import com.yuzufin.app.domain.LOAN_ICON_KEY
 import com.yuzufin.app.domain.FinanceTransaction
 import com.yuzufin.app.domain.TransactionType
+import com.yuzufin.app.domain.VoiceParser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,6 +39,8 @@ data class FrequentItem(
 )
 
 data class TransactionFormState(
+    /** El importe, la categoría o la descripción se completaron con lo dicho por voz. */
+    val fromVoice: Boolean = false,
     val frequent: List<FrequentItem> = emptyList(),
     val loading: Boolean = true,
     val notFound: Boolean = false,
@@ -85,6 +88,8 @@ class TransactionFormViewModel(
     initialType: TransactionType,
     private val attachments: AttachmentRepository,
     private val voucherBuilder: VoucherBuilder,
+    /** Frase dicha por voz para prellenar el movimiento nuevo (vacía si no hay). */
+    private val say: String = "",
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TransactionFormState(type = initialType))
@@ -144,6 +149,26 @@ class TransactionFormViewModel(
                 minDate = initial?.startDate ?: today,
                 baseBalance = baseBalance,
                 photos = photos,
+            )
+        }
+        if (existing == null && say.isNotBlank()) applySpoken(currency)
+    }
+
+    /** Prellena importe, categoría y descripción con lo que se entendió de la voz; la persona lo revisa. */
+    private fun applySpoken(currency: CurrencyInfo) {
+        val spoken = VoiceParser.parse(say, allCategories)
+        val minor = spoken.amount?.let { whole ->
+            var factor = 1L
+            repeat(currency.fractionDigits) { factor *= 10L }
+            // Un importe absurdo (desborde de Long) se descarta antes que guardar algo mal.
+            if (whole > Long.MAX_VALUE / factor / 10) null else whole * factor
+        }
+        _state.update {
+            it.copy(
+                fromVoice = true,
+                amountText = minor?.let { m -> AmountParser.toInputText(m, currency) } ?: it.amountText,
+                categoryId = spoken.categoryId ?: it.categoryId,
+                description = spoken.description.ifBlank { it.description },
             )
         }
     }
@@ -349,7 +374,7 @@ class TransactionFormViewModel(
         const val KEY_BACKSPACE = "back"
         const val KEY_CLEAR = "clear"
 
-        fun factory(container: AppContainer, editingId: Long, initialType: TransactionType) =
+        fun factory(container: AppContainer, editingId: Long, initialType: TransactionType, say: String = "") =
             viewModelFactory {
                 initializer {
                     TransactionFormViewModel(
@@ -359,6 +384,7 @@ class TransactionFormViewModel(
                         initialType,
                         container.attachmentRepository,
                         container.voucherBuilder,
+                        say,
                     )
                 }
             }
