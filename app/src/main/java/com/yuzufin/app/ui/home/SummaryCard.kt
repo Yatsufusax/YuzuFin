@@ -114,8 +114,15 @@ internal fun summaryMonthLabel(month: YearMonth, today: YearMonth): String {
 }
 
 /**
- * Tarjeta de resumen de Inicio: el presupuesto disponible del mes (lo que ingresó menos lo que se
- * gastó), cuánto del ingreso se gastó, y los ingresos y gastos del mes. El mes se elige arriba.
+ * El número grande de la tarjeta: el dinero que la persona tiene disponible hoy (saldo menos lo
+ * apartado en metas). NO depende del mes elegido y no vuelve a cero cuando empieza un mes; lo que
+ * sí cambia con el mes son la barra, el porcentaje, los ingresos y los gastos.
+ */
+internal fun summaryHeadline(state: HomeUiState): Long = state.balance
+
+/**
+ * Tarjeta de resumen de Inicio: el presupuesto disponible (el dinero que hay hoy), cuánto del
+ * ingreso del mes elegido se gastó, y los ingresos y gastos de ese mes. El mes se elige arriba.
  * Tiene el monito de la moneda a la derecha y el brillo que la recorre de vez en cuando.
  */
 @Composable
@@ -146,9 +153,9 @@ private fun SummaryCardContent(
     val expense = state.shownExpense
     val progress = summaryProgress(income, expense)
     val fill = rememberFillAnimation(progress.fraction)
-    val shownNet = rememberCountUp(income - expense)
+    val shownBalance = rememberCountUp(summaryHeadline(state))
     val hiddenDots = "••••••"
-    val amountText = if (visible) MoneyFormatter.formatNumber(shownNet, currency) else hiddenDots
+    val amountText = if (visible) MoneyFormatter.formatNumber(shownBalance, currency) else hiddenDots
     val percentText = progress.percent?.let { stringResource(R.string.summary_card_percent, it) }
         ?: stringResource(R.string.summary_card_percent_none)
 
@@ -203,8 +210,11 @@ private fun SummaryCardContent(
         ) {
             // Arriba: mes, ojo para tapar los importes y estadísticas.
             Row(verticalAlignment = Alignment.CenterVertically) {
-                MonthPill(state = state, ink = ink, onMonthChange = onMonthChange, modifier = Modifier.weight(1f, fill = false))
-                Spacer(Modifier.weight(1f))
+                // El selector ocupa todo el ancho libre (antes compartía el espacio con un Spacer y el
+                // nombre del mes se cortaba: "Resum…").
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                    MonthPill(state = state, ink = ink, onMonthChange = onMonthChange)
+                }
                 CardIconButton(
                     icon = if (visible) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
                     description = stringResource(if (visible) R.string.home_hide_balance else R.string.home_show_balance),

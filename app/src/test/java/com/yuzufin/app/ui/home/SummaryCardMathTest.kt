@@ -10,6 +10,27 @@ import java.time.YearMonth
 class SummaryCardMathTest {
 
     @Test
+    fun headlineIsTheAvailableMoneyNotTheMonthNet() {
+        val october = HomeUiState(
+            balance = 1_717_000L,
+            shownIncome = 5_561_000L,
+            shownExpense = 2_419_000L,
+        )
+        assertEquals(1_717_000L, summaryHeadline(october))
+    }
+
+    @Test
+    fun headlineDoesNotDropToZeroInAMonthWithoutMovements() {
+        val emptyNovember = HomeUiState(balance = 1_717_000L, shownIncome = 0L, shownExpense = 0L)
+        assertEquals(1_717_000L, summaryHeadline(emptyNovember))
+    }
+
+    @Test
+    fun headlineCanBeNegative() {
+        assertEquals(-50_000L, summaryHeadline(HomeUiState(balance = -50_000L)))
+    }
+
+    @Test
     fun spentAboutHalfOfTheIncome() {
         val p = summaryProgress(income = 6_000_000L, expense = 2_858_000L)
         assertEquals(48, p.percent)

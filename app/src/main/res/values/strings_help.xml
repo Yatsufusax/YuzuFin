@@ -4,7 +4,7 @@
     <string name="hint_dismiss">Entendido</string>
 
     <string name="hint_home_title">Cómo leer tus números</string>
-    <string name="hint_home_body">Arriba ves el presupuesto disponible del mes: lo que ingresó menos lo que gastaste. Tocá el mes para mirar los anteriores. Debajo, «Libre estimado» es tu saldo disponible (lo que tenés menos lo que apartaste para tus metas) menos las facturas que todavía no pagaste.</string>
+    <string name="hint_home_body">Arriba ves tu presupuesto disponible: el dinero que tenés hoy, sin contar lo que apartaste para tus metas. No vuelve a cero cuando empieza un mes. La barra, el porcentaje y los ingresos y gastos son del mes elegido: tocá el mes para mirar los anteriores. Debajo, «Libre estimado» es ese disponible menos las facturas que todavía no pagaste.</string>
 
     <string name="hint_movements_title">Tus movimientos</string>
     <string name="hint_movements_body">Tocá un movimiento para editarlo, agregarle fotos o sacar su comprobante en PDF. Deslizalo hacia la izquierda para borrarlo. Con el botón PDF de arriba sacás el extracto de un período.</string>
@@ -43,7 +43,7 @@
     <string name="help_reset_hints_done">Listo, los consejos vuelven a aparecer en cada pantalla.</string>
 
     <string name="help_q_card_budget">¿Qué es el presupuesto disponible de la tarjeta?</string>
-    <string name="help_a_card_budget">Es lo que ingresó en el mes elegido menos lo que gastaste en ese mismo mes. La barra y el porcentaje muestran cuánto de lo que ingresó ya se fue. Tocá el mes de arriba para ver los anteriores, y el ojo para tapar los importes.</string>
+    <string name="help_a_card_budget">Es el dinero que tenés disponible hoy, sin contar lo que apartaste para tus metas. No vuelve a cero cuando empieza un mes. La barra y el porcentaje, en cambio, son del mes elegido: muestran cuánto de lo que ingresó ese mes ya se fue. Tocá el mes de arriba para ver los anteriores, y el ojo para tapar los importes.</string>
 
     <string name="help_q_balance">¿Qué es el saldo disponible?</string>
     <string name="help_a_balance">Es la plata que realmente podés usar hoy: tu saldo inicial, más tus ingresos, menos tus gastos, y menos lo que apartaste para tus metas de ahorro. Solo cambia cuando existe un movimiento real. En Inicio lo ves debajo de la tarjeta, como «Libre estimado» (que además descuenta las facturas que todavía no pagaste).</string>
