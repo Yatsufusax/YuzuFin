@@ -18,7 +18,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.yuzufin.app.domain.LoanDirection
 import com.yuzufin.app.domain.TransactionType
-import com.yuzufin.app.domain.AppSettings
 import com.yuzufin.app.domain.VoiceParser
 import com.yuzufin.app.ui.voice.VoiceEntryDefaults
 import com.yuzufin.app.ui.voice.VoiceEntryScreen
@@ -222,14 +221,14 @@ fun MoneaNavHost(
             LoanFormScreen(viewModel = formViewModel, onClose = goBack)
         }
         composable(VoiceRoute.ROUTE) {
-            val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = AppSettings())
+            val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
             val toForm: (TransactionType, String) -> Unit = { type, say ->
                 navController.navigate(TransactionRoute.create(type = type, say = say)) {
                     popUpTo(VoiceRoute.ROUTE) { inclusive = true }
                 }
             }
             VoiceEntryScreen(
-                languageTag = VoiceEntryDefaults.languageTag(settings.currencyCode),
+                languageTag = VoiceEntryDefaults.languageTag(settings?.currencyCode.orEmpty()),
                 onResult = { text -> toForm(VoiceParser.detectType(text), text) },
                 onManual = { toForm(TransactionType.EXPENSE, "") },
                 onClose = goBack,
