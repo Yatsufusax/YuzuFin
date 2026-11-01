@@ -20,6 +20,8 @@ Cambios de v51 (sin compilar): (a) el clip se reproduce **solo** (`Mascot(autoCl
 
 **Festejo del Mundial en la tarjeta (v54, sin compilar):** `monito_clip_mundial.webp` (462x260, 80 cuadros a 8 fps, ~1 MB) sale del video del usuario (1280x720, 10 s, fondo verde, con papelitos y cañones de confeti). Se convirtió con `sacar_verde` de `tools/clip_verde_a_webp.py` pero guardando con `exact=False`, `alpha_quality=60`, calidad 30, método 4 y alfa menor a 24 en cero (con los ajustes por defecto pesaba 2,5 MB por los papelitos). Lo reproduce `CardMonkey` (no `Mascot`): solo con ARS, al tocar la tarjeta del monito; ver `README.md`. El audio del video no se usa (WebP no tiene sonido).
 
+**Clip de Paraguay en la tarjeta (sin compilar):** `monito_clip_paraguay.webp` (495x402, 72 cuadros a 12 fps, ~1,1 MB) sale del video del usuario del monito comiendo una empanada con el termo del tereré (1280x720, 6 s, fondo verde). Lo reproduce `CardMonkey` solo con PYG, igual que el del Mundial con ARS: la tarjeta gira en 3D, muestra el clip y gira de vuelta. El lienzo está centrado en el monito del primer cuadro y el clip se dibuja con `CardClip(166.8 x 135.3 dp)`, de modo que el monito mide lo mismo (128 dp) que el fijo. Se genera con `tools/clip_tarjeta_a_webp.py`, que imprime las medidas en dp para un clip nuevo. El audio del video no se usa. Esta novedad no se puso en `NOVEDADES.md` a pedido del usuario.
+
 ### Estado de v50
 | Cosa | Estado |
 |---|---|

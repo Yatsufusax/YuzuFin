@@ -10,4 +10,6 @@
     <string name="summary_card_monkey">Tu monito</string>
     <string name="summary_card_monkey_ars">Tu monito con la camiseta de Argentina</string>
     <string name="summary_card_monkey_ars_action">Hacer que festeje</string>
+    <string name="summary_card_monkey_pyg">Tu monito con la camiseta de Paraguay</string>
+    <string name="summary_card_monkey_pyg_action">Hacer que coma una empanada</string>
 </resources>

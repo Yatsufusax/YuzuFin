@@ -1,6 +1,7 @@
 package com.yuzufin.app.ui.home
 
 import android.os.Build
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -56,19 +57,35 @@ private enum class FlipPhase { Idle, ToClip, Playing, ToStill }
 
 private const val FLIP_MS = 520
 
-// El clip del festejo tiene 462x260 y el monito ocupa cerca del 88% del alto: se dibuja más grande
-// que el monito fijo para que el monito del clip mida lo mismo y los papelitos llenen la tarjeta.
-private const val CLIP_ASPECT = 462f / 260f
-private const val CLIP_HEIGHT_DP = 146f
+/**
+ * Un clip que se ve al darle vuelta al monito: el WebP y el tamaño (en dp) con el que se dibuja
+ * sobre el monito fijo, que mide 128 dp de alto. Es más grande que el monito fijo para que lo que
+ * sale del recuadro (papelitos, la cola, los brazos) no se corte.
+ */
+private data class CardClip(
+    @DrawableRes val res: Int,
+    val widthDp: Float,
+    val heightDp: Float,
+    /** Subida del clip para que el monito quede donde estaba el fijo (que se dibuja 3 dp más arriba). */
+    val liftDp: Float = 0f,
+)
+
+// Argentina: 462x260, el monito ocupa cerca del 88% del alto. Los papelitos llenan la tarjeta.
+private val ARGENTINA_CLIP = CardClip(R.drawable.monito_clip_mundial, 146f * 462f / 260f, 146f)
+
+// Paraguay: 495x402 centrado en el monito del primer cuadro (mide 634 de 670 px de alto de lienzo,
+// es decir 128 dp de 135,3 dp) para que no cambie de tamaño al girar.
+private val PARAGUAY_CLIP = CardClip(R.drawable.monito_clip_paraguay, 166.8f, 135.3f, liftDp = 3f)
 
 /**
  * El monito de la tarjeta de Inicio, con la camiseta de la moneda: Paraguay (guaraníes), Argentina
  * (pesos) o sin camiseta (el resto). Respira suave y, si se lo toca, pega un saltito.
  *
- * Con pesos argentinos, al tocarlo **gira como una carta** y aparece el monito festejando con la
- * copa y papelitos (un clip de unos 10 segundos); al terminar (o si se lo vuelve a tocar) gira de
- * vuelta. El clip exige Android 9 o más y que las animaciones del teléfono estén activas; si no,
- * el toque solo hace el saltito.
+ * Con pesos argentinos o guaraníes, al tocarlo **gira como una carta** y aparece su clip: festejando
+ * con la copa y papelitos (Argentina, unos 10 segundos) o comiendo una empanada con el termo del
+ * tereré (Paraguay, 6 segundos). Al terminar (o si se lo vuelve a tocar) gira de vuelta. Los clips
+ * exigen Android 9 o más y que las animaciones del teléfono estén activas; si no, el toque solo
+ * hace el saltito.
  */
 @Composable
 internal fun CardMonkey(
@@ -81,8 +98,12 @@ internal fun CardMonkey(
         "ARS" -> R.drawable.monito_tarjeta_ars
         else -> R.drawable.monito_tarjeta_neutral
     }
-    val isArgentina = currencyCode == "ARS"
-    val canCelebrate = isArgentina && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && animationsEnabled()
+    val clip = when (currencyCode) {
+        "ARS" -> ARGENTINA_CLIP
+        "PYG" -> PARAGUAY_CLIP
+        else -> null
+    }
+    val canCelebrate = clip != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && animationsEnabled()
     val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
@@ -117,8 +138,20 @@ internal fun CardMonkey(
 
     // De 90° a 270° se ve el reverso (el clip); el resto, el frente.
     val backVisible = angle.value > 90f && angle.value < 270f
-    val description = stringResource(if (isArgentina) R.string.summary_card_monkey_ars else R.string.summary_card_monkey)
-    val actionLabel = if (canCelebrate) stringResource(R.string.summary_card_monkey_ars_action) else null
+    val description = stringResource(
+        when (currencyCode) {
+            "ARS" -> R.string.summary_card_monkey_ars
+            "PYG" -> R.string.summary_card_monkey_pyg
+            else -> R.string.summary_card_monkey
+        },
+    )
+    val actionLabel = if (canCelebrate) {
+        stringResource(
+            if (currencyCode == "PYG") R.string.summary_card_monkey_pyg_action else R.string.summary_card_monkey_ars_action,
+        )
+    } else {
+        null
+    }
 
     Box(
         modifier = modifier
@@ -157,16 +190,19 @@ internal fun CardMonkey(
         contentAlignment = Alignment.BottomCenter,
     ) {
         if (backVisible) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (clip != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 // El reverso gira 180° para que el clip no se vea espejado.
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .requiredSize(width = (CLIP_HEIGHT_DP * CLIP_ASPECT).dp, height = CLIP_HEIGHT_DP.dp)
-                        .graphicsLayer { rotationY = 180f },
+                        .requiredSize(width = clip.widthDp.dp, height = clip.heightDp.dp)
+                        .graphicsLayer {
+                            rotationY = 180f
+                            translationY = -clip.liftDp.dp.toPx()
+                        },
                 ) {
                     MascotClipPlayer(
-                        res = R.drawable.monito_clip_mundial,
+                        res = clip.res,
                         fit = ClipFit.None,
                         onEnd = {
                             if (phase == FlipPhase.Playing) phase = FlipPhase.ToStill else clipEnded = true
