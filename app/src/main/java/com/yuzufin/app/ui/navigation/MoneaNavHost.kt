@@ -46,6 +46,8 @@ import com.yuzufin.app.ui.settings.SettingsScreen
 import com.yuzufin.app.ui.transaction.TransactionFormScreen
 import com.yuzufin.app.ui.transaction.TransactionFormViewModel
 import com.yuzufin.app.ui.update.UpdateViewModel
+import com.yuzufin.app.ui.assistant.MonkiChatScreen
+import com.yuzufin.app.ui.assistant.MonkiViewModel
 
 @Composable
 fun MoneaNavHost(
@@ -82,11 +84,16 @@ fun MoneaNavHost(
                 onQuickAction = onQuickAction,
                 unreadNotifications = unread,
                 onNotificationsClick = onNotificationsClick,
+                onMonkiClick = { navController.navigate(Destination.Monki.route) { launchSingleTop = true } },
                 onEditMovement = { id -> openForm(id, TransactionType.EXPENSE) },
                 onConfirmIncome = homeViewModel::confirmIncome,
                 onSkipIncome = homeViewModel::skipIncome,
                 onBalanceHiddenChange = homeViewModel::setBalanceHidden,
             )
+        }
+        composable(Destination.Monki.route) {
+            val monkiViewModel: MonkiViewModel = viewModel(factory = MonkiViewModel.factory(container))
+            MonkiChatScreen(viewModel = monkiViewModel, onBack = goBack)
         }
         composable(Destination.Movements.route) {
             MovementsScreen(

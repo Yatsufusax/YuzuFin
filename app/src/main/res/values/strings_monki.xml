@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Monki AI: chat y acceso desde Inicio -->
+    <string name="monki_open">Abrir Monki AI</string>
+    <string name="monki_name">Monki</string>
+    <string name="monki_subtitle">Tu compañero de plata</string>
+    <string name="monki_privacy">Tus datos quedan en este teléfono. Monki solo los lee: no puede editarlos ni enviarlos a ningún lado.</string>
+    <string name="monki_placeholder">Preguntale algo a Monki…</string>
+    <string name="monki_intro_title">¡Conocé a Monki!</string>
+    <string name="monki_intro_body">Es tu compañero de plata. Tocá su carita arriba, junto a los avisos, y preguntale cuánto gastaste o en qué. Usa solo los datos de tu teléfono y no puede cambiarlos.</string>
+    <string name="monki_intro_open">Hablar con Monki</string>
+    <string name="monki_send">Enviar</string>
+    <string name="monki_thinking">Monki está revisando tus números…</string>
+    <string name="monki_suggest_week">¿Cuánto gasté esta semana?</string>
+    <string name="monki_suggest_categories">¿En qué gasté más?</string>
+    <string name="monki_suggest_income">¿Cuánto ingresó esta semana?</string>
+</resources>

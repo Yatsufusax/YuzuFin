@@ -10,6 +10,7 @@ import com.yuzufin.app.domain.TransactionType
  */
 sealed class Destination(val route: String, val isTopLevel: Boolean) {
     data object Home : Destination("home", true)
+    data object Monki : Destination("monki", false)
     data object Movements : Destination("movements", true)
     data object Savings : Destination("savings", true)
     data object Menu : Destination("menu", true)
@@ -81,7 +82,8 @@ fun isFullScreenRoute(route: String?): Boolean =
         route?.startsWith("income_form") == true ||
         route?.startsWith("savings_goal_form") == true ||
         route?.startsWith("bill_form") == true ||
-        route?.startsWith("loan_form") == true
+        route?.startsWith("loan_form") == true ||
+        route == Destination.Monki.route
 
 /** Las secciones que cuelgan de “Menú” marcan esa pestaña como activa. Ajustes tiene su propia pestaña. */
 fun isMenuGroupRoute(route: String?): Boolean = when (route) {

@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
@@ -80,6 +81,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -91,6 +94,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.unit.sp
 import com.yuzufin.app.R
+import com.yuzufin.app.ui.assistant.MonkiAvatar
+import com.yuzufin.app.ui.assistant.MonkiIntroCard
 import com.yuzufin.app.ui.components.HintCard
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.core.money.MoneyFormatter
@@ -110,8 +115,6 @@ import com.yuzufin.app.ui.components.QuickAction
 import com.yuzufin.app.ui.components.SectionHeader
 import com.yuzufin.app.ui.components.MoneaCard
 import com.yuzufin.app.ui.navigation.Destination
-import com.yuzufin.app.ui.theme.Forest
-import com.yuzufin.app.ui.theme.MintTile
 import com.yuzufin.app.ui.theme.monea
 
 /**
@@ -126,6 +129,7 @@ fun HomeScreen(
     onQuickAction: (QuickAction) -> Unit,
     unreadNotifications: Int,
     onNotificationsClick: () -> Unit,
+    onMonkiClick: () -> Unit,
     onEditMovement: (Long) -> Unit,
     onConfirmIncome: (occurrenceId: Long, amountMinor: Long) -> Unit,
     onSkipIncome: (occurrenceId: Long) -> Unit,
@@ -155,9 +159,16 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Spacer(Modifier.height(4.dp))
-        HomeHeader(name = state.userName, unread = unreadNotifications, onNotificationsClick = onNotificationsClick)
+        HomeHeader(
+            currencyCode = state.currency.code,
+            unread = unreadNotifications,
+            onNotificationsClick = onNotificationsClick,
+            onMonkiClick = onMonkiClick,
+        )
 
         if (!state.loading) {
+            // Presentación de Monki: una sola vez, a quien empieza y a quien se actualiza.
+            MonkiIntroCard(currencyCode = state.currency.code, onOpen = onMonkiClick)
             Box(Modifier.entrance(0)) {
                 BalanceCard(
                     state = state,
@@ -392,38 +403,36 @@ private fun UpcomingBillsCard(state: HomeUiState, onClick: () -> Unit) {
 }
 
 @Composable
-private fun HomeHeader(name: String, unread: Int, onNotificationsClick: () -> Unit) {
+private fun HomeHeader(currencyCode: String, unread: Int, onNotificationsClick: () -> Unit, onMonkiClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
+        // Entrada a Monki AI: su carita (según la moneda) + "Monki". El nombre de la persona está en la tarjeta.
+        val openMonki = stringResource(R.string.monki_open)
+        Surface(
+            onClick = onMonkiClick,
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.semantics { contentDescription = openMonki },
+        ) {
             Row(
-                modifier = Modifier.padding(start = 8.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                modifier = Modifier.padding(start = 6.dp, end = 16.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(MintTile),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        Icons.Rounded.AccountBalanceWallet,
-                        contentDescription = null,
-                        tint = Forest,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
+                MonkiAvatar(currencyCode = currencyCode, size = 40.dp)
                 Text(
-                    text = name.ifBlank { stringResource(R.string.app_name) },
+                    text = stringResource(R.string.monki_name),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = 220.dp),
+                )
+                Icon(
+                    Icons.Rounded.AutoAwesome,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp),
                 )
             }
         }
