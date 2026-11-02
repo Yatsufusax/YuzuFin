@@ -1,6 +1,7 @@
 package com.yuzufin.app.ui.voice
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -95,19 +96,38 @@ fun VoiceEntryScreen(
     }
     var denied by remember { mutableStateOf(false) }
     var attempt by remember { mutableIntStateOf(0) }
+    // Nivel de tolerancia: 0 = idioma + preferir sin internet, 1 = solo idioma, 2 = idioma del teléfono.
+    var level by remember { mutableIntStateOf(0) }
     var status by remember { mutableStateOf(VoiceStatus.LISTENING) }
+    var errorCode by remember { mutableIntStateOf(0) }
     var partial by remember { mutableStateOf("") }
     var heard by remember { mutableStateOf("") }
+
+    /** De las alternativas, la primera en la que se entiende un importe; si ninguna, avisa. */
+    val deliver: (List<String>) -> Unit = { options ->
+        val pick = options.firstOrNull { VoiceParser.extractAmount(it) != null }
+        if (pick != null) {
+            result(pick)
+        } else {
+            heard = options.firstOrNull().orEmpty()
+            status = if (heard.isBlank()) VoiceStatus.NO_SPEECH else VoiceStatus.NO_AMOUNT
+        }
+    }
 
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
         granted = ok
         denied = !ok
     }
+    // Plan B: la pantalla de dictado del propio Android (la de Google), que funciona en casi todos los teléfonos.
+    val systemDictation = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { activityResult ->
+        val options = activityResult.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS).orEmpty()
+        if (options.isNotEmpty()) deliver(options)
+    }
     LaunchedEffect(Unit) {
         if (!granted) askPermission.launch(Manifest.permission.RECORD_AUDIO)
     }
 
-    DisposableEffect(granted, attempt, languageTag) {
+    DisposableEffect(granted, attempt, level, languageTag) {
         if (!granted) return@DisposableEffect onDispose { }
         if (!SpeechRecognizer.isRecognitionAvailable(context)) {
             status = VoiceStatus.UNAVAILABLE
@@ -129,32 +149,33 @@ fun VoiceEntryScreen(
             }
 
             override fun onError(error: Int) {
-                status = when (error) {
-                    SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> VoiceStatus.NO_SPEECH
-                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> VoiceStatus.DENIED
-                    else -> VoiceStatus.ERROR
+                when (error) {
+                    SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> status = VoiceStatus.NO_SPEECH
+                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> status = VoiceStatus.DENIED
+                    else -> {
+                        // Idioma no disponible, servicio ocupado, red, etc.: se reintenta enseguida
+                        // con menos exigencias antes de mostrar el error.
+                        if (level < 2) {
+                            level += 1
+                        } else {
+                            errorCode = error
+                            status = VoiceStatus.ERROR
+                        }
+                    }
                 }
             }
 
             override fun onResults(results: Bundle?) {
-                val options = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).orEmpty()
-                // De las alternativas, la primera en la que se entiende un importe.
-                val pick = options.firstOrNull { VoiceParser.extractAmount(it) != null }
-                if (pick != null) {
-                    result(pick)
-                } else {
-                    heard = options.firstOrNull().orEmpty()
-                    status = if (heard.isBlank()) VoiceStatus.NO_SPEECH else VoiceStatus.NO_AMOUNT
-                }
+                deliver(results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).orEmpty())
             }
         })
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag)
+            if (level < 2) putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag)
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
-            // Prefiere reconocer en el teléfono (sin enviar el audio) si el idioma está descargado.
-            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+            // Primero prefiere reconocer en el teléfono (sin enviar el audio); si no se puede, se relaja.
+            if (level == 0) putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
             putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
         }
         recognizer.startListening(intent)
@@ -202,7 +223,7 @@ fun VoiceEntryScreen(
                     VoiceStatus.LISTENING -> if (partial.isBlank()) stringResource(R.string.voice_listening) else "“$partial”"
                     VoiceStatus.NO_AMOUNT -> stringResource(R.string.voice_no_amount)
                     VoiceStatus.NO_SPEECH -> stringResource(R.string.voice_no_speech)
-                    VoiceStatus.ERROR -> stringResource(R.string.voice_error)
+                    VoiceStatus.ERROR -> stringResource(R.string.voice_error, errorCode)
                     VoiceStatus.UNAVAILABLE -> stringResource(R.string.voice_unavailable)
                     VoiceStatus.DENIED -> stringResource(R.string.voice_permission_needed)
                 }
@@ -243,6 +264,24 @@ fun VoiceEntryScreen(
                     onClick = { attempt++ },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                 ) { Text(stringResource(R.string.voice_retry)) }
+                Spacer(Modifier.height(8.dp))
+            }
+            if (granted && status == VoiceStatus.ERROR) {
+                OutlinedButton(
+                    onClick = {
+                        val dictation = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                            putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag)
+                            putExtra(RecognizerIntent.EXTRA_PROMPT, context.getString(R.string.voice_example_short))
+                        }
+                        try {
+                            systemDictation.launch(dictation)
+                        } catch (e: ActivityNotFoundException) {
+                            status = VoiceStatus.UNAVAILABLE
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                ) { Text(stringResource(R.string.voice_system_dictation)) }
                 Spacer(Modifier.height(8.dp))
             }
             OutlinedButton(

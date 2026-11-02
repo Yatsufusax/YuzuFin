@@ -227,12 +227,16 @@ fun MoneaNavHost(
                     popUpTo(VoiceRoute.ROUTE) { inclusive = true }
                 }
             }
-            VoiceEntryScreen(
-                languageTag = VoiceEntryDefaults.languageTag(settings?.currencyCode.orEmpty()),
-                onResult = { text -> toForm(VoiceParser.detectType(text), text) },
-                onManual = { toForm(TransactionType.EXPENSE, "") },
-                onClose = goBack,
-            )
+            // Se espera a tener la moneda: si el idioma cambiara con la pantalla ya escuchando, se reiniciaría el micrófono.
+            val loaded = settings
+            if (loaded != null) {
+                VoiceEntryScreen(
+                    languageTag = VoiceEntryDefaults.languageTag(loaded.currencyCode),
+                    onResult = { text -> toForm(VoiceParser.detectType(text), text) },
+                    onManual = { toForm(TransactionType.EXPENSE, "") },
+                    onClose = goBack,
+                )
+            }
         }
         composable(
             route = TransactionRoute.PATTERN,

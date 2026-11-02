@@ -59,7 +59,7 @@ private val rightEntries = listOf(
 
 /**
  * Barra inferior flotante con botón central “+”: un toque abre directo anotar un gasto;
- * mantenerlo apretado abre el menú con las demás acciones.
+ * mantenerlo apretado abre la pantalla para anotar con la voz.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

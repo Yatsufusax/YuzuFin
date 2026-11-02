@@ -43,6 +43,8 @@ import com.yuzufin.app.ui.navigation.LoanFormRoute
 import com.yuzufin.app.ui.navigation.QuickLaunch
 import com.yuzufin.app.ui.navigation.TransactionRoute
 import com.yuzufin.app.ui.navigation.VoiceRoute
+import kotlinx.coroutines.delay
+import com.yuzufin.app.ui.voice.VoiceTipBubble
 import com.yuzufin.app.ui.navigation.MoneaNavHost
 import com.yuzufin.app.ui.navigation.isFullScreenRoute
 import com.yuzufin.app.ui.navigation.navigateTo
@@ -122,6 +124,26 @@ fun MainShell(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {
         }
     }
 
+    // Aviso flotante (una sola vez): "mantené apretado el + para anotar hablando".
+    val voiceTipEligible = currentRoute == Destination.Home.route && appSettings?.let {
+        it.onboardingDone && !it.tourPending && !it.firstExpensePending && VOICE_TIP_ID !in it.dismissedHints
+    } == true
+    var voiceTipVisible by remember { mutableStateOf(false) }
+    val dismissVoiceTip: () -> Unit = {
+        voiceTipVisible = false
+        scope.launch { container.settingsRepository.dismissHint(VOICE_TIP_ID) }
+    }
+    LaunchedEffect(voiceTipEligible) {
+        if (voiceTipEligible) {
+            delay(1_500)
+            voiceTipVisible = true
+            delay(12_000)
+            dismissVoiceTip()
+        } else {
+            voiceTipVisible = false
+        }
+    }
+
     CompositionLocalProvider(LocalDeleteUndo provides deleteUndo) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
@@ -133,9 +155,15 @@ fun MainShell(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {
                     FloatingNavBar(
                         currentRoute = currentRoute,
                         onNavigate = navController::navigateTo,
-                        onAddClick = { onQuickAction(QuickAction.Expense) },
+                        onAddClick = {
+                            dismissVoiceTip()
+                            onQuickAction(QuickAction.Expense)
+                        },
                         // Un toque: anotar a mano. Mantener apretado: anotar con la voz.
-                        onAddLongClick = { navController.navigate(VoiceRoute.ROUTE) { launchSingleTop = true } },
+                        onAddLongClick = {
+                            dismissVoiceTip()
+                            navController.navigate(VoiceRoute.ROUTE) { launchSingleTop = true }
+                        },
                     )
                 }
             },
@@ -159,4 +187,9 @@ fun MainShell(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {
     if (appSettings?.firstExpensePending == true) {
         FirstExpenseCelebration(onDismiss = { scope.launch { container.settingsRepository.dismissFirstExpense() } })
     }
+
+    VoiceTipBubble(visible = voiceTipVisible && voiceTipEligible, onDismiss = dismissVoiceTip)
 }
+
+/** Id del aviso en `dismissedHints`; "Volver a mostrar los consejos" también lo reactiva. */
+private const val VOICE_TIP_ID = "voice_plus"

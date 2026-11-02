@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="voice_filled_notice">Completado con tu voz: revisalo y guardá</string>
+    <string name="voice_tip_title">Anotá hablando</string>
+    <string name="voice_tip_body">Mantené apretado el «+» y decí tu gasto.</string>
+    <string name="voice_tip_close">Cerrar el aviso</string>
     <string name="voice_title">Anotar con la voz</string>
     <string name="voice_listening">Te escucho…</string>
     <string name="voice_example">Decí, por ejemplo: «gasté veinte mil en el súper» o «cobré dos millones».</string>
     <string name="voice_heard">Escuché: «%1$s»</string>
     <string name="voice_no_amount">No entendí el importe. Probá de nuevo diciendo el monto, por ejemplo «gasté treinta mil en nafta».</string>
     <string name="voice_no_speech">No te escuché. Tocá el micrófono y hablá de nuevo.</string>
-    <string name="voice_error">No se pudo usar el reconocimiento de voz. Probá de nuevo o anotá a mano.</string>
+    <string name="voice_error">No se pudo usar el reconocimiento de voz (código %1$d). Probá de nuevo, usá el dictado de Android o anotá a mano.</string>
+    <string name="voice_system_dictation">Usar el dictado de Android</string>
+    <string name="voice_example_short">Decí, por ejemplo: gasté veinte mil en el súper</string>
     <string name="voice_unavailable">Este teléfono no tiene reconocimiento de voz disponible. Podés anotar a mano.</string>
     <string name="voice_permission_needed">Para anotar con la voz necesito el permiso del micrófono. Solo se usa mientras esta pantalla está abierta.</string>
     <string name="voice_allow">Dar permiso</string>
