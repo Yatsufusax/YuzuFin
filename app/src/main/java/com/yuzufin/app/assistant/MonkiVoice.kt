@@ -37,6 +37,7 @@ class MonkiVoice(private val region: MonkiRegion, private val seed: Int = 0) {
             "• Tu saldo, lo apartado y lo libre.\n" +
             "• Comparaciones con el mes pasado y la tendencia de tus gastos.\n" +
             "• Presupuestos, ahorros, facturas y préstamos.\n" +
+            "• Cómo cerrarías el mes, gastos hormiga, dónde recortar y simulaciones («¿y si reduzco un 15%?»).\n" +
             "Probá con: «¿Cuánto gasté este mes?» y después «¿Y el mes pasado?».",
         "Puedo contarte, con tus datos reales:\n" +
             "• Cuánto gastaste o ingresó (hoy, esta semana, este mes, el mes pasado, un mes puntual).\n" +
@@ -44,6 +45,7 @@ class MonkiVoice(private val region: MonkiRegion, private val seed: Int = 0) {
             "• Tu saldo, lo apartado y lo libre.\n" +
             "• Comparaciones con el mes pasado y la tendencia de tus gastos.\n" +
             "• Presupuestos, ahorros, facturas y préstamos.\n" +
+            "• Cómo cerrarías el mes, gastos hormiga, dónde recortar y simulaciones («¿y si reduzco un 15%?»).\n" +
             "Prueba con: «¿Cuánto gasté este mes?» y después «¿Y el mes pasado?».",
     )
 

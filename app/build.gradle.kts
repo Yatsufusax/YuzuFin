@@ -19,6 +19,7 @@ android {
         applicationId = "com.yuzufin.app"
         // minSdk 26: permite iconos adaptativos sin PNG de respaldo (Android 8.0+).
         minSdk = 26
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         targetSdk = 35
         versionCode = ciBuildNumber ?: 1
         versionName = if (ciBuildNumber != null) "0.2.$ciBuildNumber" else "0.2.0-local"
@@ -104,4 +105,10 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.json)
+
+    // Solo para las pruebas instrumentadas del resumen semanal (no entran en el APK).
+    androidTestImplementation("androidx.work:work-testing:2.9.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test:rules:1.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }

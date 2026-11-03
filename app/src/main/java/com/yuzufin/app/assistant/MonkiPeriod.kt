@@ -49,7 +49,8 @@ object MonkiPeriods {
     private val LAST_N_DAYS = Regex("\\bultimos (\\d{1,3}) dias\\b")
     private val PREVIOUS_WEEK = Regex("\\b(semana pasada|semana anterior)\\b")
     private val THIS_WEEK = Regex("\\b(esta semana|ultima semana|semana)\\b")
-    private val LAST_MONTH = Regex("\\b(mes pasado|mes anterior)\\b")
+    private val LAST_MONTH = Regex("\\b(mes pasado|mes anterior|anterior mes|pasado mes)\\b")
+    private val MONTHS_AGO = Regex("\\bhace (un|uno|1|dos|2|tres|3|cuatro|4|cinco|5|seis|6) (mes|meses)\\b")
     private val NAMED_MONTH = Regex("\\b(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)\\b")
     private val THIS_MONTH = Regex("\\b(este mes|del mes|en el mes|mes actual|mes en curso|el mes|mes)\\b")
     private val LAST_YEAR = Regex("\\bano pasado\\b")
@@ -86,6 +87,17 @@ object MonkiPeriods {
         }
         consume(PREVIOUS_WEEK) {
             MonkiPeriod(today.minusDays(13), today.minusDays(7), MonkiPeriod.Kind.PREVIOUS_7_DAYS, "en los 7 días anteriores")
+        }
+        consume(MONTHS_AGO) { match ->
+            val n = when (match.groupValues[1]) {
+                "un", "uno", "1" -> 1
+                "dos", "2" -> 2
+                "tres", "3" -> 3
+                "cuatro", "4" -> 4
+                "cinco", "5" -> 5
+                else -> 6
+            }
+            monthPeriod(YearMonth.from(today).minusMonths(n.toLong()), today, if (n == 1) "hace un mes" else "hace $n meses")
         }
         consume(THIS_WEEK) {
             MonkiPeriod(today.minusDays(6), today, MonkiPeriod.Kind.LAST_7_DAYS, "en los últimos 7 días")
@@ -140,5 +152,44 @@ object MonkiPeriods {
 
         val remaining = work.trim().replace(Regex("\\s+"), " ")
         return MonkiPeriodReading(found.sortedBy { it.first }.map { it.second }, ambiguous, remaining)
+    }
+
+    private fun monthPeriod(month: YearMonth, today: LocalDate, phrase: String) =
+        MonkiPeriod(month.atDay(1), month.atEndOfMonth(), MonkiPeriod.Kind.NAMED_MONTH, phrase)
+
+    /** "Anterior", "el anterior": el período que viene justo antes de [period]. */
+    fun previous(period: MonkiPeriod, today: LocalDate): MonkiPeriod {
+        val fullMonth = period.start.dayOfMonth == 1 && period.end == YearMonth.from(period.start).atEndOfMonth()
+        return when {
+            period.kind == MonkiPeriod.Kind.THIS_MONTH -> {
+                val month = YearMonth.from(period.start).minusMonths(1)
+                MonkiPeriod(month.atDay(1), month.atEndOfMonth(), MonkiPeriod.Kind.LAST_MONTH, "el mes pasado")
+            }
+            fullMonth && period.kind != MonkiPeriod.Kind.LAST_YEAR && period.kind != MonkiPeriod.Kind.THIS_YEAR -> {
+                val month = YearMonth.from(period.start).minusMonths(1)
+                val name = MONTH_NAMES[month.monthValue - 1]
+                val phrase = if (month.year == today.year) "en $name" else "en $name de ${month.year}"
+                monthPeriod(month, today, phrase)
+            }
+            period.kind == MonkiPeriod.Kind.LAST_7_DAYS ->
+                MonkiPeriod(period.start.minusDays(7), period.start.minusDays(1), MonkiPeriod.Kind.PREVIOUS_7_DAYS, "en los 7 días anteriores")
+            period.kind == MonkiPeriod.Kind.TODAY ->
+                MonkiPeriod(today.minusDays(1), today.minusDays(1), MonkiPeriod.Kind.YESTERDAY, "ayer")
+            period.kind == MonkiPeriod.Kind.YESTERDAY ->
+                MonkiPeriod(today.minusDays(2), today.minusDays(2), MonkiPeriod.Kind.DAY_BEFORE, "anteayer")
+            period.kind == MonkiPeriod.Kind.THIS_YEAR || period.kind == MonkiPeriod.Kind.LAST_YEAR -> {
+                val year = period.start.year - 1
+                MonkiPeriod(
+                    LocalDate.of(year, 1, 1), LocalDate.of(year, 12, 31), MonkiPeriod.Kind.LAST_YEAR,
+                    if (year == today.year - 1) "el año pasado" else "en $year",
+                )
+            }
+            else -> MonkiPeriod(
+                period.start.minusDays(period.days),
+                period.start.minusDays(1),
+                MonkiPeriod.Kind.LAST_N_DAYS,
+                "en el período anterior",
+            )
+        }
     }
 }

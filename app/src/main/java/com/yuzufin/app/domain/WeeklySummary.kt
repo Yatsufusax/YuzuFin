@@ -40,6 +40,25 @@ object WeeklySummaryCalculator {
         )
     }
 
+    /** Si Android demora el trabajo, el resumen de un domingo todavía se entrega hasta 2 días después (martes 20:00). */
+    const val CATCH_UP_DAYS = 2L
+
+    /**
+     * El domingo cuyo resumen toca entregar ahora: el último domingo a las 20:00 que ya pasó, siempre
+     * que no hayan pasado más de [CATCH_UP_DAYS] días. Devuelve null si no toca (o si está desactivado).
+     * El resumen se calcula con los 7 días que terminan en ese domingo, aunque el aviso llegue tarde.
+     */
+    fun dueSunday(enabled: Boolean, now: LocalDateTime): LocalDate? {
+        if (!enabled) return null
+        var sunday = now.toLocalDate().with(TemporalAdjusters.previousOrSame(DAY))
+        if (sunday.atTime(HOUR, 0).isAfter(now)) sunday = sunday.minusWeeks(1)
+        val deadline = sunday.atTime(HOUR, 0).plusDays(CATCH_UP_DAYS)
+        return sunday.takeIf { !now.isAfter(deadline) }
+    }
+
+    /** Clave para no repetir el aviso de una misma semana (la misma que usaba la versión anterior). */
+    fun dedupeKey(sunday: LocalDate): String = "weekly:${sunday.toEpochDay()}"
+
     /** Solo se avisa el domingo, desde las 20:00 (si Android demora el trabajo, hasta medianoche). */
     fun shouldSend(enabled: Boolean, now: LocalDateTime): Boolean =
         enabled && now.dayOfWeek == DAY && now.hour >= HOUR

@@ -61,6 +61,17 @@ class MonkiFinanceEngine {
             intent = MonkiIntent.EXPENSES
         }
 
+        // "¿Y el anterior?": el período de antes del que se venía hablando.
+        val basePeriod = context.period
+        if (period == null && parsed.previousPeriod && basePeriod != null) {
+            period = MonkiPeriods.previous(basePeriod, today)
+        }
+        // Las preguntas de análisis miran un tramo largo si no se dice período: hacen falta datos para ver patrones.
+        if (period == null && intent in WINDOW_INTENTS) period = analysisWindow(today)
+        if (period == null && intent == MonkiIntent.SIMULATION) {
+            period = basePeriod ?: MonkiPeriod(today.withDayOfMonth(1), today, MonkiPeriod.Kind.THIS_MONTH, "este mes")
+        }
+
         val needsPeriod = intent == MonkiIntent.EXPENSES || intent == MonkiIntent.INCOME ||
             intent == MonkiIntent.TOP_CATEGORIES
         if (needsPeriod && period == null) {
@@ -69,6 +80,7 @@ class MonkiFinanceEngine {
             if (period == null) return MonkiReply(voice.askPeriod(), MonkiContext(intent, null, topic))
         }
 
+        var compared: List<MonkiPeriod> = emptyList()
         val text = when (intent) {
             MonkiIntent.EXPENSES -> {
                 val p = period ?: return MonkiReply(voice.askPeriod(), MonkiContext(intent, null, topic))
@@ -78,7 +90,12 @@ class MonkiFinanceEngine {
             MonkiIntent.TOP_CATEGORIES -> topCategoriesAnswer(env, period ?: return MonkiReply(voice.askPeriod(), MonkiContext(intent, null, topic)))
             MonkiIntent.BALANCE -> balanceAnswer(env)
             MonkiIntent.SPENDING_CHECK -> checkAnswer(env)
-            MonkiIntent.COMPARE -> compareAnswer(env, parsed.periods)
+            MonkiIntent.COMPARE -> compareAnswer(env, requestedForCompare(parsed, basePeriod, today).also { compared = it })
+            MonkiIntent.ANT_SPENDING -> antAnswer(env, period ?: analysisWindow(today))
+            MonkiIntent.SAVING_TIPS -> savingTipsAnswer(env, period ?: analysisWindow(today))
+            MonkiIntent.SIMULATION -> simulationAnswer(env, period ?: analysisWindow(today), parsed)
+            MonkiIntent.HABITS -> habitsAnswer(env, period ?: analysisWindow(today))
+            MonkiIntent.EXPLAIN -> explainAnswer(env, period ?: analysisWindow(today))
             MonkiIntent.BUDGETS -> budgetsAnswer(env)
             MonkiIntent.SAVINGS -> savingsAnswer(env)
             MonkiIntent.BILLS -> billsAnswer(env)
@@ -90,9 +107,10 @@ class MonkiFinanceEngine {
 
         // Solo las consultas con período (y la comparación) dejan contexto para el "¿y …?".
         val remembers = intent == MonkiIntent.EXPENSES || intent == MonkiIntent.INCOME ||
-            intent == MonkiIntent.TOP_CATEGORIES || intent == MonkiIntent.COMPARE
+            intent == MonkiIntent.TOP_CATEGORIES || intent == MonkiIntent.COMPARE || intent in WINDOW_INTENTS
         val newContext = if (remembers) {
-            MonkiContext(intent, parsed.periods.firstOrNull() ?: period ?: context.period, topic)
+            val remembered = if (intent == MonkiIntent.COMPARE && parsed.previousPeriod) compared.lastOrNull() else null
+            MonkiContext(intent, remembered ?: parsed.periods.firstOrNull() ?: period ?: context.period, topic)
         } else {
             context
         }
@@ -368,15 +386,237 @@ class MonkiFinanceEngine {
     private fun projectionAnswer(env: Env): String {
         val month = YearMonth.from(env.today)
         val point = StatsCalculator.monthPoint(env.data.initial, env.data.transactions, month)
+        val day = env.today.dayOfMonth
+        if (point.expense == 0L && day >= StatsCalculator.MIN_DAYS_FOR_PROJECTION) {
+            return "Este mes no hay gastos registrados todavía, así que no tengo con qué estimar cómo vas a cerrar." +
+                env.joke(JokeSituation.EMPTY)
+        }
         val projected = StatsCalculator.projectedExpense(point.expense, env.today, month)
-            ?: return "Todavía es muy pronto en el mes para estimar cómo vas a cerrar: necesito unos días más de datos."
+            ?: return "Todavía es muy pronto en el mes para estimar cómo vas a cerrar: llevamos $day " +
+                "${if (day == 1) "día" else "días"} y necesito al menos ${StatsCalculator.MIN_DAYS_FOR_PROJECTION} de datos."
+        val remaining = month.lengthOfMonth() - day
+        val pace = point.expense / day
         val text = StringBuilder(
-            "Es una estimación, no un dato real: si seguís a este ritmo, cerrarías el mes con unos " +
-                "${env.money(projected)} de gastos (hasta hoy llevás ${env.money(point.expense)}).",
+            "Es una estimación, no un dato real. Hasta hoy (día $day) llevás ${env.money(point.expense)} de gastos, " +
+                "unos ${env.money(pace)} por día.",
         )
-        if (point.income > 0L) text.append(" Este mes ingresaron ${env.money(point.income)}.")
+        if (remaining > 0) {
+            text.append(" Quedan $remaining ${if (remaining == 1) "día" else "días"}: si seguís a este ritmo, ")
+            text.append("cerrarías el mes con unos ${env.money(projected)} de gastos.")
+        } else {
+            text.append(" Hoy es el último día del mes: el cierre sería ${env.money(projected)}.")
+        }
+        if (point.income > 0L) {
+            text.append(" Este mes ingresaron ${env.money(point.income)}")
+            text.append(
+                if (projected > point.income) {
+                    ", así que esa estimación superaría lo ingresado por unos ${env.money(projected - point.income)}."
+                } else {
+                    ", así que (siempre estimando) te quedarían unos ${env.money(point.income - projected)}."
+                },
+            )
+        }
+        val upcoming = env.data.bills.filter { !it.paid && !it.dueDate.isBefore(env.today) && !it.dueDate.isAfter(month.atEndOfMonth()) }
+        val upcomingTotal = ObligationMath.committed(upcoming)
+        if (upcomingTotal > 0L) {
+            text.append(" Ojo: tenés ${env.money(upcomingTotal)} en facturas que vencen este mes; si no las pagaste todavía, no están en esa cuenta.")
+        }
         val situation = if (point.income > 0L && projected > point.income) JokeSituation.HIGH else JokeSituation.GENERAL
         return text.toString() + env.joke(situation)
+    }
+
+    // ----- Razonamiento sobre los movimientos ----------------------------------------------------
+
+    /** Gastos chicos y repetidos dentro de un conjunto de gastos. */
+    private data class AntGroup(val label: String, val count: Int, val totalMinor: Long, val categoryId: Long)
+
+    /**
+     * Gasto hormiga = gasto chico (no supera la mediana de tus gastos del período) que se repite
+     * (3 veces o más, en días distintos). Con pocos movimientos no se afirma nada.
+     */
+    private fun antGroups(list: List<FinanceTransaction>): Pair<Long, List<AntGroup>> {
+        if (list.size < MIN_MOVEMENTS) return 0L to emptyList()
+        val sorted = list.map { it.amountMinor }.sorted()
+        val threshold = if (sorted.size % 2 == 1) sorted[sorted.size / 2] else (sorted[sorted.size / 2 - 1] + sorted[sorted.size / 2]) / 2
+        val small = list.filter { it.amountMinor <= threshold }
+        val groups = small.groupBy { tx ->
+            MonkiText.normalize(tx.description).ifBlank { "cat ${tx.categoryId}" }
+        }.values.filter { group -> group.size >= 3 && group.map { it.date }.distinct().size >= 2 }
+            .map { group ->
+                val first = group.first()
+                AntGroup(
+                    label = first.description.trim().ifBlank { "" },
+                    count = group.size,
+                    totalMinor = group.sumOf { it.amountMinor },
+                    categoryId = first.categoryId,
+                )
+            }
+            .sortedByDescending { it.totalMinor }
+        return threshold to groups
+    }
+
+    private fun antLabel(env: Env, group: AntGroup): String =
+        group.label.ifBlank { env.categoryName(group.categoryId) }
+
+    private fun tooFewMovements(env: Env, period: MonkiPeriod, count: Int, what: String): String =
+        if (count == 0) {
+            "No encuentro gastos registrados ${period.phrase}, así que no puedo $what." + env.joke(JokeSituation.EMPTY)
+        } else {
+            "Con ${movements(count)} ${period.phrase} todavía no puedo $what: necesito al menos $MIN_MOVEMENTS " +
+                "movimientos para distinguir algo que se repite de algo puntual." + env.joke(JokeSituation.EMPTY)
+        }
+
+    private fun antAnswer(env: Env, period: MonkiPeriod): String {
+        val list = env.expenses(period)
+        if (list.size < MIN_MOVEMENTS) return tooFewMovements(env, period, list.size, "detectar gastos hormiga")
+        val total = list.sumOf { it.amountMinor }
+        val (threshold, groups) = antGroups(list)
+        if (groups.isEmpty()) {
+            val top = env.byCategory(list).entries.maxByOrNull { it.value }
+            val text = StringBuilder(
+                "Revisé ${movements(list.size)} ${period.phrase} y no veo gastos hormiga claros: ningún gasto chico " +
+                    "(de ${env.money(threshold)} o menos) se repite 3 veces o más en días distintos.",
+            )
+            if (top != null) {
+                text.append(" La categoría que más pesa es ${env.categoryName(top.key)} (${env.money(top.value)}), ")
+                text.append("pero eso es peso total, no necesariamente hormiga.")
+            }
+            return text.toString() + env.joke(JokeSituation.GENERAL)
+        }
+        val shown = groups.take(3)
+        val lines = shown.map {
+            "• ${antLabel(env, it)}: ${it.count} veces, ${env.money(it.totalMinor)} en total (${StatsCalculator.percentOf(it.totalMinor, total)}% de tus gastos)"
+        }
+        val food = env.categoryOf(shown.first().categoryId)?.iconKey == "food"
+        return "Esto es lo que más se parece a un gasto hormiga ${period.phrase}:\n" + lines.joinToString("\n") +
+            "\nLo detecto con una regla simple: gastos de ${env.money(threshold)} o menos (la mitad de tus gastos de ese período) " +
+            "que se repiten 3 veces o más en días distintos. Que se repita no lo hace malo; es solo algo para revisar." +
+            env.joke(if (food) JokeSituation.FOOD else JokeSituation.GENERAL)
+    }
+
+    private fun savingTipsAnswer(env: Env, period: MonkiPeriod): String {
+        val list = env.expenses(period)
+        if (list.size < MIN_SAVING_MOVEMENTS) return tooFewMovements(env, period, list.size, "sugerirte dónde recortar")
+        val total = list.sumOf { it.amountMinor }
+        val byCategory = env.byCategory(list).entries.sortedByDescending { it.value }
+        val flexible = byCategory.filter { env.categoryOf(it.key)?.iconKey in FLEXIBLE_ICONS }.take(2)
+        val ants = antGroups(list).second.take(2)
+        val lines = ArrayList<String>()
+        flexible.forEach {
+            lines.add(
+                "• ${env.categoryName(it.key)}: ${env.money(it.value)} (${StatsCalculator.percentOf(it.value, total)}% de tus gastos). " +
+                    "Suele ser donde hay más margen; recortar un 10% liberaría unos ${env.money(StatsCalculator.reduction(it.value, 10))} (cálculo hipotético).",
+            )
+        }
+        ants.forEach {
+            lines.add("• ${antLabel(env, it)}: ${it.count} gastos chicos que se repiten, ${env.money(it.totalMinor)} sumados.")
+        }
+        val text = StringBuilder()
+        if (lines.isEmpty()) {
+            val top = byCategory.first()
+            text.append("Mirando ${movements(list.size)} ${period.phrase}, no veo gastos claramente prescindibles. ")
+            text.append("Lo que más pesa es ${env.categoryName(top.key)} (${env.money(top.value)}), pero no sé si es una necesidad.")
+        } else {
+            text.append("Mirando tus gastos ${period.phrase}, esto es lo que revisaría primero:\n").append(lines.joinToString("\n"))
+        }
+        text.append("\nNo sé cuáles de tus gastos son obligaciones, así que no te sugiero dejar de pagar servicios, alquiler, deudas ni salud: ")
+        text.append("son pistas para revisar y la decisión es tuya.")
+        return text.toString() + env.joke(JokeSituation.SAVING)
+    }
+
+    private fun simulationAnswer(env: Env, period: MonkiPeriod, parsed: MonkiQuestion): String {
+        val percent = parsed.percent
+        if (percent == null) {
+            return env.voice.vos(
+                "Para simular necesito un porcentaje entre 1% y 100%. Por ejemplo: «¿Cuánto ahorro si reduzco mis gastos un 15%?».",
+                "Para simular necesito un porcentaje entre 1% y 100%. Por ejemplo: «¿Cuánto ahorro si reduzco mis gastos un 15%?».",
+            )
+        }
+        val total = env.expenses(period).sumOf { it.amountMinor }
+        if (total == 0L) {
+            return "No encuentro gastos registrados ${period.phrase}, así que no hay nada para simular." + env.joke(JokeSituation.EMPTY)
+        }
+        val saving = StatsCalculator.reduction(total, percent)
+        return "Es un cálculo hipotético sobre tus gastos reales ${period.phrase}:\n" +
+            "• Gastos registrados: ${env.money(total)}\n" +
+            "• Reducción: $percent%\n" +
+            "• Ahorro potencial: ${env.money(saving)}\n" +
+            "• Gastos resultantes: ${env.money(total - saving)}" + env.joke(JokeSituation.SAVING)
+    }
+
+    private fun habitsAnswer(env: Env, period: MonkiPeriod): String {
+        val list = env.expenses(period)
+        if (list.size < MIN_MOVEMENTS) return tooFewMovements(env, period, list.size, "hablar de hábitos")
+        val total = list.sumOf { it.amountMinor }
+        val income = env.incomes(period).sumOf { it.amountMinor }
+        val byCategory = env.byCategory(list).entries.sortedByDescending { it.value }
+        val notes = ArrayList<String>()
+        val top = byCategory.first()
+        if (byCategory.size >= 2 && StatsCalculator.percentOf(top.value, total) >= 40) {
+            notes.add("• El ${StatsCalculator.percentOf(top.value, total)}% de tus gastos se concentra en ${env.categoryName(top.key)}. No es malo en sí, pero ahí está lo que más mueve tu plata.")
+        }
+        antGroups(list).second.firstOrNull()?.let {
+            notes.add("• ${antLabel(env, it)} se repite ${it.count} veces (${env.money(it.totalMinor)}): gastos chicos que suman.")
+        }
+        if (income > 0L && total > income) {
+            notes.add("• Gastaste ${env.money(total)} y ingresaron ${env.money(income)}: gastás más de lo que entra.")
+        } else {
+            val rate = StatsCalculator.savingsRatePercent(income, total)
+            if (rate != null && rate < 10) notes.add("• Te queda solo un $rate% de lo que ingresa.")
+        }
+        if (income == 0L) notes.add("• No tengo ingresos registrados ${period.phrase}, así que no puedo comparar lo que entra con lo que sale.")
+        val head = "Con ${movements(list.size)} ${period.phrase}, esto es lo que veo (son pistas, no un diagnóstico):\n"
+        if (notes.isEmpty()) {
+            return "Con ${movements(list.size)} ${period.phrase} no veo un hábito que destaque: ningún gasto se concentra ni se repite de forma llamativa." +
+                env.joke(JokeSituation.LOW)
+        }
+        val more = if (notes.size == 1) "\nCon tan pocos indicios no me animo a decir más." else ""
+        return head + notes.joinToString("\n") + more + env.joke(if (income > 0L && total > income) JokeSituation.HIGH else JokeSituation.GENERAL)
+    }
+
+    private fun explainAnswer(env: Env, period: MonkiPeriod): String {
+        val list = env.expenses(period)
+        if (list.size < MIN_SAVING_MOVEMENTS) {
+            return "Para explicarte a dónde se va tu plata necesito más movimientos: ${period.phrase} solo veo ${list.size}. " +
+                "Con tus gastos e ingresos cargados puedo mirar cuánto entra, cuánto sale y en qué se concentra." +
+                env.joke(JokeSituation.EMPTY)
+        }
+        val total = list.sumOf { it.amountMinor }
+        val income = env.incomes(period).sumOf { it.amountMinor }
+        val lines = ArrayList<String>()
+        if (income > 0L) {
+            lines.add(
+                "• ${period.phrase.replaceFirstChar { it.uppercase() }} ingresaron ${env.money(income)} y gastaste ${env.money(total)}: " +
+                    "se fue el ${StatsCalculator.percentOf(total, income)}% de lo que entró.",
+            )
+        } else {
+            lines.add("• No tengo ingresos registrados ${period.phrase}, así que no puedo medir cuánto de lo que entra se va. Si los cargás, lo calculo.")
+        }
+        val ranking = env.byCategory(list).entries.sortedByDescending { it.value }.take(3)
+        lines.add(
+            "• Se concentra en " + ranking.joinToString(", ") {
+                "${env.categoryName(it.key)} (${StatsCalculator.percentOf(it.value, total)}%)"
+            } + ".",
+        )
+        lines.add("• Son ${movements(list.size)} en ${period.days} días: cada gasto suma aunque sea chico.")
+        antGroups(list).second.takeIf { it.isNotEmpty() }?.let { groups ->
+            lines.add("• Hay gastos chicos repetidos (${groups.take(2).joinToString(", ") { antLabel(env, it) }}) que suman ${env.money(groups.sumOf { it.totalMinor })}.")
+        }
+        val committed = ObligationMath.committed(env.data.bills)
+        if (committed > 0L) lines.add("• Tenés ${env.money(committed)} en facturas pendientes que van a salir de tu saldo.")
+        env.data.initial?.let { initial ->
+            val available = BalanceCalculator.availableBalance(initial, env.data.transactions)
+            val spendable = SavingsMath.spendable(available, env.data.savingsEntries.sumOf { it.amountMinor })
+            lines.add("• Tu saldo disponible hoy es ${env.money(spendable)}.")
+        }
+        return "Mirando tus movimientos ${period.phrase}, esto es lo que explica que la plata rinda poco:\n" +
+            lines.joinToString("\n") + env.joke(JokeSituation.GENERAL)
+    }
+
+    /** Qué períodos se comparan: los pedidos o, en "¿y comparado con el anterior?", el previo al de la charla. */
+    private fun requestedForCompare(parsed: MonkiQuestion, base: MonkiPeriod?, today: LocalDate): List<MonkiPeriod> {
+        if (parsed.periods.isNotEmpty() || !parsed.previousPeriod || base == null) return parsed.periods
+        return if (base.kind == MonkiPeriod.Kind.THIS_MONTH) listOf(base) else listOf(base, MonkiPeriods.previous(base, today))
     }
 
     // ----- Presupuestos, ahorros, facturas y préstamos -------------------------------------------
@@ -500,6 +740,16 @@ class MonkiFinanceEngine {
     }
 
     private companion object {
+        /** Consultas de análisis: sin período, miran los últimos 90 días. */
+        val WINDOW_INTENTS = setOf(MonkiIntent.ANT_SPENDING, MonkiIntent.SAVING_TIPS, MonkiIntent.HABITS, MonkiIntent.EXPLAIN)
+        const val MIN_MOVEMENTS = 8
+        const val MIN_SAVING_MOVEMENTS = 5
+        /** Categorías donde suele haber margen para recortar (nunca servicios, salud, hogar ni educación). */
+        val FLEXIBLE_ICONS = setOf("food", "leisure", "shopping")
+
+        fun analysisWindow(today: LocalDate) =
+            MonkiPeriod(today.minusDays(89), today, MonkiPeriod.Kind.LAST_N_DAYS, "en los últimos 90 días")
+
         val MONTH_NAMES = listOf(
             "enero", "febrero", "marzo", "abril", "mayo", "junio",
             "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",

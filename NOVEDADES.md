@@ -1,10 +1,12 @@
 ## Nuevo
-- Monki entiende muchas más formas de preguntar: «¿Cuánta plata se me fue?», «¿Cómo ando de dinero?», «¿Estoy gastando demasiado?», «¿Cómo vengo comparado con el mes pasado?».
-- Monki recuerda de qué estaban hablando: después de «¿Cuánto gasté este mes?» podés preguntar «¿Y el mes pasado?» o «¿Y en comida?».
-- Nuevas consultas con tus datos reales: gastos e ingresos de hoy, ayer, la semana, el mes, el mes pasado o un mes puntual; en qué se va tu plata; tu saldo, lo apartado y lo libre; presupuestos, ahorros, facturas, préstamos, tendencia y una estimación del cierre del mes.
-- Si falta el período o la pregunta es ambigua, Monki te pregunta en vez de adivinar.
-- Muchos más chistes, que cambian según la situación y respetan la cultura de cada país (guaraníes, pesos argentinos u otras monedas).
+- Monki entiende mejor las preguntas de seguimiento: después de «¿Cuánto gasté este mes?» podés decir «¿Y el anterior?», «¿Y el anterior mes?», «¿Y hace dos meses?» o «¿Y comparado con el anterior?». Ya no busca «anterior» entre tus categorías.
+- Proyección del mes: «Si sigo gastando así, ¿cómo terminaré este mes?» ahora calcula una estimación con lo gastado, los días que pasaron, los que quedan y tu ritmo diario, y la marca siempre como estimación.
+- Gastos hormiga: Monki busca gastos chicos que se repiten (3 veces o más, en días distintos) y te los muestra. Si no hay datos suficientes o no hay un patrón claro, te lo dice en vez de inventarlo.
+- Simulaciones: «¿Cuánto ahorro si reduzco mis gastos un 15 %?» calcula sobre tus gastos reales del período (gastos actuales, ahorro potencial y gastos resultantes), aclarando que es hipotético.
+- Dónde recortar: «¿Qué podría dejar de comprar para ahorrar más?» revisa tus movimientos (comida, ocio, compras y gastos chicos repetidos) y no te sugiere dejar de pagar servicios, alquiler, deudas ni salud.
+- Hábitos y preguntas abiertas: «¿Qué hábito financiero debería cambiar?» y «¿Por qué siento que mi dinero desaparece tan rápido?» analizan ingresos contra gastos, en qué se concentra tu plata, la frecuencia de movimientos y tus facturas pendientes. Con pocos datos, Monki explica qué le falta.
 
 ## Mejorado
-- Las cifras de Monki ahora salen de las mismas cuentas que Inicio y Estadísticas, así que coinciden con lo que ves en la app. Los préstamos no cuentan como gasto.
-- Monki solo lee tus datos: no puede crear, editar ni borrar nada.
+- Cuando no se indica un período, los análisis de hábitos, gastos hormiga y recortes miran los últimos 90 días, para tener datos suficientes.
+- Monki sigue siendo de solo lectura y mantiene su humor según la moneda.
+- Resumen semanal del domingo más confiable: ahora se revisa todos los días a las 20:00 y, si Android lo demoró, igual se entrega el resumen del último domingo (hasta el martes), una sola vez por semana. Si las notificaciones están desactivadas, Ajustes te lo avisa y te deja activarlas.

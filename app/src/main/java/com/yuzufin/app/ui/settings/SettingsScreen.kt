@@ -373,6 +373,18 @@ private fun WeeklySummaryCard(
                 },
             )
         }
+        // El resumen viene activado de fábrica, así que el permiso puede no haberse pedido nunca:
+        // sin él Android descarta el aviso. Se explica y se ofrece activarlo.
+        if (enabled && !permission.granted) {
+            Spacer(Modifier.height(12.dp))
+            Text(stringResource(R.string.weekly_permission_off), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            Spacer(Modifier.height(8.dp))
+            if (permission.needsSettings) {
+                OutlinedButton(onClick = permission.openSettings) { Text(stringResource(R.string.reminders_open_settings)) }
+            } else {
+                Button(onClick = permission.request) { Text(stringResource(R.string.reminders_enable)) }
+            }
+        }
     }
 }
 

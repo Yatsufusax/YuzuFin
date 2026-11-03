@@ -7,6 +7,16 @@ enum class MonkiIntent {
     GREETING, THANKS, HELP,
     EXPENSES, INCOME, TOP_CATEGORIES, BALANCE, SPENDING_CHECK, COMPARE,
     BUDGETS, SAVINGS, BILLS, LOANS, TREND, PROJECTION,
+    /** Gastos chicos y repetidos ("gasto hormiga"). */
+    ANT_SPENDING,
+    /** "¿Qué podría dejar de comprar para ahorrar?" (no es lo mismo que consultar las metas de ahorro). */
+    SAVING_TIPS,
+    /** "¿Cuánto ahorro si reduzco mis gastos un 15 %?" */
+    SIMULATION,
+    /** "¿Qué hábito financiero debería cambiar?" */
+    HABITS,
+    /** "¿Por qué mi plata desaparece tan rápido?" */
+    EXPLAIN,
     UNKNOWN,
 }
 
@@ -30,6 +40,12 @@ data class MonkiQuestion(
     val ambiguousPeriod: Boolean,
     val topic: String?,
     val followUp: Boolean,
+    /** "¿Y el anterior?": el período es el que viene antes del de la pregunta previa. */
+    val previousPeriod: Boolean = false,
+    /** Porcentaje de una simulación ("un 15 %"), entre 1 y 100. */
+    val percent: Int? = null,
+    /** Había un porcentaje pero fuera de rango (0 %, 250 %…). */
+    val invalidPercent: Boolean = false,
 )
 
 /**
@@ -37,6 +53,8 @@ data class MonkiQuestion(
  * sin depender de una frase exacta. Es una función pura y solo interpreta: no calcula ninguna cifra.
  */
 object MonkiIntentParser {
+
+    private val PREVIOUS_WORDS = setOf("anterior", "anteriores", "previo", "previa")
 
     private val TOPIC_PREPOSITIONS = setOf("en", "de", "para", "por")
 
@@ -46,6 +64,7 @@ object MonkiIntentParser {
         "dia", "dias", "plata", "dinero", "guita", "mango", "mangos", "categoria", "categorias",
         "cuanto", "cuanta", "cuantos", "como", "estoy", "tengo", "mas", "menos", "nada", "mucho",
         "poco", "este", "esta", "estos", "estas", "ese", "esa", "mio", "mia", "ahora", "tambien",
+        "anterior", "anteriores", "previo", "previa", "pasado", "pasada", "hace", "comparado", "comparar",
     )
 
     /** Prefijos de las palabras que dicen qué se quiere saber: no cuentan como tema. */
@@ -54,8 +73,12 @@ object MonkiIntentParser {
         "prestam", "deuda", "compar", "categori", "resumen", "meta",
     )
 
+    private val PERCENT = Regex("(\\d{1,4}(?:[.,]\\d+)?)\\s*(%|por ?ciento)")
+
     fun parse(question: String, today: LocalDate, hasContext: Boolean): MonkiQuestion {
         val q = MonkiText.normalize(question)
+        val rawPercent = PERCENT.find(question.lowercase())?.groupValues?.get(1)
+            ?.replace(',', '.')?.toDoubleOrNull()?.toInt()
         val reading = MonkiPeriods.read(q, today)
 
         fun has(vararg phrases: String) = phrases.any { MonkiText.hasPhrase(q, it) }
@@ -69,8 +92,23 @@ object MonkiIntentParser {
             has("mas que", "menos que", "vs", "versus", "respecto", "frente a", "igual que")
         val projection = has(
             "voy a gastar", "cuanto voy a", "proyeccion", "a fin de mes", "fin de mes",
-            "cierro el mes", "estimacion", "estimado",
+            "cierro el mes", "estimacion", "estimado", "si sigo asi", "si sigo gastando",
+            "como terminare", "como termino", "como voy a terminar", "como cerrare", "como cierro",
+            "a este ritmo", "con este ritmo", "terminar el mes", "terminare el mes", "cerrare el mes",
         )
+        val ant = stem("hormig") || (spend && has("chicos", "chiquitos", "pequenos", "pequeno", "chiquitines", "de poco valor"))
+        val simulation = rawPercent != null &&
+            (stem("reduc", "recort", "baj", "disminu") || (has("si") && stem("gast", "ahorr")))
+        val savingTips = has(
+            "dejar de comprar", "dejar de gastar", "que puedo recortar", "que podria recortar", "que recorto",
+            "en que puedo ahorrar", "donde puedo ahorrar", "como ahorro", "como puedo ahorrar", "gastar menos",
+            "reducir gastos", "recortar gastos", "bajar gastos", "bajar mis gastos", "que puedo evitar",
+            "que podria evitar", "que gastos puedo", "que gasto puedo", "ahorrar mas", "ahorrar mas plata",
+        ) || (stem("ahorr") && has("podria", "puedo", "deberia", "comprar", "recort", "evitar"))
+        val habits = stem("habit", "costumbr", "manias")
+        val explain = has("desaparece", "desaparecen", "se esfuma", "se esfuman", "se evapora", "se evaporan",
+            "no me alcanza", "no me rinde", "no me rinden", "no llego") ||
+            (has("por que", "porque", "como es que") && has("plata", "dinero", "guita", "mango", "mangos", "sueldo", "salario"))
         val check = spend && (
             stem("demasiad") ||
                 has("mucho", "de mas", "me paso", "me estoy pasando", "excedo", "exceso", "controlado", "bien con")
@@ -101,6 +139,11 @@ object MonkiIntentParser {
             has("buen dia", "que tal", "mba eichapa", "mbaeichapa")
 
         val intent = when {
+            ant -> MonkiIntent.ANT_SPENDING
+            simulation -> MonkiIntent.SIMULATION
+            savingTips -> MonkiIntent.SAVING_TIPS
+            habits -> MonkiIntent.HABITS
+            explain -> MonkiIntent.EXPLAIN
             compare -> MonkiIntent.COMPARE
             projection -> MonkiIntent.PROJECTION
             check -> MonkiIntent.SPENDING_CHECK
@@ -125,8 +168,12 @@ object MonkiIntentParser {
             topic = bareTopic(remainingWords)
         }
 
+        // "¿Y el anterior?": sin período propio, "anterior" o "previo" apuntan al período de antes.
+        val previousPeriod = reading.periods.isEmpty() && hasContext &&
+            remainingWords.any { it in PREVIOUS_WORDS }
+
         val followUp = intent == MonkiIntent.UNKNOWN && hasContext &&
-            (reading.periods.isNotEmpty() || topic != null)
+            (reading.periods.isNotEmpty() || topic != null || previousPeriod)
         // Sin intención clara y sin nada que seguir, no hay tema que arrastrar.
         if (intent == MonkiIntent.UNKNOWN && !followUp) topic = null
 
@@ -136,6 +183,9 @@ object MonkiIntentParser {
             ambiguousPeriod = reading.ambiguous,
             topic = topic,
             followUp = followUp,
+            previousPeriod = previousPeriod,
+            percent = rawPercent?.takeIf { simulation && it in 1..100 },
+            invalidPercent = simulation && rawPercent != null && rawPercent !in 1..100,
         )
     }
 

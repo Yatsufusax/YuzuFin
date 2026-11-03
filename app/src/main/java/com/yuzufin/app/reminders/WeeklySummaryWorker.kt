@@ -11,7 +11,6 @@ import com.yuzufin.app.domain.NotificationKind
 import com.yuzufin.app.domain.WeeklySummaryCalculator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -24,11 +23,10 @@ class WeeklySummaryWorker(context: Context, params: WorkerParameters) : Coroutin
         val container = (applicationContext as MoneaApplication).container
         return try {
             val settings = container.settingsRepository.settings.first()
-            if (!WeeklySummaryCalculator.shouldSend(settings.weeklySummaryEnabled, LocalDateTime.now())) {
-                return Result.success()
-            }
-            val today = LocalDate.now()
-            val summary = WeeklySummaryCalculator.compute(container.financeRepository.transactions.first(), today)
+            // Revisor diario: solo actúa si toca el resumen del último domingo (con hasta 2 días de margen).
+            val sunday = WeeklySummaryCalculator.dueSunday(settings.weeklySummaryEnabled, nowProvider())
+                ?: return Result.success()
+            val summary = WeeklySummaryCalculator.compute(container.financeRepository.transactions.first(), sunday)
             val names = container.financeRepository.categories.first().associate { it.id to it.name }
             val topName = summary.topCategoryId?.let { names[it] }
             val currency = CurrencyInfo.fromCode(settings.currencyCode)
@@ -46,8 +44,9 @@ class WeeklySummaryWorker(context: Context, params: WorkerParameters) : Coroutin
                 )
                 else -> applicationContext.getString(R.string.weekly_body, topName)
             }
-            // Un resumen por semana: si el trabajo se repite, no se muestra dos veces.
-            val isNew = container.notificationRepository.log(NotificationKind.SUMMARY, title, body, "weekly:${today.toEpochDay()}")
+            // Un resumen por semana: si el trabajo se repite, no se muestra dos veces. Siempre queda en el
+            // buzón de la app; la notificación del sistema solo sale si Android lo permite (ver Ajustes).
+            val isNew = container.notificationRepository.log(NotificationKind.SUMMARY, title, body, WeeklySummaryCalculator.dedupeKey(sunday))
             if (isNew) NotificationHelper.show(applicationContext, ID_WEEKLY, title, body)
             Result.success()
         } catch (e: CancellationException) {
@@ -58,7 +57,11 @@ class WeeklySummaryWorker(context: Context, params: WorkerParameters) : Coroutin
         }
     }
 
-    private companion object {
+    companion object {
+        /** Reloj del trabajo; las pruebas instrumentadas lo reemplazan para simular el domingo. */
+        @Volatile
+        var nowProvider: () -> LocalDateTime = { LocalDateTime.now() }
+
         /** No choca con los avisos de hábito (4000-4023) ni con los de presupuestos (3000-3999). */
         const val ID_WEEKLY = 4100
     }
