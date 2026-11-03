@@ -187,3 +187,6 @@ Si un build falla, el usuario pega el log y se corrige el error puntual.
 - Si se renombra o borra un archivo: actualizar el paso "Quitar archivos viejos" del workflow y avisar qué borrar a mano.
 - `NOVEDADES.md` se ve en la ventana de actualización **y en la campanilla**: pedido del usuario, que lleve **solo lo nuevo de esa entrega** (no el historial) y sea corto. Desde v41 se reinició: cada entrega reemplaza el archivo entero.
 - Hablar en español rioplatense (voseo), con respuestas cortas: el usuario usa el celular.
+
+## Monki AI 0.4 (copia de pruebas sobre v60)
+Ver `MONKI_AI_04.md`: motor determinista nuevo (períodos, intenciones, contexto "¿y el mes pasado?", chistes por región), datos de solo lectura (`MonkiDataSource`) y tests. **Sin compilar.** La IA local es una idea pendiente (decisión: primero esto; después, capa opcional medida en un Samsung S22). El plan de origen está en `README-MONKI-AI-04-PLANTEAMIENTO.md`.

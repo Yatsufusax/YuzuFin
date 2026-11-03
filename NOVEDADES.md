@@ -1,9 +1,10 @@
 ## Nuevo
-- Anotar con la voz: mantené apretado el "+" y decí, por ejemplo, "gasté veinte mil en el súper" o "cobré dos millones". Se abre el formulario ya completado para que lo revises y guardes.
-- Cuando el formulario viene completado por la voz, arriba aparece un cartelito que te avisa que lo revises antes de guardar.
-- Un toque en el "+" sigue abriendo el formulario para anotar a mano.
+- Monki entiende muchas más formas de preguntar: «¿Cuánta plata se me fue?», «¿Cómo ando de dinero?», «¿Estoy gastando demasiado?», «¿Cómo vengo comparado con el mes pasado?».
+- Monki recuerda de qué estaban hablando: después de «¿Cuánto gasté este mes?» podés preguntar «¿Y el mes pasado?» o «¿Y en comida?».
+- Nuevas consultas con tus datos reales: gastos e ingresos de hoy, ayer, la semana, el mes, el mes pasado o un mes puntual; en qué se va tu plata; tu saldo, lo apartado y lo libre; presupuestos, ahorros, facturas, préstamos, tendencia y una estimación del cierre del mes.
+- Si falta el período o la pregunta es ambigua, Monki te pregunta en vez de adivinar.
+- Muchos más chistes, que cambian según la situación y respetan la cultura de cada país (guaraníes, pesos argentinos u otras monedas).
 
 ## Mejorado
-- Un globito flotante sobre el "+" te avisa una sola vez que, si lo mantenés apretado, anotás hablando. Se cierra tocándolo o solo a los 12 segundos, y "Volver a mostrar los consejos" (Ayuda) lo vuelve a mostrar.
-- La voz es más tolerante: si el teléfono no puede reconocer sin internet o en ese acento, reintenta solo con menos exigencias, y si igual falla ofrece el dictado de Android y muestra el código del error.
-- Se quitó el menú "¿Qué querés registrar?" del "+": Pagar, Préstamo y Ahorro siguen en los atajos de Inicio.
+- Las cifras de Monki ahora salen de las mismas cuentas que Inicio y Estadísticas, así que coinciden con lo que ves en la app. Los préstamos no cuentan como gasto.
+- Monki solo lee tus datos: no puede crear, editar ni borrar nada.

@@ -12,6 +12,10 @@
     <string name="monki_send">Enviar</string>
     <string name="monki_thinking">Monki está revisando tus números…</string>
     <string name="monki_suggest_week">¿Cuánto gasté esta semana?</string>
-    <string name="monki_suggest_categories">¿En qué gasté más?</string>
-    <string name="monki_suggest_income">¿Cuánto ingresó esta semana?</string>
+    <string name="monki_suggest_month">¿Cuánto gasté este mes?</string>
+    <string name="monki_suggest_categories">¿En qué gasté más este mes?</string>
+    <string name="monki_suggest_income">¿Cuánto ingresó este mes?</string>
+    <string name="monki_suggest_balance">¿Cómo ando de dinero?</string>
+    <string name="monki_suggest_compare">¿Cómo vengo comparado con el mes pasado?</string>
+    <string name="monki_suggest_check">¿Estoy gastando demasiado?</string>
 </resources>

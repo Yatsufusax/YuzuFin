@@ -216,14 +216,18 @@ private fun UserBubble(text: String) {
 /** Preguntas frecuentes a un toque: la conversación no tiene que empezar con una hoja en blanco. */
 @Composable
 private fun Suggestions(enabled: Boolean, onPick: (String) -> Unit) {
+    val month = stringResource(R.string.monki_suggest_month)
     val week = stringResource(R.string.monki_suggest_week)
     val categories = stringResource(R.string.monki_suggest_categories)
+    val balance = stringResource(R.string.monki_suggest_balance)
+    val compare = stringResource(R.string.monki_suggest_compare)
+    val check = stringResource(R.string.monki_suggest_check)
     val income = stringResource(R.string.monki_suggest_income)
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items(listOf(week, categories, income)) { suggestion ->
+        items(listOf(month, week, categories, balance, compare, check, income)) { suggestion ->
             AssistChip(
                 onClick = { onPick(suggestion) },
                 enabled = enabled,
