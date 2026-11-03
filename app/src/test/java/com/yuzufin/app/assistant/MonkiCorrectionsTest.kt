@@ -173,7 +173,7 @@ class MonkiCorrectionsTest {
         val snap = withHistory()
         val base = ask(simulation, snap).context
         val reply = ask("¿Y si reduzco un 30% el mes pasado?", snap, base)
-        assertEquals(setOf(180_000L, 54_000L, 126_000L), amounts(reply.text))
+        assertEquals("Respuesta real: ${reply.text}", setOf(180_000L, 54_000L, 126_000L), amounts(reply.text))
         assertEquals(30, reply.context.percent)
     }
 
