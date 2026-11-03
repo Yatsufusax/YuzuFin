@@ -39,9 +39,16 @@ class MonkiFinanceEngine {
         val env = Env(data, today, voice)
 
         var intent = parsed.intent
+        var percent = parsed.percent
         if (intent == MonkiIntent.UNKNOWN) {
             val previous = context.intent
             if (parsed.followUp && previous != null) intent = previous else return MonkiReply(voice.fallback(), context)
+            // "¿Y el mes pasado?" después de una simulación: mismo escenario, otro período.
+            if (intent == MonkiIntent.SIMULATION) percent = context.percent
+        } else if (intent == MonkiIntent.SAVINGS && isSimulationFollowUp(question, parsed, context)) {
+            // "¿Y cuánto ahorraría el mes pasado?" sigue la simulación; no es una consulta de metas de ahorro.
+            intent = MonkiIntent.SIMULATION
+            percent = context.percent
         }
 
         // Saludos, ayuda y agradecimientos no cambian el hilo de la conversación.
@@ -69,8 +76,10 @@ class MonkiFinanceEngine {
         // Las preguntas de análisis miran un tramo largo si no se dice período: hacen falta datos para ver patrones.
         if (period == null && intent in WINDOW_INTENTS) period = analysisWindow(today)
         if (period == null && intent == MonkiIntent.SIMULATION) {
-            period = basePeriod ?: MonkiPeriod(today.withDayOfMonth(1), today, MonkiPeriod.Kind.THIS_MONTH, "este mes")
+            period = basePeriod ?: thisMonth(today)
         }
+        // Los presupuestos son mensuales: sin período, "demasiado" se mide en el mes en curso.
+        if (period == null && intent == MonkiIntent.CATEGORY_EXCESS) period = thisMonth(today)
 
         val needsPeriod = intent == MonkiIntent.EXPENSES || intent == MonkiIntent.INCOME ||
             intent == MonkiIntent.TOP_CATEGORIES
@@ -91,9 +100,10 @@ class MonkiFinanceEngine {
             MonkiIntent.BALANCE -> balanceAnswer(env)
             MonkiIntent.SPENDING_CHECK -> checkAnswer(env)
             MonkiIntent.COMPARE -> compareAnswer(env, requestedForCompare(parsed, basePeriod, today).also { compared = it })
-            MonkiIntent.ANT_SPENDING -> antAnswer(env, period ?: analysisWindow(today))
+            MonkiIntent.ANT_SPENDING -> antAnswer(env, period ?: analysisWindow(today), parsed.percent)
             MonkiIntent.SAVING_TIPS -> savingTipsAnswer(env, period ?: analysisWindow(today))
-            MonkiIntent.SIMULATION -> simulationAnswer(env, period ?: analysisWindow(today), parsed)
+            MonkiIntent.SIMULATION -> simulationAnswer(env, period ?: analysisWindow(today), percent)
+            MonkiIntent.CATEGORY_EXCESS -> categoryExcessAnswer(env, period ?: thisMonth(today))
             MonkiIntent.HABITS -> habitsAnswer(env, period ?: analysisWindow(today))
             MonkiIntent.EXPLAIN -> explainAnswer(env, period ?: analysisWindow(today))
             MonkiIntent.BUDGETS -> budgetsAnswer(env)
@@ -106,15 +116,35 @@ class MonkiFinanceEngine {
         }
 
         // Solo las consultas con período (y la comparación) dejan contexto para el "¿y …?".
+        // La simulación solo se recuerda si tuvo un porcentaje válido: sin él no hay escenario que repetir.
         val remembers = intent == MonkiIntent.EXPENSES || intent == MonkiIntent.INCOME ||
-            intent == MonkiIntent.TOP_CATEGORIES || intent == MonkiIntent.COMPARE || intent in WINDOW_INTENTS
+            intent == MonkiIntent.TOP_CATEGORIES || intent == MonkiIntent.COMPARE || intent in WINDOW_INTENTS ||
+            intent == MonkiIntent.CATEGORY_EXCESS || (intent == MonkiIntent.SIMULATION && percent != null)
         val newContext = if (remembers) {
             val remembered = if (intent == MonkiIntent.COMPARE && parsed.previousPeriod) compared.lastOrNull() else null
-            MonkiContext(intent, remembered ?: parsed.periods.firstOrNull() ?: period ?: context.period, topic)
+            MonkiContext(
+                intent,
+                remembered ?: parsed.periods.firstOrNull() ?: period ?: context.period,
+                topic,
+                percent = if (intent == MonkiIntent.SIMULATION) percent else null,
+            )
         } else {
             context
         }
         return MonkiReply(text, newContext)
+    }
+
+    /**
+     * Tras una simulación, una pregunta de "ahorro" que solo cambia el período ("¿y cuánto ahorraría el mes
+     * pasado?") sigue siendo la simulación. Si menciona metas, ahorrado o apartado, se queda como consulta de metas.
+     */
+    private fun isSimulationFollowUp(question: String, parsed: MonkiQuestion, context: MonkiContext): Boolean {
+        if (context.intent != MonkiIntent.SIMULATION || context.percent == null) return false
+        if (parsed.periods.isEmpty() && !parsed.previousPeriod) return false
+        val q = MonkiText.normalize(question)
+        val asksGoals = MonkiText.hasPhrase(q, "meta") || MonkiText.hasPhrase(q, "metas") ||
+            MonkiText.hasStem(q, listOf("ahorrad", "apartad", "alcanci"))
+        return !asksGoals
     }
 
     // ----- Gastos e ingresos -------------------------------------------------------------------
@@ -466,7 +496,7 @@ class MonkiFinanceEngine {
                 "movimientos para distinguir algo que se repite de algo puntual." + env.joke(JokeSituation.EMPTY)
         }
 
-    private fun antAnswer(env: Env, period: MonkiPeriod): String {
+    private fun antAnswer(env: Env, period: MonkiPeriod, percent: Int?): String {
         val list = env.expenses(period)
         if (list.size < MIN_MOVEMENTS) return tooFewMovements(env, period, list.size, "detectar gastos hormiga")
         val total = list.sumOf { it.amountMinor }
@@ -475,12 +505,13 @@ class MonkiFinanceEngine {
             val top = env.byCategory(list).entries.maxByOrNull { it.value }
             val text = StringBuilder(
                 "Revisé ${movements(list.size)} ${period.phrase} y no veo gastos hormiga claros: ningún gasto chico " +
-                    "(de ${env.money(threshold)} o menos) se repite 3 veces o más en días distintos.",
+                    "(que no supere la mediana de tus gastos de ese período, ${env.money(threshold)}) se repite 3 veces o más en días distintos.",
             )
             if (top != null) {
                 text.append(" La categoría que más pesa es ${env.categoryName(top.key)} (${env.money(top.value)}), ")
                 text.append("pero eso es peso total, no necesariamente hormiga.")
             }
+            text.append(" Sin gastos hormiga identificados no tengo sobre qué calcular un ahorro potencial.")
             return text.toString() + env.joke(JokeSituation.GENERAL)
         }
         val shown = groups.take(3)
@@ -488,10 +519,105 @@ class MonkiFinanceEngine {
             "• ${antLabel(env, it)}: ${it.count} veces, ${env.money(it.totalMinor)} en total (${StatsCalculator.percentOf(it.totalMinor, total)}% de tus gastos)"
         }
         val food = env.categoryOf(shown.first().categoryId)?.iconKey == "food"
+
+        // Lo ya gastado (dato real) por un lado y el ahorro potencial (hipotético) por otro.
+        val identified = groups.sumOf { it.totalMinor }
+        val identifiedCount = groups.sumOf { it.count }
+        val groupWord = if (groups.size == 1) "grupo" else "grupos"
+        val reduce = env.voice.vos("reducís", "reduces")
+        val scenarios = (percent?.let { listOf(it) } ?: ANT_SCENARIOS).map { p ->
+            "• Si los $reduce un $p%: unos ${env.money(StatsCalculator.reduction(identified, p))} menos"
+        }
+        val summary = "En total, los gastos hormiga detectados (${groups.size} $groupWord) suman ${env.money(identified)} " +
+            "en ${movements(identifiedCount)}: el ${StatsCalculator.percentOf(identified, total)}% de tus gastos ${period.phrase} " +
+            "(${env.money(total)}). Eso es lo que ya gastaste, no lo que podrías ahorrar."
+        val potential = "Ahorro potencial, solo como escenarios hipotéticos sobre esos ${env.money(identified)} " +
+            "(no asumo que los elimines):\n" + scenarios.joinToString("\n")
         return "Esto es lo que más se parece a un gasto hormiga ${period.phrase}:\n" + lines.joinToString("\n") +
-            "\nLo detecto con una regla simple: gastos de ${env.money(threshold)} o menos (la mitad de tus gastos de ese período) " +
-            "que se repiten 3 veces o más en días distintos. Que se repita no lo hace malo; es solo algo para revisar." +
+            "\n$summary\n$potential" +
+            "\nLo detecto con una regla simple: gastos que no superan la mediana de tus gastos de ese período " +
+            "(${env.money(threshold)}, el valor central de tus gastos ordenados de menor a mayor) " +
+            "y que se repiten 3 veces o más en días distintos. Que se repita no lo hace malo; es solo algo para revisar." +
             env.joke(if (food) JokeSituation.FOOD else JokeSituation.GENERAL)
+    }
+
+    /**
+     * "¿En qué categoría estoy gastando demasiado?" Solo se habla de exceso cuando hay un presupuesto contra el
+     * que medirlo; sin él se muestra dónde se concentra el gasto, sin afirmar que sea demasiado.
+     */
+    private fun categoryExcessAnswer(env: Env, period: MonkiPeriod): String {
+        val list = env.expenses(period)
+        if (list.isEmpty()) {
+            return "No encuentro gastos registrados ${period.phrase}, así que no puedo decirte en qué categoría se concentra tu gasto." +
+                env.joke(JokeSituation.EMPTY)
+        }
+        val total = list.sumOf { it.amountMinor }
+        val ranking = env.byCategory(list).entries.sortedByDescending { it.value }
+        fun rankingLines(entries: List<Map.Entry<Long, Long>>) = entries.mapIndexed { index, entry ->
+            "${index + 1}. ${env.categoryName(entry.key)}: ${env.money(entry.value)} " +
+                "(${StatsCalculator.percentOf(entry.value, total)}% de tus gastos)"
+        }
+        val have = env.voice.vos("tenés", "tienes")
+
+        // Los presupuestos son mensuales: solo se comparan con un mes (completo o en curso).
+        val isMonth = period.start.dayOfMonth == 1 && YearMonth.from(period.start) == YearMonth.from(period.end)
+        val progress = if (isMonth) {
+            val spent = StatsCalculator.expenseByCategory(env.data.initial, env.data.transactions, YearMonth.from(period.start))
+            StatsCalculator.budgetProgress(env.data.budgets, spent)
+        } else {
+            emptyList()
+        }
+
+        if (progress.isEmpty()) {
+            val why = if (env.data.budgets.none { it.limitMinor > 0L }) {
+                "No $have presupuestos cargados, así que no tengo un tope para decir que una categoría sea excesiva."
+            } else {
+                "Tus presupuestos son mensuales y ${period.phrase} no es un mes, así que no los puedo comparar."
+            }
+            val tail = if (env.data.budgets.none { it.limitMinor > 0L }) {
+                env.voice.vos(
+                    "\nSi definís presupuestos en Menú → Presupuestos, te digo cuáles te pasaste.",
+                    "\nSi defines presupuestos en Menú → Presupuestos, te digo cuáles te pasaste.",
+                )
+            } else {
+                ""
+            }
+            return "$why Lo que sí puedo mostrarte es dónde se concentra tu gasto ${period.phrase}:\n" +
+                rankingLines(ranking.take(3)).joinToString("\n") +
+                "\nEn total gastaste ${env.money(total)}.$tail" + env.joke(JokeSituation.GENERAL)
+        }
+
+        val over = progress.filter { it.level == BudgetLevel.OVER }
+        val near = progress.filter { it.level == BudgetLevel.WARNING }
+        val text = StringBuilder()
+        if (over.isEmpty()) {
+            text.append("Ninguna categoría con presupuesto superó su tope ${period.phrase}.")
+        } else {
+            text.append("Estas categorías superaron su presupuesto ${period.phrase}:\n")
+            text.append(
+                over.joinToString("\n") {
+                    "• ${env.categoryName(it.categoryId)}: gastaste ${env.money(it.spentMinor)} de un tope de " +
+                        "${env.money(it.limitMinor)} (${it.percent}%), ${env.money(it.spentMinor - it.limitMinor)} de más."
+                },
+            )
+        }
+        if (near.isNotEmpty()) {
+            text.append("\nCerca de su límite:\n")
+            text.append(
+                near.joinToString("\n") {
+                    "• ${env.categoryName(it.categoryId)}: ${env.money(it.spentMinor)} de ${env.money(it.limitMinor)} (${it.percent}%)"
+                },
+            )
+        }
+        val budgeted = progress.map { it.categoryId }.toSet()
+        val unbudgeted = ranking.filter { it.key !in budgeted }.take(2)
+        if (unbudgeted.isNotEmpty()) {
+            text.append("\nFuera de tus presupuestos, lo que más pesa es:\n")
+            text.append(rankingLines(unbudgeted).joinToString("\n"))
+            text.append("\nPara esas categorías no hay un tope, así que no puedo decir si es demasiado.")
+        }
+        // Chiste neutro: los de "gastos > ingresos" confundirían un exceso de presupuesto con un déficit.
+        return text.toString() + env.joke(JokeSituation.GENERAL)
     }
 
     private fun savingTipsAnswer(env: Env, period: MonkiPeriod): String {
@@ -524,8 +650,7 @@ class MonkiFinanceEngine {
         return text.toString() + env.joke(JokeSituation.SAVING)
     }
 
-    private fun simulationAnswer(env: Env, period: MonkiPeriod, parsed: MonkiQuestion): String {
-        val percent = parsed.percent
+    private fun simulationAnswer(env: Env, period: MonkiPeriod, percent: Int?): String {
         if (percent == null) {
             return env.voice.vos(
                 "Para simular necesito un porcentaje entre 1% y 100%. Por ejemplo: «¿Cuánto ahorro si reduzco mis gastos un 15%?».",
@@ -742,10 +867,15 @@ class MonkiFinanceEngine {
     private companion object {
         /** Consultas de análisis: sin período, miran los últimos 90 días. */
         val WINDOW_INTENTS = setOf(MonkiIntent.ANT_SPENDING, MonkiIntent.SAVING_TIPS, MonkiIntent.HABITS, MonkiIntent.EXPLAIN)
+        /** Porcentajes de los escenarios hipotéticos sobre los gastos hormiga identificados. */
+        val ANT_SCENARIOS = listOf(10, 25, 50)
         const val MIN_MOVEMENTS = 8
         const val MIN_SAVING_MOVEMENTS = 5
         /** Categorías donde suele haber margen para recortar (nunca servicios, salud, hogar ni educación). */
         val FLEXIBLE_ICONS = setOf("food", "leisure", "shopping")
+
+        fun thisMonth(today: LocalDate) =
+            MonkiPeriod(today.withDayOfMonth(1), today, MonkiPeriod.Kind.THIS_MONTH, "este mes")
 
         fun analysisWindow(today: LocalDate) =
             MonkiPeriod(today.minusDays(89), today, MonkiPeriod.Kind.LAST_N_DAYS, "en los últimos 90 días")

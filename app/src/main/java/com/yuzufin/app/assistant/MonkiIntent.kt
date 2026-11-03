@@ -13,6 +13,8 @@ enum class MonkiIntent {
     SAVING_TIPS,
     /** "¿Cuánto ahorro si reduzco mis gastos un 15 %?" */
     SIMULATION,
+    /** "¿En qué categoría estoy gastando demasiado?": categorías, no el balance general del mes. */
+    CATEGORY_EXCESS,
     /** "¿Qué hábito financiero debería cambiar?" */
     HABITS,
     /** "¿Por qué mi plata desaparece tan rápido?" */
@@ -28,6 +30,8 @@ data class MonkiContext(
     val intent: MonkiIntent? = null,
     val period: MonkiPeriod? = null,
     val topic: String? = null,
+    /** Porcentaje de la última simulación: "¿Y el mes pasado?" repite el mismo escenario. */
+    val percent: Int? = null,
 )
 
 /**
@@ -113,6 +117,15 @@ object MonkiIntentParser {
             stem("demasiad") ||
                 has("mucho", "de mas", "me paso", "me estoy pasando", "excedo", "exceso", "controlado", "bien con")
             )
+        // "¿En qué categoría gasto demasiado?": pide *cuáles* categorías, no un chequeo general del mes.
+        val excess = stem("demasiad", "excesiv") ||
+            has(
+                "de mas", "mucho", "me paso", "me pase", "me estoy pasando", "me excedo", "excedo", "exceso",
+                "por encima", "mas de la cuenta", "mas de lo normal", "de las manos", "fuera de control",
+            )
+        val whichPart = stem("categori", "rubro") ||
+            has("en que", "donde", "en cual", "en cuales", "cual", "cuales", "que gastos")
+        val categoryExcess = (spend || stem("categori", "rubro")) && excess && whichPart
         val trend = has("tendencia", "evolucion", "mes a mes", "viene subiendo", "viene bajando", "cada vez", "ultimamente") ||
             (stem("ultimos") && has("meses"))
         val budgets = stem("presupuest") || has("tope", "topes", "limite", "limites")
@@ -142,6 +155,7 @@ object MonkiIntentParser {
             ant -> MonkiIntent.ANT_SPENDING
             simulation -> MonkiIntent.SIMULATION
             savingTips -> MonkiIntent.SAVING_TIPS
+            categoryExcess -> MonkiIntent.CATEGORY_EXCESS
             habits -> MonkiIntent.HABITS
             explain -> MonkiIntent.EXPLAIN
             compare -> MonkiIntent.COMPARE
