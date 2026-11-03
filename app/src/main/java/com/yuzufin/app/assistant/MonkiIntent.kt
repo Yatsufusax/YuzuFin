@@ -102,7 +102,7 @@ object MonkiIntentParser {
         )
         val ant = stem("hormig") || (spend && has("chicos", "chiquitos", "pequenos", "pequeno", "chiquitines", "de poco valor"))
         val simulation = rawPercent != null &&
-            (stem("reduc", "recort", "baj", "disminu") || (has("si") && stem("gast", "ahorr")))
+            (stem("reduc", "reduzc", "recort", "baj", "disminu") || (has("si") && stem("gast", "ahorr")))
         val savingTips = has(
             "dejar de comprar", "dejar de gastar", "que puedo recortar", "que podria recortar", "que recorto",
             "en que puedo ahorrar", "donde puedo ahorrar", "como ahorro", "como puedo ahorrar", "gastar menos",
