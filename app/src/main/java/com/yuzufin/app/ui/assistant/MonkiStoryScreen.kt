@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -51,6 +52,8 @@ import com.yuzufin.app.R
 import com.yuzufin.app.ui.components.Mascot
 import com.yuzufin.app.ui.components.MascotPose
 import com.yuzufin.app.ui.components.animationsEnabled
+import com.yuzufin.app.ui.components.mascotForCurrency
+import androidx.compose.ui.graphics.lerp
 
 private const val SLIDE_MS = 5_500
 
@@ -58,16 +61,17 @@ private class Slide(
     @StringRes val tag: Int,
     @StringRes val title: Int,
     @StringRes val body: Int,
-    val pose: MascotPose,
+    /** Nulo = el monito con su bebida según la moneda (tereré, mate o café). */
+    val pose: MascotPose?,
     val accent: Int,
 )
 
 private val slides = listOf(
-    Slide(R.string.monki_story_1_tag, R.string.monki_story_1_title, R.string.monki_story_1_body, MascotPose.WELCOME, 0),
+    Slide(R.string.monki_story_1_tag, R.string.monki_story_1_title, R.string.monki_story_1_body, null, 0),
     Slide(R.string.monki_story_2_tag, R.string.monki_story_2_title, R.string.monki_story_2_body, MascotPose.QUESTION, 1),
     Slide(R.string.monki_story_3_tag, R.string.monki_story_3_title, R.string.monki_story_3_body, MascotPose.PLANNING, 2),
     Slide(R.string.monki_story_4_tag, R.string.monki_story_4_title, R.string.monki_story_4_body, MascotPose.CONTROL, 0),
-    Slide(R.string.monki_story_5_tag, R.string.monki_story_5_title, R.string.monki_story_5_body, MascotPose.TIP, 1),
+    Slide(R.string.monki_story_5_tag, R.string.monki_story_5_title, R.string.monki_story_5_body, null, 1),
 )
 
 /**
@@ -76,7 +80,7 @@ private val slides = listOf(
  * vuelve y mantener apretado la pausa. Con las animaciones del teléfono apagadas no avanza sola.
  */
 @Composable
-fun MonkiStoryScreen(onFinish: () -> Unit) {
+fun MonkiStoryScreen(currencyCode: String, onFinish: () -> Unit) {
     var index by rememberSaveable { mutableIntStateOf(0) }
     var paused by remember { mutableStateOf(false) }
     val auto = animationsEnabled()
@@ -102,7 +106,9 @@ fun MonkiStoryScreen(onFinish: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     // Los colores salen del tema: cambian con el modo claro/oscuro y con el color elegido.
     val top = when (slide.accent) { 0 -> scheme.primary; 1 -> scheme.secondary; else -> scheme.tertiary }
-    val bottom = when (slide.accent) { 0 -> scheme.primaryContainer; 1 -> scheme.secondaryContainer; else -> scheme.tertiaryContainer }
+    val container = when (slide.accent) { 0 -> scheme.primaryContainer; 1 -> scheme.secondaryContainer; else -> scheme.tertiaryContainer }
+    val onContainer = when (slide.accent) { 0 -> scheme.onPrimaryContainer; 1 -> scheme.onSecondaryContainer; else -> scheme.onTertiaryContainer }
+    val bottom = lerp(top, container, 0.5f)
     val onTop = when (slide.accent) { 0 -> scheme.onPrimary; 1 -> scheme.onSecondary; else -> scheme.onTertiary }
     Box(
         modifier = Modifier
@@ -157,14 +163,14 @@ fun MonkiStoryScreen(onFinish: () -> Unit) {
                 contentAlignment = Alignment.Center,
             ) {
                 val size = minOf(300.dp, maxHeight)
-                Mascot(pose = slide.pose, size = size, autoClip = true)
+                Mascot(pose = slide.pose ?: mascotForCurrency(currencyCode), size = size, autoClip = true)
             }
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                color = scheme.surface,
-                contentColor = scheme.onSurface,
+                color = container,
+                contentColor = onContainer,
             ) {
                 Row(
                     modifier = Modifier
@@ -174,10 +180,10 @@ fun MonkiStoryScreen(onFinish: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Surface(shape = CircleShape, color = scheme.primaryContainer) {
+                        Surface(shape = CircleShape, color = top) {
                             Text(
                                 stringResource(slide.tag),
-                                color = scheme.onPrimaryContainer,
+                                color = onTop,
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
@@ -191,10 +197,14 @@ fun MonkiStoryScreen(onFinish: () -> Unit) {
                         Text(
                             stringResource(slide.body),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = scheme.onSurfaceVariant,
+                            color = onContainer,
                         )
                     }
-                    FilledIconButton(onClick = next, modifier = Modifier.size(52.dp)) {
+                    FilledIconButton(
+                        onClick = next,
+                        modifier = Modifier.size(52.dp),
+                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = top, contentColor = onTop),
+                    ) {
                         Icon(
                             if (index == last) Icons.Rounded.Check else Icons.AutoMirrored.Rounded.ArrowForward,
                             contentDescription = stringResource(

@@ -86,5 +86,5 @@ Detección de gastos desde notificaciones (necesita ejemplos reales y lista "Det
 - Si cambia otra vez el video: revisar `VIDEO_ASPECT`, `VideoBackground` (color de los bordes del video), `TAGLINE_TOP_FRACTION` y `TAGLINE_DELAY_MS` en `VideoSplash.kt`. Si llega uno horizontal con cuadritos, usar `tools/key_checkerboard_video.py`.
 
 ## Monki AI: inicio e historias
-- Inicio: saludo, Monki (pose QUESTION) centrado, pastillas con preguntas que el motor ya entiende, campo redondeado con micrófono/enviar y pie «Monki solo lee tus datos y puede equivocarse». No dice «generado con IA» porque Monki es determinista.
-- Historias: 5 láminas con degradé del tema (primario, secundario y terciario), monito grande y tarjeta de superficie abajo (etiqueta, título, texto, flecha). Sin puntos, niveles ni premios.
+- Inicio (fondo del color del tema, campo y pastillas sobre superficie): saludo, Monki con su bebida según la moneda (animado) centrado, pastillas con preguntas que el motor ya entiende, campo redondeado con micrófono/enviar y pie «Monki solo lee tus datos y puede equivocarse». No dice «generado con IA» porque Monki es determinista.
+- Historias: 5 láminas con degradé del tema (primario, secundario y terciario), monito grande y tarjeta del color del tema abajo; láminas 1 y 5 con la bebida según la moneda (etiqueta, título, texto, flecha). Sin puntos, niveles ni premios.

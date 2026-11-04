@@ -47,6 +47,7 @@ fun MonkiFlow(viewModel: MonkiViewModel, onExit: () -> Unit) {
     Crossfade(targetState = current, label = "monki_stage") { target ->
         when (target) {
             MonkiStage.STORY -> MonkiStoryScreen(
+                currencyCode = loaded.currencyCode,
                 onFinish = {
                     stage = MonkiStage.HOME
                     scope.launch { container.settingsRepository.dismissHint(STORY_ID) }
@@ -55,6 +56,7 @@ fun MonkiFlow(viewModel: MonkiViewModel, onExit: () -> Unit) {
             MonkiStage.HOME -> MonkiHomeScreen(
                 viewModel = viewModel,
                 userName = loaded.userName,
+                currencyCode = loaded.currencyCode,
                 onBack = onExit,
                 onOpenChat = { stage = MonkiStage.CHAT },
                 onShowStory = { stage = MonkiStage.STORY },

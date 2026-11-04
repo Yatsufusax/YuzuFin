@@ -36,6 +36,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,7 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yuzufin.app.R
 import com.yuzufin.app.ui.components.Mascot
-import com.yuzufin.app.ui.components.MascotPose
+import com.yuzufin.app.ui.components.mascotForCurrency
 
 /**
  * Inicio de Monki AI: saludo, Monki en el centro, atajos con preguntas y el campo para empezar a
@@ -66,6 +70,7 @@ import com.yuzufin.app.ui.components.MascotPose
 fun MonkiHomeScreen(
     viewModel: MonkiViewModel,
     userName: String,
+    currencyCode: String,
     onBack: () -> Unit,
     onOpenChat: () -> Unit,
     onShowStory: () -> Unit,
@@ -109,10 +114,13 @@ fun MonkiHomeScreen(
     val qCut = stringResource(R.string.monki_q_cut)
     val qWhatIf = stringResource(R.string.monki_q_whatif)
 
+    val scheme = MaterialTheme.colorScheme
+    // Fondo del color del tema (contenedor primario): cambia con la paleta y con el modo claro/oscuro.
+    val ink = scheme.onPrimaryContainer
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(scheme.primaryContainer)
             .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding(),
@@ -122,11 +130,11 @@ fun MonkiHomeScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.action_back), tint = ink)
             }
             Box(Modifier.weight(1f))
             IconButton(onClick = onOpenChat) {
-                Icon(Icons.Rounded.History, contentDescription = stringResource(R.string.monki_home_history))
+                Icon(Icons.Rounded.History, contentDescription = stringResource(R.string.monki_home_history), tint = ink)
             }
         }
 
@@ -142,12 +150,13 @@ fun MonkiHomeScreen(
                 },
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
+                color = ink,
                 textAlign = TextAlign.Center,
             )
             Text(
                 text = stringResource(R.string.monki_home_ask),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = ink,
                 textAlign = TextAlign.Center,
             )
         }
@@ -157,7 +166,7 @@ fun MonkiHomeScreen(
             contentAlignment = Alignment.Center,
         ) {
             val size = minOf(260.dp, maxHeight)
-            Mascot(pose = MascotPose.QUESTION, size = size)
+            Mascot(pose = mascotForCurrency(currencyCode), size = size, autoClip = true)
         }
 
         FlowRow(
@@ -186,6 +195,11 @@ fun MonkiHomeScreen(
                 placeholder = { Text(stringResource(R.string.monki_home_input)) },
                 singleLine = true,
                 shape = CircleShape,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = scheme.surface,
+                    unfocusedContainerColor = scheme.surface,
+                    unfocusedBorderColor = Color.Transparent,
+                ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions(onSend = { ask(draft) }),
             )
@@ -203,7 +217,7 @@ fun MonkiHomeScreen(
         Text(
             text = stringResource(R.string.monki_home_footer),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = ink,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 10.dp),
         )
@@ -215,6 +229,11 @@ private fun Pill(label: String, onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
         shape = CircleShape,
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.55f),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.35f)),
         modifier = Modifier.heightIn(min = 48.dp),
     ) {
         Text(label, style = MaterialTheme.typography.labelLarge)
