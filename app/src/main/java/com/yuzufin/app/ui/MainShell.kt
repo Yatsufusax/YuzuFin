@@ -41,6 +41,7 @@ import com.yuzufin.app.ui.navigation.Destination
 import com.yuzufin.app.ui.navigation.FloatingNavBar
 import com.yuzufin.app.ui.navigation.LoanFormRoute
 import com.yuzufin.app.ui.navigation.QuickLaunch
+import com.yuzufin.app.ui.navigation.SummaryLaunch
 import com.yuzufin.app.ui.navigation.TransactionRoute
 import com.yuzufin.app.ui.navigation.VoiceRoute
 import kotlinx.coroutines.delay
@@ -58,7 +59,12 @@ import java.time.LocalDate
 /** Estructura principal: barra flotante, navegación, avisos y hoja de registro rápido. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainShell(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {}) {
+fun MainShell(
+    openExpense: Boolean = false,
+    onOpenExpenseHandled: () -> Unit = {},
+    openSummaryKey: String? = null,
+    onSummaryHandled: () -> Unit = {},
+) {
     val container = rememberAppContainer()
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
@@ -124,6 +130,17 @@ fun MainShell(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {
         }
     }
 
+    // Notificación del resumen semanal: lleva a la campanilla, donde se abre el resumen de esa semana.
+    // Funciona con la app recién abierta o ya abierta en cualquier pantalla; si ya está en la campanilla,
+    // la propia pantalla toma el pedido.
+    LaunchedEffect(openSummaryKey, currentRoute, appSettings?.onboardingDone) {
+        when (SummaryLaunch.decide(openSummaryKey, appSettings?.onboardingDone, currentRoute)) {
+            SummaryLaunch.Action.OPEN_NOTIFICATIONS -> navController.navigateTo(Destination.Notifications)
+            SummaryLaunch.Action.DISCARD -> onSummaryHandled()
+            SummaryLaunch.Action.NONE, SummaryLaunch.Action.WAIT, SummaryLaunch.Action.SHOW_HERE -> Unit
+        }
+    }
+
     // Aviso flotante (una sola vez): "mantené apretado el + para anotar hablando".
     val voiceTipEligible = currentRoute == Destination.Home.route && appSettings?.let {
         it.onboardingDone && !it.tourPending && !it.firstExpensePending && VOICE_TIP_ID !in it.dismissedHints
@@ -174,6 +191,8 @@ fun MainShell(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {
                 updateViewModel = updateViewModel,
                 onQuickAction = onQuickAction,
                 onNotificationsClick = { navController.navigateTo(Destination.Notifications) },
+                openSummaryKey = openSummaryKey,
+                onSummaryHandled = onSummaryHandled,
                 modifier = Modifier.fillMaxSize(),
             )
         }

@@ -10,4 +10,9 @@
     <string name="weekly_body_amount">Gastaste %1$s en 7 días. Lo que más pesó: %2$s (%3$s).</string>
     <string name="weekly_body">Ya tenés el resumen de tu semana. Lo que más pesó: %1$s.</string>
     <string name="weekly_body_empty">No anotaste gastos en los últimos 7 días. ¿Se te pasó alguno?</string>
+
+    <string name="notif_summary_hint">Tocá para abrir el resumen</string>
+    <string name="weekly_window_heading">Resumen de tu semana</string>
+    <string name="weekly_window_period">Del %1$s al %2$s</string>
+    <string name="weekly_window_note">Este resumen quedó guardado tal como se generó ese domingo. Si después editás o borrás movimientos, no cambia.</string>
 </resources>

@@ -50,10 +50,11 @@ object NotificationHelper {
     }
 
     @SuppressLint("MissingPermission") // canNotify() ya comprobó el permiso.
-    fun show(context: Context, id: Int, title: String, text: String) {
+    fun show(context: Context, id: Int, title: String, text: String, openIntent: Intent? = null) {
         if (!canNotify(context)) return
         ensureChannel(context)
-        val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        // Sin [openIntent], al tocar el aviso solo se abre la app (cobros, presupuestos, etc.).
+        val launch = openIntent ?: context.packageManager.getLaunchIntentForPackage(context.packageName)
             ?.apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP }
         val pending = launch?.let {
             PendingIntent.getActivity(context, id, it, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)

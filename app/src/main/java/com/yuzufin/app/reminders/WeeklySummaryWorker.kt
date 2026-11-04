@@ -46,8 +46,10 @@ class WeeklySummaryWorker(context: Context, params: WorkerParameters) : Coroutin
             }
             // Un resumen por semana: si el trabajo se repite, no se muestra dos veces. Siempre queda en el
             // buzón de la app; la notificación del sistema solo sale si Android lo permite (ver Ajustes).
-            val isNew = container.notificationRepository.log(NotificationKind.SUMMARY, title, body, WeeklySummaryCalculator.dedupeKey(sunday))
-            if (isNew) NotificationHelper.show(applicationContext, ID_WEEKLY, title, body)
+            // Al tocar la notificación se abre el resumen de ESA semana (la clave lo identifica).
+            val key = WeeklySummaryCalculator.dedupeKey(sunday)
+            val isNew = container.notificationRepository.log(NotificationKind.SUMMARY, title, body, key)
+            if (isNew) NotificationHelper.show(applicationContext, ID_WEEKLY, title, body, WeeklySummaryIntents.open(applicationContext, key))
             Result.success()
         } catch (e: CancellationException) {
             throw e

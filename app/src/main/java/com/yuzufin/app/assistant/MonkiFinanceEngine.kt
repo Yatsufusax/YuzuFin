@@ -40,6 +40,7 @@ class MonkiFinanceEngine {
 
         var intent = parsed.intent
         var percent = parsed.percent
+        var followsConversation = parsed.followUp
         if (intent == MonkiIntent.UNKNOWN) {
             val previous = context.intent
             if (parsed.followUp && previous != null) intent = previous else return MonkiReply(voice.fallback(), context)
@@ -49,6 +50,7 @@ class MonkiFinanceEngine {
             // "¿Y cuánto ahorraría el mes pasado?" sigue la simulación; no es una consulta de metas de ahorro.
             intent = MonkiIntent.SIMULATION
             percent = context.percent
+            followsConversation = true
         }
 
         // Saludos, ayuda y agradecimientos no cambian el hilo de la conversación.
@@ -61,7 +63,11 @@ class MonkiFinanceEngine {
 
         var period: MonkiPeriod? = parsed.periods.firstOrNull()
         var topic = parsed.topic
-        if (topic == null && parsed.followUp && intent == context.intent) topic = context.topic
+        if (topic == null && followsConversation && intent == context.intent) topic = context.topic
+        // "Si reduzco transporte un 20%": sin "de <tema>", solo cuenta si las palabras nombran una categoría real.
+        if (topic == null && intent == MonkiIntent.SIMULATION) {
+            topic = parsed.looseTopic?.takeIf { resolveTopic(env, it).categories.isNotEmpty() }
+        }
 
         // "¿Gasté mucho en diciembre?" con otro mes: se responde cuánto gastó en ese período.
         if (intent == MonkiIntent.SPENDING_CHECK && period != null && period.kind != MonkiPeriod.Kind.THIS_MONTH) {
@@ -102,7 +108,7 @@ class MonkiFinanceEngine {
             MonkiIntent.COMPARE -> compareAnswer(env, requestedForCompare(parsed, basePeriod, today).also { compared = it })
             MonkiIntent.ANT_SPENDING -> antAnswer(env, period ?: analysisWindow(today), parsed.percent)
             MonkiIntent.SAVING_TIPS -> savingTipsAnswer(env, period ?: analysisWindow(today))
-            MonkiIntent.SIMULATION -> simulationAnswer(env, period ?: analysisWindow(today), percent)
+            MonkiIntent.SIMULATION -> simulationAnswer(env, period ?: analysisWindow(today), percent, topic)
             MonkiIntent.CATEGORY_EXCESS -> categoryExcessAnswer(env, period ?: thisMonth(today))
             MonkiIntent.HABITS -> habitsAnswer(env, period ?: analysisWindow(today))
             MonkiIntent.EXPLAIN -> explainAnswer(env, period ?: analysisWindow(today))
@@ -112,6 +118,7 @@ class MonkiFinanceEngine {
             MonkiIntent.LOANS -> loansAnswer(env)
             MonkiIntent.TREND -> trendAnswer(env)
             MonkiIntent.PROJECTION -> projectionAnswer(env)
+            MonkiIntent.SAVINGS_FORECAST -> savingsForecastAnswer(env)
             else -> voice.fallback()
         }
 
@@ -207,8 +214,24 @@ class MonkiFinanceEngine {
         return text + env.joke(situation)
     }
 
-    /** Gasto en una categoría o en una cosa puntual ("comida", "chipa", "nafta"). */
-    private fun topicAnswer(env: Env, period: MonkiPeriod, topic: String): String {
+    /**
+     * Qué categorías y movimientos nombra un tema escrito por la persona ("comida", "chipa", "transporte").
+     * Lo comparten la consulta de gasto por tema y la simulación por categoría, para no duplicar la regla.
+     */
+    private class TopicMatch(
+        val label: String,
+        val categories: List<Category>,
+        private val categoryIds: Set<Long>,
+        private val forms: Set<String>,
+    ) {
+        fun matches(transaction: FinanceTransaction): Boolean =
+            transaction.categoryId in categoryIds ||
+                MonkiText.words(MonkiText.normalize(transaction.description))
+                    .flatMap { MonkiText.variants(it) }
+                    .any { it in forms }
+    }
+
+    private fun resolveTopic(env: Env, topic: String): TopicMatch {
         val forms = MonkiText.words(topic).flatMap { MonkiText.variants(it) }.toSet()
         val categories = env.data.categories.filter { category ->
             val byName = MonkiText.words(MonkiText.normalize(category.name))
@@ -218,20 +241,20 @@ class MonkiFinanceEngine {
             val byGenericWord = CATEGORY_WORDS[category.iconKey]?.any { it in forms } == true
             byName || byGenericWord
         }
-        val categoryIds = categories.map { it.id }.toSet()
+        val label = if (categories.size == 1) categories.first().name else topic
+        return TopicMatch(label, categories, categories.map { it.id }.toSet(), forms)
+    }
 
-        fun matches(transaction: FinanceTransaction): Boolean =
-            transaction.categoryId in categoryIds ||
-                MonkiText.words(MonkiText.normalize(transaction.description))
-                    .flatMap { MonkiText.variants(it) }
-                    .any { it in forms }
-
-        val everything = env.counted.filter { it.type == TransactionType.EXPENSE && matches(it) }
+    /** Gasto en una categoría o en una cosa puntual ("comida", "chipa", "nafta"). */
+    private fun topicAnswer(env: Env, period: MonkiPeriod, topic: String): String {
+        val match = resolveTopic(env, topic)
+        val categories = match.categories
+        val everything = env.counted.filter { it.type == TransactionType.EXPENSE && match.matches(it) }
         if (everything.isEmpty()) {
             return "No encuentro nada de «$topic», ni como categoría ni en las descripciones de tus gastos. " +
                 env.voice.vos("Preguntame en qué gastaste más y te muestro tus categorías.", "Pregúntame en qué gastaste más y te muestro tus categorías.")
         }
-        val label = if (categories.size == 1) categories.first().name else topic
+        val label = match.label
         val inPeriod = everything.filter { period.contains(it.date) }
         if (inPeriod.isEmpty()) return "No encuentro gastos de «$label» ${period.phrase}."
         val total = inPeriod.sumOf { it.amountMinor }
@@ -331,6 +354,7 @@ class MonkiFinanceEngine {
                 env.joke(JokeSituation.EMPTY)
         }
         val lines = ArrayList<String>()
+        expenseVerdict(env, current, baseline, currentExpense, baselineExpense)?.let { lines.add(it) }
         lines.add("Gastos: ${env.money(currentExpense)} ${current.phrase} frente a ${env.money(baselineExpense)} ${baseline.phrase}" + variation(currentExpense, baselineExpense, "más", "menos"))
         lines.add("Ingresos: ${env.money(currentIncome)} ${current.phrase} frente a ${env.money(baselineIncome)} ${baseline.phrase}" + variation(currentIncome, baselineIncome, "más", "menos"))
 
@@ -349,6 +373,40 @@ class MonkiFinanceEngine {
         }
         val situation = if (currentExpense < baselineExpense) JokeSituation.LOW else JokeSituation.GENERAL
         return lines.joinToString("\n") + env.joke(situation)
+    }
+
+    /**
+     * Dice cuál de los dos períodos tuvo más gastos, por cuánto (diferencia absoluta) y en qué porcentaje.
+     * Si uno no tiene gastos registrados no hay con qué comparar: lo dice en vez de inventar una diferencia.
+     */
+    private fun expenseVerdict(
+        env: Env,
+        current: MonkiPeriod,
+        baseline: MonkiPeriod,
+        currentExpense: Long,
+        baselineExpense: Long,
+    ): String? = when {
+        currentExpense == 0L && baselineExpense == 0L -> null
+        baselineExpense == 0L ->
+            "No encuentro gastos registrados ${baseline.phrase}, así que no puedo decir cuál período fue mayor: " +
+                "${current.phrase} gastaste ${env.money(currentExpense)}."
+        currentExpense == 0L ->
+            "No encuentro gastos registrados ${current.phrase}, así que no puedo decir cuál período fue mayor: " +
+                "${baseline.phrase} gastaste ${env.money(baselineExpense)}."
+        currentExpense == baselineExpense ->
+            "Gastaste lo mismo ${current.phrase} y ${baseline.phrase}: ${env.money(currentExpense)}."
+        else -> {
+            val currentIsMore = currentExpense > baselineExpense
+            val more = if (currentIsMore) current else baseline
+            val less = if (currentIsMore) baseline else current
+            val high = maxOf(currentExpense, baselineExpense)
+            val low = minOf(currentExpense, baselineExpense)
+            val percent = if (currentIsMore) (currentExpense - baselineExpense) * 100 / baselineExpense
+            else (baselineExpense - currentExpense) * 100 / baselineExpense
+            "Gastaste más ${more.phrase}: ${env.money(high)} frente a ${env.money(low)} ${less.phrase}. " +
+                "La diferencia es de ${env.money(high - low)}, un $percent% ${if (currentIsMore) "más" else "menos"} " +
+                "${current.phrase} que ${baseline.phrase}."
+        }
     }
 
     /** Qué se compara con qué. Un mes en curso se compara con los mismos días del otro mes. */
@@ -452,6 +510,54 @@ class MonkiFinanceEngine {
             text.append(" Ojo: tenés ${env.money(upcomingTotal)} en facturas que vencen este mes; si no las pagaste todavía, no están en esa cuenta.")
         }
         val situation = if (point.income > 0L && projected > point.income) JokeSituation.HIGH else JokeSituation.GENERAL
+        return text.toString() + env.joke(situation)
+    }
+
+    /**
+     * "¿Cuánto voy a ahorrar el próximo mes?" no es la proyección de gastos del mes en curso (que necesita
+     * [StatsCalculator.MIN_DAYS_FOR_PROJECTION] días de datos) ni una simulación con porcentaje. Se estima
+     * solo con meses completos y cerrados que tengan ingresos y gastos; si no alcanzan, lo dice.
+     */
+    private fun savingsForecastAnswer(env: Env): String {
+        val lastCompleted = YearMonth.from(env.today).minusMonths(1)
+        val usable = StatsCalculator
+            .series(env.data.initial, env.data.transactions, lastCompleted, SAVINGS_FORECAST_MONTHS)
+            .filter { it.income > 0L && it.expense > 0L }
+        if (usable.size < MIN_MONTHS_FOR_SAVINGS_FORECAST) {
+            val have = when (usable.size) {
+                0 -> "por ahora no tengo ninguno"
+                else -> "por ahora tengo solo 1"
+            }
+            return "Todavía no tengo datos suficientes para estimar cuánto vas a ahorrar el próximo mes: " +
+                "necesito al menos $MIN_MONTHS_FOR_SAVINGS_FORECAST meses completos con ingresos y gastos registrados y $have. " +
+                "Prefiero no inventar un número." + env.joke(JokeSituation.EMPTY)
+        }
+        val income = usable.sumOf { it.income } / usable.size
+        val expense = usable.sumOf { it.expense } / usable.size
+        val margin = income - expense
+        val names = usable.joinToString(", ") { MONTH_NAMES[it.month.monthValue - 1] }
+        val text = StringBuilder(
+            "Es una estimación, no un dato real. Me baso en ${usable.size} meses completos con ingresos y gastos ($names): " +
+                "en promedio ingresaron ${env.money(income)} y gastaste ${env.money(expense)} por mes.",
+        )
+        val situation = when {
+            margin > 0L -> {
+                text.append(" Si el próximo mes se parece a esos, te quedarían unos ${env.money(margin)} para ahorrar")
+                val rate = StatsCalculator.savingsRatePercent(income, expense)
+                text.append(if (rate != null) " (cerca del $rate% de lo que ingresa)." else ".")
+                JokeSituation.SAVING
+            }
+            margin == 0L -> {
+                text.append(" Si el próximo mes se parece a esos, no quedaría margen para ahorrar.")
+                JokeSituation.GENERAL
+            }
+            else -> {
+                text.append(" Si el próximo mes se parece a esos, gastarías unos ${env.money(-margin)} más de lo que ingresa, ")
+                text.append("así que no quedaría margen para ahorrar.")
+                JokeSituation.HIGH
+            }
+        }
+        text.append(" Es un promedio de meses pasados: no cuenta cambios de ingresos ni gastos únicos que todavía no conozco.")
         return text.toString() + env.joke(situation)
     }
 
@@ -650,13 +756,14 @@ class MonkiFinanceEngine {
         return text.toString() + env.joke(JokeSituation.SAVING)
     }
 
-    private fun simulationAnswer(env: Env, period: MonkiPeriod, percent: Int?): String {
+    private fun simulationAnswer(env: Env, period: MonkiPeriod, percent: Int?, topic: String?): String {
         if (percent == null) {
             return env.voice.vos(
                 "Para simular necesito un porcentaje entre 1% y 100%. Por ejemplo: «¿Cuánto ahorro si reduzco mis gastos un 15%?».",
                 "Para simular necesito un porcentaje entre 1% y 100%. Por ejemplo: «¿Cuánto ahorro si reduzco mis gastos un 15%?».",
             )
         }
+        if (topic != null) return categorySimulationAnswer(env, period, percent, topic)
         val total = env.expenses(period).sumOf { it.amountMinor }
         if (total == 0L) {
             return "No encuentro gastos registrados ${period.phrase}, así que no hay nada para simular." + env.joke(JokeSituation.EMPTY)
@@ -667,6 +774,36 @@ class MonkiFinanceEngine {
             "• Reducción: $percent%\n" +
             "• Ahorro potencial: ${env.money(saving)}\n" +
             "• Gastos resultantes: ${env.money(total - saving)}" + env.joke(JokeSituation.SAVING)
+    }
+
+    /**
+     * "Si reduzco mis gastos de transporte un 20%": el porcentaje se aplica solo a los movimientos de esa
+     * categoría en el período, nunca al total general.
+     */
+    private fun categorySimulationAnswer(env: Env, period: MonkiPeriod, percent: Int, topic: String): String {
+        val match = resolveTopic(env, topic)
+        val everything = env.counted.filter { it.type == TransactionType.EXPENSE && match.matches(it) }
+        if (everything.isEmpty()) {
+            return if (match.categories.isNotEmpty()) {
+                "No encuentro gastos de «${match.label}» en tus movimientos, así que no hay nada para simular."
+            } else {
+                "No encuentro nada de «$topic», ni como categoría ni en las descripciones de tus gastos, " +
+                    "así que no puedo simular esa reducción."
+            }
+        }
+        val label = match.label
+        val inPeriod = everything.filter { period.contains(it.date) }
+        if (inPeriod.isEmpty()) {
+            return "No encuentro gastos de «$label» ${period.phrase}, así que no hay nada para simular." +
+                env.joke(JokeSituation.EMPTY)
+        }
+        val total = inPeriod.sumOf { it.amountMinor }
+        val saving = StatsCalculator.reduction(total, percent)
+        return "Es un cálculo hipotético sobre tus gastos reales de «$label» ${period.phrase}:\n" +
+            "• Gastos de «$label»: ${env.money(total)} (${movements(inPeriod.size)})\n" +
+            "• Reducción: $percent%\n" +
+            "• Ahorro potencial: ${env.money(saving)}\n" +
+            "• Gasto restante en «$label»: ${env.money(total - saving)}" + env.joke(JokeSituation.SAVING)
     }
 
     private fun habitsAnswer(env: Env, period: MonkiPeriod): String {
@@ -871,6 +1008,9 @@ class MonkiFinanceEngine {
         val ANT_SCENARIOS = listOf(10, 25, 50)
         const val MIN_MOVEMENTS = 8
         const val MIN_SAVING_MOVEMENTS = 5
+        /** Meses completos que mira la estimación de ahorro futuro y mínimo de ellos para dar un número. */
+        const val SAVINGS_FORECAST_MONTHS = 3
+        const val MIN_MONTHS_FOR_SAVINGS_FORECAST = 2
         /** Categorías donde suele haber margen para recortar (nunca servicios, salud, hogar ni educación). */
         val FLEXIBLE_ICONS = setOf("food", "leisure", "shopping")
 

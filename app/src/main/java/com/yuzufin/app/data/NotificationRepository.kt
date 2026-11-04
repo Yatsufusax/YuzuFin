@@ -2,6 +2,7 @@ package com.yuzufin.app.data
 
 import com.yuzufin.app.data.db.AppDatabase
 import com.yuzufin.app.data.db.AppNotificationEntity
+import com.yuzufin.app.data.db.NotificationDao
 import com.yuzufin.app.domain.AppNotification
 import com.yuzufin.app.domain.NotificationKind
 import kotlinx.coroutines.flow.Flow
@@ -11,9 +12,9 @@ import kotlinx.coroutines.flow.map
  * Historial de avisos de la app (campanilla). Vive solo en el teléfono. El texto guardado es el
  * mismo que se muestra en la notificación, así que respeta el ajuste de mostrar o no importes.
  */
-class NotificationRepository(db: AppDatabase) {
+class NotificationRepository(private val dao: NotificationDao) {
 
-    private val dao = db.notificationDao()
+    constructor(db: AppDatabase) : this(db.notificationDao())
 
     val notifications: Flow<List<AppNotification>> = dao.observeAll().map { list -> list.map { it.toDomain() } }
 
@@ -36,6 +37,12 @@ class NotificationRepository(db: AppDatabase) {
         return true
     }
 
+    /**
+     * El aviso guardado con esa clave tal como se generó (mismo título y texto). Así se vuelve a abrir
+     * el resumen de una semana sin recalcularlo.
+     */
+    suspend fun findByKey(key: String): AppNotification? = dao.findByKey(key)?.toDomain()
+
     suspend fun markAllRead() = dao.markAllRead()
 
     suspend fun delete(id: Long) = dao.delete(id)
@@ -54,4 +61,5 @@ private fun AppNotificationEntity.toDomain() = AppNotification(
     body = body,
     createdAt = createdAt,
     read = read,
+    dedupeKey = dedupeKey,
 )

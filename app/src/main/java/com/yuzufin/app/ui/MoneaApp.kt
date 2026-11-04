@@ -20,6 +20,7 @@ import com.yuzufin.app.domain.ThemeMode
 import com.yuzufin.app.domain.ThemePalette
 import com.yuzufin.app.rememberAppContainer
 import com.yuzufin.app.ui.navigation.QuickLaunch
+import com.yuzufin.app.ui.navigation.SummaryLaunch
 import com.yuzufin.app.ui.onboarding.OnboardingScreen
 import com.yuzufin.app.ui.common.ProvideTextScale
 import com.yuzufin.app.ui.splash.VideoSplash
@@ -32,10 +33,15 @@ private enum class Stage { Splash, Onboarding, Main }
  * estructura principal.
  */
 @Composable
-fun MoneaApp(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {}) {
+fun MoneaApp(
+    openExpense: Boolean = false,
+    onOpenExpenseHandled: () -> Unit = {},
+    openSummaryKey: String? = null,
+    onSummaryHandled: () -> Unit = {},
+) {
     // rememberSaveable: al rotar la pantalla no se repite la splash.
-    // Si se abre desde el widget "+ Gasto" no hay intro: la persona quiere anotar ya.
-    var showSplash by rememberSaveable { mutableStateOf(!openExpense) }
+    // Si se abre desde el widget "+ Gasto" o desde la notificación del resumen no hay intro: la persona va directo a lo suyo.
+    var showSplash by rememberSaveable { mutableStateOf(!openExpense && openSummaryKey == null) }
     val systemDark = isSystemInDarkTheme()
     val container = rememberAppContainer()
     val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
@@ -70,6 +76,12 @@ fun MoneaApp(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {}
         if (openExpense && done != null && QuickLaunch.shouldConsumeWithoutOpening(done)) onOpenExpenseHandled()
     }
 
+    // Sin configuración inicial no hay resumen que mostrar: el pedido se descarta.
+    LaunchedEffect(openSummaryKey, loadedSettings?.onboardingDone) {
+        val done = loadedSettings?.onboardingDone
+        if (openSummaryKey != null && done != null && SummaryLaunch.shouldDiscard(done)) onSummaryHandled()
+    }
+
     MoneaTheme(darkTheme = darkTheme, palette = settings?.themePalette ?: ThemePalette.GREEN) {
         // La splash es oscura: iconos claros. En las demás pantallas, oscuros solo con tema claro.
         SystemBarIcons(darkIcons = stage != Stage.Splash && !darkTheme)
@@ -83,7 +95,12 @@ fun MoneaApp(openExpense: Boolean = false, onOpenExpenseHandled: () -> Unit = {}
                 when (current) {
                     Stage.Splash -> VideoSplash(onFinished = { showSplash = false })
                     Stage.Onboarding -> OnboardingScreen()
-                    Stage.Main -> MainShell(openExpense = openExpense, onOpenExpenseHandled = onOpenExpenseHandled)
+                    Stage.Main -> MainShell(
+                        openExpense = openExpense,
+                        onOpenExpenseHandled = onOpenExpenseHandled,
+                        openSummaryKey = openSummaryKey,
+                        onSummaryHandled = onSummaryHandled,
+                    )
                 }
             }
         }

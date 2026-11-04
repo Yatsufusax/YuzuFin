@@ -17,4 +17,6 @@ data class AppNotification(
     /** Milisegundos desde 1970. */
     val createdAt: Long,
     val read: Boolean,
+    /** Clave única del aviso (en el resumen semanal identifica la semana: `weekly:<día>`). */
+    val dedupeKey: String = "",
 )

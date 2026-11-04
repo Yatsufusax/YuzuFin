@@ -70,6 +70,9 @@ fun NotificationsScreen(
     contentPadding: PaddingValues,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Clave del resumen semanal que pidió abrir la notificación (null si no hay pedido). */
+    openSummaryKey: String? = null,
+    onSummaryHandled: () -> Unit = {},
 ) {
     val repository = rememberAppContainer().notificationRepository
     val scope = rememberCoroutineScope()
@@ -85,6 +88,15 @@ fun NotificationsScreen(
             unreadAtOpen = current.filter { !it.read }.map { it.id }.toSet()
             repository.markAllRead()
         }
+    }
+
+    // Notificación del resumen semanal: cuando la lista cargó, abre el resumen guardado de esa semana.
+    // Si ya no existe (se borró de la campanilla), la lista queda a la vista y el pedido se da por atendido.
+    LaunchedEffect(list, openSummaryKey) {
+        val current = list ?: return@LaunchedEffect
+        val key = openSummaryKey ?: return@LaunchedEffect
+        opened = current.firstOrNull { it.kind == NotificationKind.SUMMARY && it.dedupeKey == key }
+        onSummaryHandled()
     }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -134,12 +146,22 @@ fun NotificationsScreen(
     }
 
     opened?.let { note ->
-        UpdateNotesWindow(
-            title = displayTitle(note),
-            body = note.body,
-            bottomPadding = contentPadding.calculateBottomPadding(),
-            onDismiss = { opened = null },
-        )
+        if (note.kind == NotificationKind.SUMMARY) {
+            WeeklySummaryWindow(
+                title = note.title,
+                body = note.body,
+                dedupeKey = note.dedupeKey,
+                bottomPadding = contentPadding.calculateBottomPadding(),
+                onDismiss = { opened = null },
+            )
+        } else {
+            UpdateNotesWindow(
+                title = displayTitle(note),
+                body = note.body,
+                bottomPadding = contentPadding.calculateBottomPadding(),
+                onDismiss = { opened = null },
+            )
+        }
     }
 
     if (confirmClear) {
@@ -198,8 +220,10 @@ private fun NotificationRow(
 ) {
     // Las novedades de una versión son largas: en la lista va un aviso corto y se leen al tocarlo.
     val isUpdate = item.kind == NotificationKind.UPDATE
+    // El resumen semanal también se abre al tocarlo: se puede consultar siempre desde acá.
+    val isSummary = item.kind == NotificationKind.SUMMARY
     MoneaCard(
-        modifier = if (isUpdate) {
+        modifier = if (isUpdate || isSummary) {
             Modifier
                 .clip(MaterialTheme.shapes.large)
                 .clickable(role = Role.Button, onClick = onOpen)
@@ -233,6 +257,14 @@ private fun NotificationRow(
                     )
                 } else {
                     Text(item.body, style = MaterialTheme.typography.bodyMedium)
+                    if (isSummary) {
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            stringResource(R.string.notif_summary_hint),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
                 }
                 Spacer(Modifier.height(4.dp))
                 Text(

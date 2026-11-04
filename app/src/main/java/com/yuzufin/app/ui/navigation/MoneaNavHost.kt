@@ -59,6 +59,8 @@ fun MoneaNavHost(
     updateViewModel: UpdateViewModel,
     onQuickAction: (QuickAction) -> Unit,
     onNotificationsClick: () -> Unit,
+    openSummaryKey: String? = null,
+    onSummaryHandled: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val container = rememberAppContainer()
@@ -141,7 +143,12 @@ fun MoneaNavHost(
             HelpScreen(contentPadding = contentPadding, onBack = goBack)
         }
         composable(Destination.Notifications.route) {
-            NotificationsScreen(contentPadding = contentPadding, onBack = goBack)
+            NotificationsScreen(
+                contentPadding = contentPadding,
+                onBack = goBack,
+                openSummaryKey = openSummaryKey,
+                onSummaryHandled = onSummaryHandled,
+            )
         }
         composable(Destination.Stats.route) {
             val statsViewModel: StatsViewModel = viewModel(factory = StatsViewModel.factory(container))

@@ -243,6 +243,10 @@ interface NotificationDao {
     @Query("SELECT COUNT(*) FROM app_notifications WHERE `read` = 0")
     fun observeUnreadCount(): Flow<Int>
 
+    /** El aviso guardado con esa clave (por ejemplo, el resumen de una semana), o null si no existe. */
+    @Query("SELECT * FROM app_notifications WHERE dedupeKey = :key LIMIT 1")
+    suspend fun findByKey(key: String): AppNotificationEntity?
+
     /** Devuelve -1 si ya existía un aviso con la misma clave. */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(entity: AppNotificationEntity): Long

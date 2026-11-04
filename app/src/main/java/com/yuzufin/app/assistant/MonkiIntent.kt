@@ -7,6 +7,11 @@ enum class MonkiIntent {
     GREETING, THANKS, HELP,
     EXPENSES, INCOME, TOP_CATEGORIES, BALANCE, SPENDING_CHECK, COMPARE,
     BUDGETS, SAVINGS, BILLS, LOANS, TREND, PROJECTION,
+    /**
+     * "¿Cuánto voy a ahorrar el próximo mes?": ahorro futuro estimado. No es la proyección de gastos del mes en
+     * curso (PROJECTION) ni una simulación con porcentaje (SIMULATION).
+     */
+    SAVINGS_FORECAST,
     /** Gastos chicos y repetidos ("gasto hormiga"). */
     ANT_SPENDING,
     /** "¿Qué podría dejar de comprar para ahorrar?" (no es lo mismo que consultar las metas de ahorro). */
@@ -50,6 +55,11 @@ data class MonkiQuestion(
     val percent: Int? = null,
     /** Había un porcentaje pero fuera de rango (0 %, 250 %…). */
     val invalidPercent: Boolean = false,
+    /**
+     * Solo en simulaciones sin "de <tema>": las palabras sueltas que podrían nombrar una categoría
+     * ("si reduzco transporte un 20%"). El motor solo la usa si coincide con una categoría real.
+     */
+    val looseTopic: String? = null,
 )
 
 /**
@@ -69,12 +79,14 @@ object MonkiIntentParser {
         "cuanto", "cuanta", "cuantos", "como", "estoy", "tengo", "mas", "menos", "nada", "mucho",
         "poco", "este", "esta", "estos", "estas", "ese", "esa", "mio", "mia", "ahora", "tambien",
         "anterior", "anteriores", "previo", "previa", "pasado", "pasada", "hace", "comparado", "comparar",
+        "podria", "podrias", "podes", "podre", "quedaria", "pasaria",
     )
 
     /** Prefijos de las palabras que dicen qué se quiere saber: no cuentan como tema. */
     private val INTENT_STEMS = listOf(
         "gast", "ingres", "cobr", "gane", "pagu", "saldo", "ahorr", "presupuest", "factura",
         "prestam", "deuda", "compar", "categori", "resumen", "meta",
+        "reduc", "reduzc", "recort", "disminu", "pued",
     )
 
     private val PERCENT = Regex("(\\d{1,4}(?:[.,]\\d+)?)\\s*(%|por ?ciento)")
@@ -92,8 +104,12 @@ object MonkiIntentParser {
             has("se me fue", "se me fueron", "se me va", "se me van", "salio", "salieron", "pague", "pagamos", "consumi")
         val earn = stem("ingres", "cobr", "gane", "ganan", "ganancia") ||
             has("me pagaron", "entro", "entraron", "sueldo", "salario", "recibi", "recibo")
+        // "¿Gasté más este mes o el anterior?": elegir cuál de dos períodos fue mayor es una comparación.
+        val previousWordAsked = MonkiText.words(reading.remaining).any { it in PREVIOUS_WORDS }
+        val asksWhichIsMore = (spend || earn) && has("mas", "menos") && has("o") &&
+            (reading.periods.size >= 2 || (reading.periods.size == 1 && previousWordAsked))
         val compare = stem("compar") ||
-            has("mas que", "menos que", "vs", "versus", "respecto", "frente a", "igual que")
+            has("mas que", "menos que", "vs", "versus", "respecto", "frente a", "igual que") || asksWhichIsMore
         val projection = has(
             "voy a gastar", "cuanto voy a", "proyeccion", "a fin de mes", "fin de mes",
             "cierro el mes", "estimacion", "estimado", "si sigo asi", "si sigo gastando",
@@ -103,6 +119,11 @@ object MonkiIntentParser {
         val ant = stem("hormig") || (spend && has("chicos", "chiquitos", "pequenos", "pequeno", "chiquitines", "de poco valor"))
         val simulation = rawPercent != null &&
             (stem("reduc", "reduzc", "recort", "baj", "disminu") || (has("si") && stem("gast", "ahorr")))
+        // "¿Cuánto voy a ahorrar el próximo mes?": ahorro futuro, no gasto proyectado ni simulación.
+        val savingsForecast = !simulation && stem("ahorr") && has(
+            "proximo mes", "proximos meses", "mes que viene", "mes siguiente",
+            "voy a ahorrar", "ahorrare", "podre ahorrar", "cuanto ahorrare",
+        )
         val savingTips = has(
             "dejar de comprar", "dejar de gastar", "que puedo recortar", "que podria recortar", "que recorto",
             "en que puedo ahorrar", "donde puedo ahorrar", "como ahorro", "como puedo ahorrar", "gastar menos",
@@ -155,6 +176,7 @@ object MonkiIntentParser {
             ant -> MonkiIntent.ANT_SPENDING
             simulation -> MonkiIntent.SIMULATION
             savingTips -> MonkiIntent.SAVING_TIPS
+            savingsForecast -> MonkiIntent.SAVINGS_FORECAST
             categoryExcess -> MonkiIntent.CATEGORY_EXCESS
             habits -> MonkiIntent.HABITS
             explain -> MonkiIntent.EXPLAIN
@@ -191,15 +213,31 @@ object MonkiIntentParser {
         // Sin intención clara y sin nada que seguir, no hay tema que arrastrar.
         if (intent == MonkiIntent.UNKNOWN && !followUp) topic = null
 
+        // Simulación sin "de <tema>": palabras sueltas que quizá nombran una categoría (el motor lo comprueba).
+        val looseTopic = if (intent == MonkiIntent.SIMULATION && topic == null) {
+            remainingWords
+                .filter { word -> word !in TOPIC_SKIP && word.length >= 3 && INTENT_STEMS.none { word.startsWith(it) } }
+                .takeIf { it.isNotEmpty() }
+                ?.joinToString(" ")
+        } else {
+            null
+        }
+
         return MonkiQuestion(
             intent = intent,
-            periods = reading.periods,
+            // "este mes o el anterior": el segundo período es el que viene antes del nombrado.
+            periods = if (asksWhichIsMore && reading.periods.size == 1 && previousWordAsked) {
+                listOf(reading.periods[0], MonkiPeriods.previous(reading.periods[0], today))
+            } else {
+                reading.periods
+            },
             ambiguousPeriod = reading.ambiguous,
             topic = topic,
             followUp = followUp,
             previousPeriod = previousPeriod,
             percent = rawPercent?.takeIf { simulation && it in 1..100 },
             invalidPercent = simulation && rawPercent != null && rawPercent !in 1..100,
+            looseTopic = looseTopic,
         )
     }
 
