@@ -5,4 +5,9 @@
     <string name="quick_more">Más detalles</string>
     <string name="quick_less">Menos</string>
     <string name="quick_key_backspace">Borrar</string>
+    <string name="quick_save_amount">Guardar %1$s</string>
+    <string name="quick_all">Todas</string>
+    <string name="quick_pick_category">Elegí la categoría</string>
+    <string name="quick_other_date">Otra fecha…</string>
+    <string name="quick_done">¡Anotado!</string>
 </resources>

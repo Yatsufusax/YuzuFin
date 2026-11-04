@@ -48,6 +48,8 @@ object VoiceParser {
         Normalizer.normalize(text.lowercase(), Normalizer.Form.NFD)
             .replace(Regex("\\p{Mn}+"), "")
             .replace(Regex("(?<=\\d)\\.(?=\\d{3}(\\D|$))"), "")
+            // Algunos reconocedores escriben “20,000” (coma de miles): son miles, no decimales.
+            .replace(Regex("(?<=\\d),(?=\\d{3}(\\D|$))"), "")
             .replace(Regex("(?<=\\d),(?=\\d)"), ".")
             .replace(Regex("[^a-z0-9. ]"), " ")
             .replace(Regex("(?<![0-9])\\.|\\.(?![0-9])"), " ")
@@ -115,6 +117,8 @@ object VoiceParser {
             val n = numberOf(t)
             when {
                 n != null -> { current += n; active = true }
+                // “20.000 mil”: el importe ya trae los miles, el “mil” sobra.
+                t == "mil" && active && current >= 1_000.0 -> Unit
                 t == "mil" && active -> { total += maxOf(current, 1.0) * 1_000; current = 0.0; lastScale = 1_000.0 }
                 t == "mil" -> { total = 1_000.0; active = true; lastScale = 1_000.0 }
                 (t == "millon" || t == "millones") -> {

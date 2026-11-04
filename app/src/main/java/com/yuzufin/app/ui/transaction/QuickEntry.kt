@@ -13,6 +13,7 @@ import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +26,10 @@ import androidx.compose.material.icons.automirrored.rounded.Backspace
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -39,6 +44,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,13 +68,19 @@ import com.yuzufin.app.domain.TransactionType
 import com.yuzufin.app.ui.common.categoryIcon
 import com.yuzufin.app.ui.common.dayLabel
 import com.yuzufin.app.ui.components.DateField
+import com.yuzufin.app.ui.components.Mascot
+import com.yuzufin.app.ui.components.MascotPose
+import com.yuzufin.app.ui.components.mascotForCurrency
 import java.time.LocalDate
 
 private const val GRID_COLUMNS = 4
+private const val SHOWN_CATEGORIES = 5
+private val CELL_WIDTH = 68.dp
 
 /**
- * Pantalla de anotar rápido (movimientos nuevos): importe con teclado propio, categorías en grilla,
- * Hoy/Ayer a un toque y el resto (nota, otra fecha, fotos) plegado en “Más detalles”.
+ * Pantalla de anotar rápido (movimientos nuevos): importe en una tarjeta con el monito y teclado
+ * propio, las categorías más usadas en una fila (con “Todas” que abre la grilla completa), la fecha
+ * en un solo chip y el resto (nota, fotos) plegado en “Más detalles”.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,6 +92,8 @@ fun ColumnScope.QuickEntryBody(
     onPickPhoto: () -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
+    var showAllCategories by rememberSaveable { mutableStateOf(false) }
+    var dateMenu by remember { mutableStateOf(false) }
     val currency = state.currency
     val today = LocalDate.now()
     val yesterday = today.minusDays(1)
@@ -117,18 +131,21 @@ fun ColumnScope.QuickEntryBody(
     ) {
         if (state.fromVoice) VoiceFilledNotice()
 
-        AmountDisplay(state)
+        AmountCard(state)
 
         // Sumas rápidas: 10.000 / 50.000 / 100.000 (o 5 / 10 / 50 en monedas con decimales).
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-        ) {
-            quickSteps(currency).forEach { step ->
-                AssistChip(
-                    onClick = { viewModel.onQuickAdd(step) },
-                    label = { Text("+ ${MoneyFormatter.formatNumber(step, currency)}") },
-                )
+        // Se ocultan apenas empieza a tipear, para despejar la pantalla.
+        if (state.amountText.isEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            ) {
+                quickSteps(currency).forEach { step ->
+                    AssistChip(
+                        onClick = { viewModel.onQuickAdd(step) },
+                        label = { Text("+ ${MoneyFormatter.formatNumber(step, currency)}") },
+                    )
+                }
             }
         }
 
@@ -153,19 +170,27 @@ fun ColumnScope.QuickEntryBody(
             }
         }
 
-        Column {
-            state.categories.chunked(GRID_COLUMNS).forEach { rowItems ->
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    rowItems.forEach { category ->
-                        CategoryCell(
-                            category = category,
-                            selected = state.categoryId == category.id,
-                            onClick = { viewModel.onCategoryChange(category.id) },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    repeat(GRID_COLUMNS - rowItems.size) { Spacer(Modifier.weight(1f)) }
-                }
+        // Las 5 más usadas (la elegida siempre se ve) y “Todas” para el resto.
+        val picked = state.categories.firstOrNull { it.id == state.categoryId }
+        val shown = state.categories.take(SHOWN_CATEGORIES).let { top ->
+            if (picked != null && picked !in top) listOf(picked) + top.take(SHOWN_CATEGORIES - 1) else top
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            shown.forEach { category ->
+                CategoryCell(
+                    category = category,
+                    selected = state.categoryId == category.id,
+                    onClick = { viewModel.onCategoryChange(category.id) },
+                    modifier = Modifier.width(CELL_WIDTH),
+                )
+            }
+            if (state.categories.size > shown.size) {
+                AllCategoriesCell(onClick = { showAllCategories = true }, modifier = Modifier.width(CELL_WIDTH))
             }
         }
 
@@ -174,23 +199,40 @@ fun ColumnScope.QuickEntryBody(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            FilterChip(
-                selected = state.date == today,
-                onClick = { viewModel.onDateChange(today) },
-                label = { Text(stringResource(R.string.date_today)) },
-            )
-            FilterChip(
-                selected = state.date == yesterday,
-                enabled = !yesterday.isBefore(state.minDate),
-                onClick = { viewModel.onDateChange(yesterday) },
-                label = { Text(stringResource(R.string.date_yesterday)) },
-            )
-            if (state.date != today && state.date != yesterday) {
+            Box {
                 FilterChip(
                     selected = true,
-                    onClick = { expanded = true },
+                    onClick = { dateMenu = true },
                     label = { Text(dayLabel(state.date)) },
+                    trailingIcon = {
+                        Icon(Icons.Rounded.ExpandMore, contentDescription = null, modifier = Modifier.size(18.dp))
+                    },
                 )
+                DropdownMenu(expanded = dateMenu, onDismissRequest = { dateMenu = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.date_today)) },
+                        onClick = {
+                            viewModel.onDateChange(today)
+                            dateMenu = false
+                        },
+                    )
+                    if (!yesterday.isBefore(state.minDate)) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.date_yesterday)) },
+                            onClick = {
+                                viewModel.onDateChange(yesterday)
+                                dateMenu = false
+                            },
+                        )
+                    }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.quick_other_date)) },
+                        onClick = {
+                            dateMenu = false
+                            expanded = true
+                        },
+                    )
+                }
             }
             Spacer(Modifier.weight(1f))
             TextButton(onClick = { expanded = !expanded }) {
@@ -201,16 +243,6 @@ fun ColumnScope.QuickEntryBody(
                     modifier = Modifier.size(18.dp),
                 )
             }
-        }
-
-        if (!expanded && state.description.isNotBlank()) {
-            Text(
-                text = "“${state.description}”",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
         }
 
         if (expanded) {
@@ -243,21 +275,69 @@ fun ColumnScope.QuickEntryBody(
 
     Keypad(currency = currency, onKey = onKey)
 
+    val amountLabel = state.amountMinor?.takeIf { it > 0L }?.let { MoneyFormatter.format(it, currency) }
     Button(
         onClick = viewModel::save,
         enabled = !state.saving,
+        shape = RoundedCornerShape(26.dp),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 10.dp)
             .height(52.dp),
     ) {
-        Text(stringResource(R.string.action_save))
+        Text(
+            text = if (amountLabel != null) {
+                stringResource(R.string.quick_save_amount, amountLabel)
+            } else {
+                stringResource(R.string.action_save)
+            },
+            fontWeight = FontWeight.Bold,
+        )
+    }
+
+    if (showAllCategories) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(onDismissRequest = { showAllCategories = false }, sheetState = sheetState) {
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.quick_pick_category),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 4.dp),
+                )
+                state.categories.chunked(GRID_COLUMNS).forEach { rowItems ->
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        rowItems.forEach { category ->
+                            CategoryCell(
+                                category = category,
+                                selected = state.categoryId == category.id,
+                                onClick = {
+                                    viewModel.onCategoryChange(category.id)
+                                    showAllCategories = false
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        repeat(GRID_COLUMNS - rowItems.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
+            }
+        }
     }
 }
 
-/** Importe grande y centrado, con el aviso de error o de saldo debajo. */
+/**
+ * Tarjeta del importe: categoría y día arriba, el monto grande, la nota y el monito a un costado.
+ * El aviso de error o de saldo va debajo, fuera de la tarjeta, para que se lea bien.
+ */
 @Composable
-private fun AmountDisplay(state: TransactionFormState) {
+private fun AmountCard(state: TransactionFormState) {
     val currency = state.currency
     val amount = state.amountMinor
     val display = if (currency.fractionDigits == 0) {
@@ -266,33 +346,55 @@ private fun AmountDisplay(state: TransactionFormState) {
         "${currency.symbol} ${state.amountText.ifEmpty { "0" }}"
     }
     val size = when {
-        display.length <= 14 -> 44.sp
-        display.length <= 18 -> 36.sp
-        else -> 28.sp
+        display.length <= 12 -> 40.sp
+        display.length <= 16 -> 34.sp
+        else -> 26.sp
     }
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = display,
-            fontSize = size,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            color = if (state.amountText.isEmpty()) {
-                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
+    val categoryName = state.categories.firstOrNull { it.id == state.categoryId }?.name
+    val onCard = MaterialTheme.colorScheme.onPrimary
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.primary)
+                .padding(start = 20.dp, top = 16.dp, end = 12.dp, bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = listOfNotNull(categoryName, dayLabel(state.date)).joinToString(" · "),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = onCard,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = display,
+                    fontSize = size,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    color = if (state.amountText.isEmpty()) onCard.copy(alpha = 0.6f) else onCard,
+                )
+                if (state.description.isNotBlank()) {
+                    Text(
+                        text = "“${state.description}”",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = onCard,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            Mascot(mascotForCurrency(currency.code), size = 76.dp)
+        }
         when {
             state.showErrors && !state.amountIsValid -> Text(
                 text = stringResource(R.string.form_amount_error),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp),
             )
             state.wouldOverdraw -> Text(
                 text = stringResource(
@@ -301,7 +403,7 @@ private fun AmountDisplay(state: TransactionFormState) {
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.tertiary,
-                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp),
             )
         }
     }
@@ -441,6 +543,67 @@ private fun VoiceFilledNotice() {
             stringResource(R.string.voice_filled_notice),
             style = MaterialTheme.typography.bodySmall,
             color = color,
+        )
+    }
+}
+
+/** Última celda de la fila de categorías: abre la grilla completa. */
+@Composable
+private fun AllCategoriesCell(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .selectable(selected = false, role = Role.Button, onClick = onClick)
+            .padding(vertical = 6.dp, horizontal = 2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(52.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "+",
+                fontSize = 24.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Text(
+            text = stringResource(R.string.quick_all),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+        )
+    }
+}
+
+/** Confirmación corta (el monito y “¡Anotado!”) mientras se cierra la pantalla de un movimiento nuevo. */
+@Composable
+fun ColumnScope.QuickDoneBody(state: TransactionFormState) {
+    val categoryName = state.categories.firstOrNull { it.id == state.categoryId }?.name
+    val amount = state.amountMinor?.let { MoneyFormatter.format(it, state.currency) }
+    Column(
+        modifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
+    ) {
+        Mascot(MascotPose.COIN_HUG, size = 150.dp)
+        Text(
+            text = stringResource(R.string.quick_done),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = listOfNotNull(categoryName, amount, dayLabel(state.date)).joinToString(" · "),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
     }
 }

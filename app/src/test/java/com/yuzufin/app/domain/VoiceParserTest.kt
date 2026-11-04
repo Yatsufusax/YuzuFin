@@ -33,6 +33,14 @@ class VoiceParserTest {
         assertEquals(2_000_000L, VoiceParser.extractAmount("2 millones"))
     }
 
+    @Test fun thousandsSeparatorsFromRecognizer() {
+        assertEquals(20_000L, VoiceParser.extractAmount("gasté 20,000 en el súper"))
+        assertEquals(20_000L, VoiceParser.extractAmount("gasté 20,000 mil en el súper"))
+        assertEquals(20_000L, VoiceParser.extractAmount("gasté 20.000 mil en el súper"))
+        assertEquals(1_234_567L, VoiceParser.extractAmount("cobré 1,234,567"))
+        assertEquals(1_500_000L, VoiceParser.extractAmount("cobré 1,5 millones"))
+    }
+
     @Test fun noAmount() {
         assertNull(VoiceParser.extractAmount("gasté en el súper"))
         assertNull(VoiceParser.extractAmount(""))

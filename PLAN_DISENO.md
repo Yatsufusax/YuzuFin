@@ -88,3 +88,10 @@ Detección de gastos desde notificaciones (necesita ejemplos reales y lista "Det
 ## Monki AI: inicio e historias
 - Inicio (fondo del color del tema, campo y pastillas sobre superficie): saludo, Monki con su bebida según la moneda (animado) centrado, pastillas con preguntas que el motor ya entiende, campo redondeado con micrófono/enviar y pie «Monki solo lee tus datos y puede equivocarse». No dice «generado con IA» porque Monki es determinista.
 - Historias: 5 láminas con degradé del tema (primario, secundario y terciario), monito grande y tarjeta del color del tema abajo; láminas 1 y 5 con la bebida según la moneda (etiqueta, título, texto, flecha). Sin puntos, niveles ni premios.
+
+
+### Rediseño de anotar rápido (maquetas aprobadas) — HECHO (sin compilar ni probar)
+- Tarjeta de importe con el monito, fila de 5 categorías + «Todas» (hoja con la grilla), chip único de fecha, «Guardar <importe>» y confirmación «¡Anotado!» (0,9 s). Archivos: `ui/transaction/QuickEntry.kt`, `TransactionFormScreen.kt`, `res/values/strings_quick.xml`. La pantalla de voz (VoiceEntryScreen) no se tocó: sigue igual y al terminar abre esta pantalla con el aviso de voz.
+
+### Ícono nuevo (monito con billetera) — HECHO (sin compilar ni probar)
+- Adaptativo con fondo crema `#FFE9B8`, primer plano `ic_launcher_billetera.webp` y capa monocromática `ic_launcher_billetera_mono.webp` (Android 13+). El monito es el original (`monito_tarjeta_neutral`) sin cambios; la billetera está dibujada encima. Archivos viejos (`ic_launcher_monea.webp`, color `ic_launcher_background`) quedan sin usar. Ícono de Google Play 512×512 en `PLAY_STORE/icono-play-512.png`.

@@ -6,4 +6,6 @@
     <color name="window_background">#EDF3EF</color>
     <!-- Icono de la app: logo de Monea sobre azul marino. -->
     <color name="ic_launcher_background">#0A1E46</color>
+    <!-- Ícono nuevo: monito con la billetera sobre crema. -->
+    <color name="ic_launcher_billetera_background">#FFE9B8</color>
 </resources>

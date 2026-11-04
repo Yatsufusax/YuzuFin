@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -59,6 +60,8 @@ import com.yuzufin.app.ui.common.categoryIcon
 import com.yuzufin.app.ui.components.DateField
 import com.yuzufin.app.ui.components.ScreenHeader
 import java.time.LocalDate
+
+private const val QUICK_DONE_MS = 900L
 
 /** Alta, edición y borrado de un ingreso o gasto. [onClose] vuelve a la pantalla anterior. */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -97,6 +100,8 @@ fun TransactionFormScreen(
     val haptic = rememberHaptic()
     LaunchedEffect(state.finished, state.notFound) {
         if (state.finished) haptic()
+        // Movimiento nuevo: se ve “¡Anotado!” un instante antes de cerrar.
+        if (state.finished && !state.isEdit) delay(QUICK_DONE_MS)
         if (state.finished || state.notFound) onClose()
     }
 
@@ -147,7 +152,9 @@ fun TransactionFormScreen(
             }
         }
 
-        if (!state.loading && !state.isEdit) {
+        if (state.finished && !state.isEdit) {
+            QuickDoneBody(state)
+        } else if (!state.loading && !state.isEdit) {
             // Movimiento nuevo: pantalla de anotar rápido con teclado propio.
             QuickEntryBody(
                 state = state,
