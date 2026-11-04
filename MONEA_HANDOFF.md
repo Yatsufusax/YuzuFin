@@ -190,3 +190,6 @@ Si un build falla, el usuario pega el log y se corrige el error puntual.
 
 ## Monki AI 0.4 (copia de pruebas sobre v60)
 Ver `MONKI_AI_04.md`: motor determinista nuevo (períodos, intenciones, contexto "¿y el mes pasado?", chistes por región), datos de solo lectura (`MonkiDataSource`) y tests. **Sin compilar.** La IA local es una idea pendiente (decisión: primero esto; después, capa opcional medida en un Samsung S22). El plan de origen está en `README-MONKI-AI-04-PLANTEAMIENTO.md`.
+
+## Monki AI inicio + historias (sin compilar)
+Archivos nuevos: `MonkiFlow.kt`, `MonkiHomeScreen.kt`, `MonkiStoryScreen.kt`, `res/values/strings_monki_home.xml`. Cambio en `MoneaNavHost.kt`: la ruta `monki` ahora muestra `MonkiFlow`. Sin tests nuevos (es UI). Verificar a mano: primera vez ve las historias, la segunda abre el inicio; «Cómo funciona Monki» las repite; el micrófono manda la pregunta al chat.

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Monki AI: inicio, historias de presentación -->
+    <string name="monki_home_greeting">¡Hola, %1$s!</string>
+    <string name="monki_home_greeting_plain">¡Hola!</string>
+    <string name="monki_home_ask">¿En qué te ayudo hoy?</string>
+    <string name="monki_home_input">Iniciá un chat con Monki…</string>
+    <string name="monki_home_footer">Monki solo lee tus datos y puede equivocarse. Chequeá lo importante.</string>
+    <string name="monki_home_history">Ver la charla</string>
+    <string name="monki_home_mic">Preguntar con la voz</string>
+    <string name="monki_home_mic_prompt">Preguntale algo a Monki</string>
+    <string name="monki_home_mic_missing">Este teléfono no tiene dictado por voz disponible.</string>
+
+    <string name="monki_pill_continue">Seguir la charla</string>
+    <string name="monki_pill_month">Gasté este mes</string>
+    <string name="monki_pill_projection">Cómo cierro el mes</string>
+    <string name="monki_pill_ants">Gastos hormiga</string>
+    <string name="monki_pill_cut">Qué puedo recortar</string>
+    <string name="monki_pill_whatif">Y si gasto menos</string>
+    <string name="monki_pill_how">Cómo funciona Monki</string>
+    <string name="monki_q_projection">¿Cuánto voy a gastar este mes?</string>
+    <string name="monki_q_ants">¿Tengo gastos hormiga?</string>
+    <string name="monki_q_cut">¿Qué puedo recortar para ahorrar?</string>
+    <string name="monki_q_whatif">¿Y si gasto un 15 % menos?</string>
+
+    <string name="monki_story_skip">Saltar</string>
+    <string name="monki_story_next">Siguiente</string>
+    <string name="monki_story_start">Empezar</string>
+    <string name="monki_story_1_tag">Conocé a Monki</string>
+    <string name="monki_story_1_title">¡Hola, soy Monki!</string>
+    <string name="monki_story_1_body">Tu compañero de plata. Vivo en tu teléfono y me sé tus números de memoria.</string>
+    <string name="monki_story_2_tag">Charla</string>
+    <string name="monki_story_2_title">Preguntame lo que quieras</string>
+    <string name="monki_story_2_body">“¿Cuánto gasté esta semana?”, “¿en qué se me va la plata?”. Escribilo o decilo con el micrófono.</string>
+    <string name="monki_story_3_tag">Cuentas</string>
+    <string name="monki_story_3_title">Te hago las cuentas</string>
+    <string name="monki_story_3_body">Calculo cómo cerrás el mes, cazo los gastos hormiga y pruebo escenarios: “¿y si gasto un 15 % menos?”.</string>
+    <string name="monki_story_4_tag">Privacidad</string>
+    <string name="monki_story_4_title">Miro, pero no toco nada</string>
+    <string name="monki_story_4_body">Leo tus datos y nada más: no puedo cambiarlos ni mandarlos a ningún lado. Todo queda en este teléfono.</string>
+    <string name="monki_story_5_tag">Ojo</string>
+    <string name="monki_story_5_title">Una mano, no la última palabra</string>
+    <string name="monki_story_5_body">Soy un compañero, no un asesor. Si un número no te cierra, revisalo vos. ¿Arrancamos?</string>
+</resources>

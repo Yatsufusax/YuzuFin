@@ -84,3 +84,7 @@ Detección de gastos desde notificaciones (necesita ejemplos reales y lista "Det
 - Hecho: `VideoSplash` reproduce `res/raw/monea_intro.mp4` como intro; `AnimatedSplash` queda de respaldo. En v49 el usuario cambió el video (vertical, 720x1280, con su propio fondo verde) porque el anterior "no se veía tan bien", y pidió **mantener la frase** de la intro anterior: ahora "Tu dinero. Tus decisiones." aparece debajo del logo, con fundido, dibujada con Compose. Sin probar.
 - A mirar en el teléfono: que el video se vea entero sin franjas visibles arriba y abajo (el fondo es `#112825`, el color de los bordes del video), que la frase quede justo debajo de las banderas y no tape nada, que el destello previo al primer cuadro no se note, que se salte con un toque y que no suene con el teléfono en silencio.
 - Si cambia otra vez el video: revisar `VIDEO_ASPECT`, `VideoBackground` (color de los bordes del video), `TAGLINE_TOP_FRACTION` y `TAGLINE_DELAY_MS` en `VideoSplash.kt`. Si llega uno horizontal con cuadritos, usar `tools/key_checkerboard_video.py`.
+
+## Monki AI: inicio e historias
+- Inicio: saludo, Monki (pose QUESTION) centrado, pastillas con preguntas que el motor ya entiende, campo redondeado con micrófono/enviar y pie «Monki solo lee tus datos y puede equivocarse». No dice «generado con IA» porque Monki es determinista.
+- Historias: 5 láminas con degradé del tema (primario, secundario y terciario), monito grande y tarjeta de superficie abajo (etiqueta, título, texto, flecha). Sin puntos, niveles ni premios.

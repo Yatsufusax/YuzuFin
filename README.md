@@ -200,3 +200,6 @@ Ver `PLAN_DISENO.md` (estado de cada punto y lo que falta) y `MONEA_HANDOFF.md` 
 - `tools/key_checkerboard_video.py` quedó para cuando llegue un video **horizontal** con fondo de cuadritos "transparente" (Python + ffmpeg + scipy; flood-fill de los píxeles neutros y claros que tocan el borde). El video actual no lo necesita.
 
 - Anotar con la voz: mantener apretado el "+" abre `VoiceEntryScreen` (`SpeechRecognizer`, prefiere reconocer sin conexión). `VoiceParser` interpreta la frase con reglas (importe, gasto/ingreso, categoría, descripción) y el formulario se abre prellenado vía el argumento `say` de `TransactionRoute`. Un toque abre el formulario a mano. Permiso `RECORD_AUDIO`.
+
+## Monki AI: inicio e historias
+Al abrir Monki AI se pasa por `MonkiFlow` (`ui/assistant/MonkiFlow.kt`): primera vez → `MonkiStoryScreen` (id `monki_story` en `dismissedHints`), después → `MonkiHomeScreen` y de ahí `MonkiChatScreen`. Un solo `MonkiViewModel` para las tres. Monki sigue siendo de solo lectura. El micrófono usa el dictado del sistema (`RecognizerIntent`) y envía lo escuchado como pregunta.

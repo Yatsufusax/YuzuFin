@@ -49,7 +49,7 @@ import com.yuzufin.app.ui.settings.SettingsScreen
 import com.yuzufin.app.ui.transaction.TransactionFormScreen
 import com.yuzufin.app.ui.transaction.TransactionFormViewModel
 import com.yuzufin.app.ui.update.UpdateViewModel
-import com.yuzufin.app.ui.assistant.MonkiChatScreen
+import com.yuzufin.app.ui.assistant.MonkiFlow
 import com.yuzufin.app.ui.assistant.MonkiViewModel
 
 @Composable
@@ -99,7 +99,7 @@ fun MoneaNavHost(
         }
         composable(Destination.Monki.route) {
             val monkiViewModel: MonkiViewModel = viewModel(factory = MonkiViewModel.factory(container))
-            MonkiChatScreen(viewModel = monkiViewModel, onBack = goBack)
+            MonkiFlow(viewModel = monkiViewModel, onExit = goBack)
         }
         composable(Destination.Movements.route) {
             MovementsScreen(
