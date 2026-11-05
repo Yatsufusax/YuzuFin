@@ -49,6 +49,40 @@ object CurrencyConversion {
         }
     }
 
+    /** Como [convert], pero devuelve null si el resultado no entra en un Long (en vez de dar un número cualquiera). */
+    fun convertOrNull(minor: Long, factor: BigDecimal): Long? = try {
+        val value = BigDecimal(minor).multiply(factor).setScale(0, RoundingMode.HALF_UP).longValueExact()
+        if (minor > 0L && value < 1L) 1L else value
+    } catch (e: ArithmeticException) {
+        null
+    }
+
+    /**
+     * Tipo de cambio escrito al anotar un movimiento. Con coma, los puntos son miles y la coma es el decimal
+     * (“7.600,50”); sin coma, “7.600” son miles y “7.5” es un decimal.
+     */
+    fun parseEnteredRate(text: String): BigDecimal? {
+        val t = text.trim()
+        if (t.isEmpty()) return null
+        val normalized = when {
+            t.contains(',') -> t.replace(".", "").replace(',', '.')
+            THOUSANDS.matches(t) -> t.replace(".", "")
+            else -> t
+        }
+        if (normalized.count { it == '.' } > 1) return null
+        return normalized.toBigDecimalOrNull()?.takeIf { it.signum() > 0 }
+    }
+
+    /** El tipo de cambio guardado (“7600”, “7600.5”) como se lee: “7.600”, “7.600,5”. */
+    fun formatRate(stored: String): String {
+        val value = stored.toBigDecimalOrNull() ?: return stored
+        val parts = value.stripTrailingZeros().toPlainString().split('.')
+        val whole = parts[0].reversed().chunked(3).joinToString(".").reversed()
+        return if (parts.size > 1) "$whole,${parts[1]}" else whole
+    }
+
+    private val THOUSANDS = Regex("^\\d{1,3}(\\.\\d{3})+$")
+
     /** Interpreta lo escrito por la persona: dígitos y una sola coma decimal. null si no es válido o es cero. */
     fun parseRate(text: String): BigDecimal? {
         val normalized = text.trim().replace(',', '.')

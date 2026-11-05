@@ -44,6 +44,10 @@ data class TransactionEntity(
     val updatedAt: Long,
     /** Movimiento interno de un préstamo: mueve el saldo pero no cuenta como ingreso ni gasto. */
     @ColumnInfo(defaultValue = "0") val internalTransfer: Boolean = false,
+    /** Si se anotó en otra moneda: su código (p. ej. "USD"), el importe en esa moneda y el tipo de cambio usado. */
+    val originalCurrency: String? = null,
+    val originalAmountMinor: Long? = null,
+    val exchangeRate: String? = null,
 )
 
 /** Una sola fila (id = 1) con el punto de partida financiero. */

@@ -159,6 +159,9 @@ private fun TransactionEntity.toDomain() = FinanceTransaction(
     description = description,
     date = LocalDate.ofEpochDay(dateEpochDay),
     internalTransfer = internalTransfer,
+    originalCurrency = originalCurrency,
+    originalAmountMinor = originalAmountMinor,
+    exchangeRate = exchangeRate,
 )
 
 private fun FinanceTransaction.toEntity(createdAt: Long, updatedAt: Long) = TransactionEntity(
@@ -171,6 +174,9 @@ private fun FinanceTransaction.toEntity(createdAt: Long, updatedAt: Long) = Tran
     createdAt = createdAt,
     updatedAt = updatedAt,
     internalTransfer = internalTransfer,
+    originalCurrency = originalCurrency,
+    originalAmountMinor = originalAmountMinor,
+    exchangeRate = exchangeRate,
 )
 
 private fun InitialBalanceEntity.toDomain() = InitialBalance(

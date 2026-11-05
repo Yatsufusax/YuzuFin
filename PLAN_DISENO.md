@@ -95,3 +95,15 @@ Detección de gastos desde notificaciones (necesita ejemplos reales y lista "Det
 
 ### Ícono nuevo (monito con billetera) — HECHO (sin compilar ni probar)
 - Adaptativo con fondo crema `#FFE9B8`, primer plano `ic_launcher_billetera.webp` y capa monocromática `ic_launcher_billetera_mono.webp` (Android 13+). El monito es el original (`monito_tarjeta_neutral`) sin cambios; la billetera está dibujada encima. Archivos viejos (`ic_launcher_monea.webp`, color `ic_launcher_background`) quedan sin usar. Ícono de Google Play 512×512 en `PLAY_STORE/icono-play-512.png`.
+
+### Multidivisa manual — HECHO (sin compilar ni probar)
+- Base de datos 8 → 9: `MIGRATION_8_9` solo agrega 3 columnas opcionales a `transactions` (`originalCurrency`, `originalAmountMinor`, `exchangeRate`). Los movimientos viejos quedan con null. El importe de siempre (`amountMinor`) sigue siendo el de la moneda principal.
+- Anotar rápido: chip de moneda, chip del tipo de cambio, línea «≈ Gs. X» en la tarjeta y hoja «Moneda del gasto». El cambio se escribe a mano (punto = miles, coma = decimal) y se propone el último usado con esa moneda.
+- Movimientos: segunda línea «US$ 50 · cambio 7.600». Al editar un movimiento, los datos de la otra moneda se conservan solo si el importe no cambia.
+- La copia de seguridad no necesitó cambios (copia el archivo de la base; una copia de la versión 8 se migra sola al abrir).
+- Pendiente a propósito: botón «Usar cambio de hoy» desde internet, voz en otra moneda, vista ⇄.
+
+### Anotar rápido, versión final — HECHO (sin compilar ni probar)
+- Sin sumas rápidas, sin frecuentes y sin «Más detalles». Fila de 4 categorías + «Todas» (quinto lugar, siempre visible); campo «Descripción (opcional)» con botón «+» (menú Sacar foto / Elegir de la galería, contador de fotos y miniaturas con ✕, `PhotoThumbsRow`); chips de fecha («Hoy ⌄», con «Otra fecha…» que abre el calendario) y de moneda («Gs. ⌄»).
+- Las fotos nuevas no se pueden abrir en grande antes de guardar (se ven al editar el movimiento). El comprobante PDF sigue solo al editar.
+- `onQuickAdd`, `onFrequentPick` y `frequent` del ViewModel quedaron sin usar a propósito (no se tocó la lógica).

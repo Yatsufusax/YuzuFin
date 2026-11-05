@@ -30,6 +30,10 @@ data class FinanceTransaction(
      * pero no cuenta como ingreso ni gasto del mes. Se gestiona desde Obligaciones, no desde Movimientos.
      */
     val internalTransfer: Boolean = false,
+    /** Si se anotó en otra moneda: código, importe en esa moneda y tipo de cambio (texto, sin coma flotante). */
+    val originalCurrency: String? = null,
+    val originalAmountMinor: Long? = null,
+    val exchangeRate: String? = null,
 )
 
 /**

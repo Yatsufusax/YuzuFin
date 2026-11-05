@@ -1,5 +1,7 @@
 package com.yuzufin.app.ui.movements
 
+import com.yuzufin.app.domain.CurrencyConversion
+import com.yuzufin.app.core.money.CurrencyInfo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -449,17 +451,38 @@ private fun MovementListRow(item: MovementItem, state: MovementsUiState, hasPhot
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        Text(
-            text = if (isIncome) {
-                MoneyFormatter.format(item.amountMinor, state.currency, showPlus = true)
-            } else {
-                MoneyFormatter.format(-item.amountMinor, state.currency)
-            },
-            style = MaterialTheme.typography.titleSmall,
-            color = if (isIncome) colors.income else colors.expense,
-            maxLines = 1,
-        )
+        val originalLine = originalAmountLine(item)
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = if (isIncome) {
+                    MoneyFormatter.format(item.amountMinor, state.currency, showPlus = true)
+                } else {
+                    MoneyFormatter.format(-item.amountMinor, state.currency)
+                },
+                style = MaterialTheme.typography.titleSmall,
+                color = if (isIncome) colors.income else colors.expense,
+                maxLines = 1,
+            )
+            if (originalLine != null) {
+                Text(
+                    text = originalLine,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
+        }
     }
+}
+
+/** “US$ 50 · cambio 7.600” si el movimiento se anotó en otra moneda; null si no. */
+@Composable
+private fun originalAmountLine(item: MovementItem): String? {
+    val code = item.originalCurrency ?: return null
+    val minor = item.originalAmountMinor ?: return null
+    val amount = MoneyFormatter.format(minor, CurrencyInfo.fromCode(code))
+    val rate = item.exchangeRate?.let { CurrencyConversion.formatRate(it) } ?: return amount
+    return stringResource(R.string.movement_rate_line, amount, rate)
 }
 
 @Composable

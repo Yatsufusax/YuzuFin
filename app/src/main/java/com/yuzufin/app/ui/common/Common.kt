@@ -44,6 +44,10 @@ data class MovementItem(
     val date: LocalDate,
     /** Movimiento interno de un préstamo: se gestiona desde Obligaciones. */
     val isInternal: Boolean = false,
+    /** Si se anotó en otra moneda: código, importe en esa moneda y tipo de cambio. */
+    val originalCurrency: String? = null,
+    val originalAmountMinor: Long? = null,
+    val exchangeRate: String? = null,
 ) {
     val title: String get() = description.ifBlank { categoryName }
 }
@@ -64,6 +68,9 @@ fun buildMovementItems(
             description = t.description,
             date = t.date,
             isInternal = t.internalTransfer,
+            originalCurrency = t.originalCurrency,
+            originalAmountMinor = t.originalAmountMinor,
+            exchangeRate = t.exchangeRate,
         )
     }
 }

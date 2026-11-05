@@ -10,4 +10,14 @@
     <string name="quick_pick_category">Elegí la categoría</string>
     <string name="quick_other_date">Otra fecha…</string>
     <string name="quick_done">¡Anotado!</string>
+    <string name="quick_currency_title">Moneda del gasto</string>
+    <string name="quick_main_currency">Tu moneda principal</string>
+    <string name="quick_rate_label">1 %1$s = … %2$s</string>
+    <string name="quick_rate_hint">Escribí cuánto vale 1 de la otra moneda. Si ya anotaste con ella, te proponemos el último cambio que usaste.</string>
+    <string name="quick_rate_set">Poné el tipo de cambio</string>
+    <string name="quick_rate_missing">Falta el tipo de cambio</string>
+    <string name="quick_currency_done">Listo</string>
+    <string name="movement_rate_line">%1$s · cambio %2$s</string>
+    <string name="quick_description_hint">Descripción (opcional)</string>
+    <string name="quick_attach">Adjuntar ticket o factura</string>
 </resources>

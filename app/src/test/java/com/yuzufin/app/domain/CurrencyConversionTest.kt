@@ -61,4 +61,28 @@ class CurrencyConversionTest {
         assertNull(CurrencyConversion.parseRate("1,2,3"))
         assertNull(CurrencyConversion.parseRate("abc"))
     }
+
+    @Test
+    fun enteredRateUnderstandsThousandsDots() {
+        assertEquals(BigDecimal("7600"), CurrencyConversion.parseEnteredRate("7.600"))
+        assertEquals(BigDecimal("7600.5"), CurrencyConversion.parseEnteredRate("7.600,5"))
+        assertEquals(BigDecimal("7600"), CurrencyConversion.parseEnteredRate("7600"))
+        assertEquals(BigDecimal("1.25"), CurrencyConversion.parseEnteredRate("1,25"))
+        assertNull(CurrencyConversion.parseEnteredRate(""))
+        assertNull(CurrencyConversion.parseEnteredRate("0"))
+    }
+
+    @Test
+    fun formatRateGroupsThousands() {
+        assertEquals("7.600", CurrencyConversion.formatRate("7600"))
+        assertEquals("7.600,5", CurrencyConversion.formatRate("7600.5"))
+        assertEquals("1,25", CurrencyConversion.formatRate("1.25"))
+    }
+
+    @Test
+    fun convertOrNullRejectsOverflow() {
+        val factor = CurrencyConversion.factor(usd, pyg, BigDecimal(7600))
+        assertEquals(380_000L, CurrencyConversion.convertOrNull(5_000L, factor))
+        assertNull(CurrencyConversion.convertOrNull(Long.MAX_VALUE, factor))
+    }
 }

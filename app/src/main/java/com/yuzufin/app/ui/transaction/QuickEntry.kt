@@ -1,5 +1,21 @@
 package com.yuzufin.app.ui.transaction
 
+import java.time.ZoneOffset
+import java.time.Instant
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePicker
+import java.util.Locale
+import java.util.Currency
+import com.yuzufin.app.domain.CurrencyConversion
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.RadioButton
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -74,13 +90,12 @@ import com.yuzufin.app.ui.components.mascotForCurrency
 import java.time.LocalDate
 
 private const val GRID_COLUMNS = 4
-private const val SHOWN_CATEGORIES = 5
-private val CELL_WIDTH = 68.dp
+private const val SHOWN_CATEGORIES = 4
 
 /**
  * Pantalla de anotar rápido (movimientos nuevos): importe en una tarjeta con el monito y teclado
- * propio, las categorías más usadas en una fila (con “Todas” que abre la grilla completa), la fecha
- * en un solo chip y el resto (nota, fotos) plegado en “Más detalles”.
+ * propio, las 4 categorías más usadas más “Todas” (abre la grilla completa), la descripción opcional
+ * con un “+” para adjuntar el ticket o la factura, y la fecha y la moneda en dos chips.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,10 +106,13 @@ fun ColumnScope.QuickEntryBody(
     onTakePhoto: () -> Unit,
     onPickPhoto: () -> Unit,
 ) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
+    var pickDate by rememberSaveable { mutableStateOf(false) }
+    var photoMenu by remember { mutableStateOf(false) }
     var showAllCategories by rememberSaveable { mutableStateOf(false) }
     var dateMenu by remember { mutableStateOf(false) }
     val currency = state.currency
+    val inputCurrency = state.inputCurrency
+    var showCurrency by rememberSaveable { mutableStateOf(false) }
     val today = LocalDate.now()
     val yesterday = today.minusDays(1)
     val feedback = LocalHapticFeedback.current
@@ -133,66 +151,93 @@ fun ColumnScope.QuickEntryBody(
 
         AmountCard(state)
 
-        // Sumas rápidas: 10.000 / 50.000 / 100.000 (o 5 / 10 / 50 en monedas con decimales).
-        // Se ocultan apenas empieza a tipear, para despejar la pantalla.
-        if (state.amountText.isEmpty()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-            ) {
-                quickSteps(currency).forEach { step ->
-                    AssistChip(
-                        onClick = { viewModel.onQuickAdd(step) },
-                        label = { Text("+ ${MoneyFormatter.formatNumber(step, currency)}") },
-                    )
-                }
-            }
-        }
-
-        if (state.frequent.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = stringResource(R.string.quick_frequent),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Row(
-                    modifier = Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    state.frequent.forEach { item ->
-                        AssistChip(
-                            onClick = { viewModel.onFrequentPick(item) },
-                            label = { Text("${item.description} · ${MoneyFormatter.formatNumber(item.amountMinor, currency)}") },
-                        )
-                    }
-                }
-            }
-        }
-
-        // Las 5 más usadas (la elegida siempre se ve) y “Todas” para el resto.
+        // Las 4 más usadas (la elegida siempre se ve) y “Todas” en el quinto lugar.
         val picked = state.categories.firstOrNull { it.id == state.categoryId }
         val shown = state.categories.take(SHOWN_CATEGORIES).let { top ->
             if (picked != null && picked !in top) listOf(picked) + top.take(SHOWN_CATEGORIES - 1) else top
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             shown.forEach { category ->
                 CategoryCell(
                     category = category,
                     selected = state.categoryId == category.id,
                     onClick = { viewModel.onCategoryChange(category.id) },
-                    modifier = Modifier.width(CELL_WIDTH),
+                    modifier = Modifier.weight(1f),
                 )
             }
-            if (state.categories.size > shown.size) {
-                AllCategoriesCell(onClick = { showAllCategories = true }, modifier = Modifier.width(CELL_WIDTH))
+            repeat((SHOWN_CATEGORIES - shown.size).coerceAtLeast(0)) { Spacer(Modifier.weight(1f)) }
+            AllCategoriesCell(onClick = { showAllCategories = true }, modifier = Modifier.weight(1f))
+        }
+
+        // Descripción opcional y “+” para adjuntar el ticket o la factura.
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = state.description,
+                onValueChange = viewModel::onDescriptionChange,
+                placeholder = { Text(stringResource(R.string.quick_description_hint)) },
+                singleLine = true,
+                shape = RoundedCornerShape(28.dp),
+                modifier = Modifier.weight(1f),
+            )
+            Box {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                        .clickable(enabled = !state.photoBusy && !state.photoLimitReached) { photoMenu = true },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (state.photoBusy) {
+                        CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+                    } else {
+                        Icon(
+                            Icons.Rounded.Add,
+                            contentDescription = stringResource(R.string.quick_attach),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp),
+                        )
+                    }
+                }
+                if (state.photos.isNotEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(20.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = state.photos.size.toString(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    }
+                }
+                DropdownMenu(expanded = photoMenu, onDismissRequest = { photoMenu = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.photos_camera)) },
+                        onClick = {
+                            photoMenu = false
+                            onTakePhoto()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.photos_gallery)) },
+                        onClick = {
+                            photoMenu = false
+                            onPickPhoto()
+                        },
+                    )
+                }
             }
         }
+        PhotoThumbsRow(state = state, files = files, onRemove = viewModel::removePhoto)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -229,53 +274,46 @@ fun ColumnScope.QuickEntryBody(
                         text = { Text(stringResource(R.string.quick_other_date)) },
                         onClick = {
                             dateMenu = false
-                            expanded = true
+                            pickDate = true
                         },
                     )
                 }
             }
-            Spacer(Modifier.weight(1f))
-            TextButton(onClick = { expanded = !expanded }) {
-                Text(stringResource(if (expanded) R.string.quick_less else R.string.quick_more))
-                Icon(
-                    imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+            FilterChip(
+                selected = state.entryCurrency != null,
+                onClick = { showCurrency = true },
+                label = { Text(inputCurrency.symbol) },
+                trailingIcon = {
+                    Icon(
+                        Icons.Rounded.ExpandMore,
+                        contentDescription = stringResource(R.string.quick_currency_title),
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
+            )
+            val other = state.entryCurrency
+            if (other != null) {
+                val rate = state.rate
+                AssistChip(
+                    onClick = { showCurrency = true },
+                    label = {
+                        Text(
+                            if (rate != null) {
+                                "1 ${other.symbol} = ${currency.symbol} " +
+                                    CurrencyConversion.formatRate(rate.stripTrailingZeros().toPlainString())
+                            } else {
+                                stringResource(R.string.quick_rate_set)
+                            },
+                        )
+                    },
                 )
             }
         }
-
-        if (expanded) {
-            OutlinedTextField(
-                value = state.description,
-                onValueChange = viewModel::onDescriptionChange,
-                label = { Text(stringResource(R.string.form_description)) },
-                placeholder = { Text(stringResource(R.string.form_description_hint)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            DateField(
-                label = stringResource(R.string.form_date),
-                date = state.date,
-                minDate = state.minDate,
-                maxDate = today,
-                onDateChange = viewModel::onDateChange,
-                isError = state.showErrors && (state.date.isBefore(state.minDate) || state.date.isAfter(today)),
-            )
-            AttachmentsSection(
-                state = state,
-                files = files,
-                onTakePhoto = onTakePhoto,
-                onPickPhoto = onPickPhoto,
-                onRemove = viewModel::removePhoto,
-                onVoucher = viewModel::generateVoucher,
-            )
-        }
     }
 
-    Keypad(currency = currency, onKey = onKey)
+    Keypad(currency = inputCurrency, onKey = onKey)
 
-    val amountLabel = state.amountMinor?.takeIf { it > 0L }?.let { MoneyFormatter.format(it, currency) }
+    val amountLabel = state.enteredMinor?.takeIf { it > 0L }?.let { MoneyFormatter.format(it, inputCurrency) }
     Button(
         onClick = viewModel::save,
         enabled = !state.saving,
@@ -292,6 +330,16 @@ fun ColumnScope.QuickEntryBody(
                 stringResource(R.string.action_save)
             },
             fontWeight = FontWeight.Bold,
+        )
+    }
+
+    if (pickDate) {
+        QuickDatePicker(
+            date = state.date,
+            minDate = state.minDate,
+            maxDate = today,
+            onDateChange = viewModel::onDateChange,
+            onDismiss = { pickDate = false },
         )
     }
 
@@ -330,7 +378,100 @@ fun ColumnScope.QuickEntryBody(
             }
         }
     }
+
+    if (showCurrency) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(onDismissRequest = { showCurrency = false }, sheetState = sheetState) {
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.quick_currency_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 4.dp),
+                )
+                CurrencyInfo.supported.forEach { option ->
+                    val selected = option.code == inputCurrency.code
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .selectable(
+                                selected = selected,
+                                role = Role.RadioButton,
+                                onClick = { viewModel.onEntryCurrencyPick(option.code) },
+                            )
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = option.symbol,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = currencyName(option), style = MaterialTheme.typography.titleSmall)
+                            if (option.code == currency.code) {
+                                Text(
+                                    text = stringResource(R.string.quick_main_currency),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        RadioButton(selected = selected, onClick = null)
+                    }
+                }
+                val other = state.entryCurrency
+                if (other != null) {
+                    OutlinedTextField(
+                        value = state.rateText,
+                        onValueChange = viewModel::onRateChange,
+                        label = { Text(stringResource(R.string.quick_rate_label, other.symbol, currency.symbol)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.quick_rate_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Button(
+                    onClick = { showCurrency = false },
+                    shape = RoundedCornerShape(26.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp).height(52.dp),
+                ) {
+                    Text(stringResource(R.string.quick_currency_done), fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
 }
+
+/** Nombre de la moneda en español (“Dólar estadounidense”); si no se encuentra, el código. */
+private fun currencyName(currency: CurrencyInfo): String = runCatching {
+    Currency.getInstance(currency.code).getDisplayName(Locale.forLanguageTag("es-PY"))
+        .replaceFirstChar { it.uppercase() }
+}.getOrDefault(currency.code)
 
 /**
  * Tarjeta del importe: categoría y día arriba, el monto grande, la nota y el monito a un costado.
@@ -339,11 +480,11 @@ fun ColumnScope.QuickEntryBody(
 @Composable
 private fun AmountCard(state: TransactionFormState) {
     val currency = state.currency
-    val amount = state.amountMinor
-    val display = if (currency.fractionDigits == 0) {
-        MoneyFormatter.format(amount ?: 0L, currency)
+    val input = state.inputCurrency
+    val display = if (input.fractionDigits == 0) {
+        MoneyFormatter.format(state.enteredMinor ?: 0L, input)
     } else {
-        "${currency.symbol} ${state.amountText.ifEmpty { "0" }}"
+        "${input.symbol} ${state.amountText.ifEmpty { "0" }}"
     }
     val size = when {
         display.length <= 12 -> 40.sp
@@ -377,6 +518,17 @@ private fun AmountCard(state: TransactionFormState) {
                     maxLines = 1,
                     color = if (state.amountText.isEmpty()) onCard.copy(alpha = 0.6f) else onCard,
                 )
+                if (state.entryCurrency != null) {
+                    // Lo que vale en la moneda principal: es lo que se guarda para el saldo y las estadísticas.
+                    Text(
+                        text = state.amountMinor?.let { "≈ " + MoneyFormatter.format(it, currency) }
+                            ?: stringResource(R.string.quick_rate_missing),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = onCard,
+                        maxLines = 1,
+                    )
+                }
                 if (state.description.isNotBlank()) {
                     Text(
                         text = "“${state.description}”",
@@ -409,14 +561,42 @@ private fun AmountCard(state: TransactionFormState) {
     }
 }
 
-/** Montos de las sumas rápidas, en unidades mínimas. */
-private fun quickSteps(currency: CurrencyInfo): List<Long> {
-    var factor = 1L
-    repeat(currency.fractionDigits) { factor *= 10L }
-    return if (currency.fractionDigits == 0) {
-        listOf(10_000L, 50_000L, 100_000L)
-    } else {
-        listOf(5L * factor, 10L * factor, 50L * factor)
+/** Calendario para elegir otra fecha, limitado entre [minDate] y [maxDate]. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun QuickDatePicker(
+    date: LocalDate,
+    minDate: LocalDate,
+    maxDate: LocalDate,
+    onDateChange: (LocalDate) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val pickerState = rememberDatePickerState(
+        initialSelectedDateMillis = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                val day = Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneOffset.UTC).toLocalDate()
+                return !day.isBefore(minDate) && !day.isAfter(maxDate)
+            }
+        },
+    )
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    pickerState.selectedDateMillis?.let { millis ->
+                        onDateChange(Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate())
+                    }
+                    onDismiss()
+                },
+            ) { Text(stringResource(R.string.action_accept)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+        },
+    ) {
+        DatePicker(state = pickerState)
     }
 }
 

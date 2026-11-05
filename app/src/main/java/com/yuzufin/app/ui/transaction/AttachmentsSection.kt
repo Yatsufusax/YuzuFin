@@ -199,3 +199,52 @@ private fun Thumbnail(files: AttachmentFileStore, name: String, modifier: Modifi
         Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant))
     }
 }
+
+/** Miniaturas chicas de los tickets adjuntos (anotar rápido): se quitan con la ✕. */
+@Composable
+fun PhotoThumbsRow(
+    state: TransactionFormState,
+    files: AttachmentFileStore,
+    onRemove: (PhotoItem) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (state.photos.isEmpty() && !state.photoError && !state.photoLimitReached) return
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        if (state.photos.isNotEmpty()) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(state.photos, key = { it.fileName }) { item ->
+                    Box {
+                        Thumbnail(files, item.fileName, Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)))
+                        // Zona táctil de 48 dp; el círculo visible es chico.
+                        IconButton(
+                            onClick = { onRemove(item) },
+                            modifier = Modifier.align(Alignment.TopEnd).size(48.dp).padding(start = 22.dp, bottom = 22.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier.size(22.dp).background(Color.Black.copy(alpha = 0.7f), CircleShape),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Close,
+                                    contentDescription = stringResource(R.string.photos_remove),
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (state.photoLimitReached) {
+            Text(
+                stringResource(R.string.photos_limit, MAX_ATTACHMENTS),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (state.photoError) {
+            Text(stringResource(R.string.photos_error), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+        }
+    }
+}

@@ -1,5 +1,7 @@
 package com.yuzufin.app.ui.transaction
 
+import com.yuzufin.app.domain.CurrencyConversion
+import java.math.BigDecimal
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -46,6 +48,12 @@ data class TransactionFormState(
     val notFound: Boolean = false,
     val isEdit: Boolean = false,
     val currency: CurrencyInfo = CurrencyInfo.PYG,
+    /** Moneda en la que se anota el movimiento (null = la principal). Solo en movimientos nuevos. */
+    val entryCurrency: CurrencyInfo? = null,
+    /** Tipo de cambio escrito: cuántas unidades de la moneda principal vale 1 de la otra. */
+    val rateText: String = "",
+    /** Último tipo de cambio usado con cada moneda (código → texto), para proponerlo. */
+    val knownRates: Map<String, String> = emptyMap(),
     val type: TransactionType = TransactionType.EXPENSE,
     val amountText: String = "",
     val categories: List<Category> = emptyList(),
@@ -71,7 +79,22 @@ data class TransactionFormState(
 ) {
     val photoLimitReached: Boolean get() = photos.size >= MAX_ATTACHMENTS
 
-    val amountMinor: Long? get() = AmountParser.parseToMinorUnits(amountText, currency)
+    /** Moneda en la que se está escribiendo el importe. */
+    val inputCurrency: CurrencyInfo get() = entryCurrency ?: currency
+
+    /** Lo escrito, en unidades mínimas de [inputCurrency]. */
+    val enteredMinor: Long? get() = AmountParser.parseToMinorUnits(amountText, inputCurrency)
+
+    val rate: BigDecimal? get() = CurrencyConversion.parseEnteredRate(rateText)
+
+    /** Importe en la moneda principal (es lo que cuenta para el saldo y las estadísticas). */
+    val amountMinor: Long?
+        get() {
+            val other = entryCurrency ?: return enteredMinor
+            val entered = enteredMinor ?: return null
+            val r = rate ?: return null
+            return CurrencyConversion.convertOrNull(entered, CurrencyConversion.factor(other, currency, r))
+        }
 
     val amountIsValid: Boolean get() = (amountMinor ?: 0L) > 0L
 
@@ -79,6 +102,8 @@ data class TransactionFormState(
     val wouldOverdraw: Boolean
         get() = type == TransactionType.EXPENSE && amountIsValid && (amountMinor ?: 0L) > baseBalance
 }
+
+private const val MAX_RATE_LENGTH = 14
 
 /** [editingId] = 0 para un movimiento nuevo. */
 class TransactionFormViewModel(
@@ -97,6 +122,7 @@ class TransactionFormViewModel(
 
     private var allCategories: List<Category> = emptyList()
     private var history: List<FinanceTransaction> = emptyList()
+    private var existingTx: FinanceTransaction? = null
     private val removedPhotoIds = mutableListOf<Long>()
     private var saved = false
 
@@ -109,9 +135,14 @@ class TransactionFormViewModel(
         val initial = finance.initialBalance.first()
         val transactions = finance.transactions.first()
         history = transactions.filter { !it.internalTransfer }
+        val knownRates = transactions
+            .filter { it.originalCurrency != null && it.exchangeRate != null }
+            .groupBy { it.originalCurrency.orEmpty() }
+            .mapValues { (_, list) -> list.maxWith(compareBy<FinanceTransaction>({ it.date }, { it.id })).exchangeRate.orEmpty().replace('.', ',') }
         // La categoría "Préstamos" es interna: la usan los préstamos, no el registro manual.
         allCategories = finance.categories.first().filter { it.iconKey != LOAN_ICON_KEY }
         val existing = if (editingId != 0L) finance.getTransaction(editingId) else null
+        existingTx = existing
         // Las archivadas no se ofrecen, salvo la que ya tiene el movimiento que se está editando.
         allCategories = allCategories.filter { !it.archived || it.id == existing?.categoryId }
 
@@ -139,6 +170,7 @@ class TransactionFormViewModel(
                 loading = false,
                 isEdit = existing != null,
                 currency = currency,
+                knownRates = knownRates,
                 type = type,
                 amountText = existing?.let { e -> AmountParser.toInputText(e.amountMinor, currency) }.orEmpty(),
                 categories = categoriesFor(type),
@@ -213,6 +245,8 @@ class TransactionFormViewModel(
     /** Completa importe, categoría y descripción con un gasto frecuente. */
     fun onFrequentPick(item: FrequentItem) = _state.update {
         it.copy(
+            entryCurrency = null,
+            rateText = "",
             amountText = AmountParser.toInputText(item.amountMinor, it.currency),
             categoryId = item.categoryId,
             description = item.description.take(80),
@@ -221,8 +255,8 @@ class TransactionFormViewModel(
 
     /** Suma un monto (en unidades mínimas) al importe que se está tipeando. */
     fun onQuickAdd(stepMinor: Long) = _state.update {
-        val total = (it.amountMinor ?: 0L) + stepMinor
-        it.copy(amountText = AmountParser.sanitize(AmountParser.toInputText(total, it.currency), it.currency))
+        val total = (it.enteredMinor ?: 0L) + stepMinor
+        it.copy(amountText = AmountParser.sanitize(AmountParser.toInputText(total, it.inputCurrency), it.inputCurrency))
     }
 
     /** Tecla del teclado propio: dígito, "000", coma, o [KEY_BACKSPACE] / [KEY_CLEAR]. */
@@ -232,18 +266,41 @@ class TransactionFormViewModel(
             KEY_BACKSPACE -> current.dropLast(1)
             KEY_CLEAR -> ""
             "," -> when {
-                it.currency.fractionDigits == 0 || current.contains(',') -> current
+                it.inputCurrency.fractionDigits == 0 || current.contains(',') -> current
                 current.isEmpty() -> "0,"
                 else -> "$current,"
             }
             "000" -> if (current.isEmpty() || current == "0" || current.endsWith(",")) current else current + key
             else -> if (current == "0") key else current + key
         }
-        it.copy(amountText = AmountParser.sanitize(next, it.currency))
+        it.copy(amountText = AmountParser.sanitize(next, it.inputCurrency))
     }
 
     fun onAmountChange(text: String) = _state.update {
-        it.copy(amountText = AmountParser.sanitize(text, it.currency))
+        it.copy(amountText = AmountParser.sanitize(text, it.inputCurrency))
+    }
+
+    /** Elige la moneda en la que se anota. Si es la principal, se vuelve al modo de siempre. */
+    fun onEntryCurrencyPick(code: String) = _state.update {
+        val picked = CurrencyInfo.fromCode(code)
+        if (picked.code == it.currency.code) {
+            it.copy(entryCurrency = null, rateText = "", amountText = AmountParser.sanitize(it.amountText, it.currency))
+        } else {
+            val sameAsBefore = it.entryCurrency?.code == picked.code
+            it.copy(
+                entryCurrency = picked,
+                rateText = if (sameAsBefore) it.rateText else it.knownRates[picked.code].orEmpty(),
+                amountText = AmountParser.sanitize(it.amountText, picked),
+            )
+        }
+    }
+
+    /** Tipo de cambio escrito a mano: dígitos, puntos de miles y una coma decimal. */
+    fun onRateChange(text: String) = _state.update {
+        val allowed = text.filter { c -> c in '0'..'9' || c == ',' || c == '.' }
+        val firstComma = allowed.indexOf(',')
+        val clean = if (firstComma < 0) allowed else allowed.substring(0, firstComma + 1) + allowed.substring(firstComma + 1).replace(",", "")
+        it.copy(rateText = clean.take(MAX_RATE_LENGTH))
     }
 
     fun onCategoryChange(id: Long) = _state.update { it.copy(categoryId = id) }
@@ -262,6 +319,14 @@ class TransactionFormViewModel(
             _state.update { it.copy(showErrors = true) }
             return
         }
+        // Lo anotado en otra moneda. Al editar, se conserva solo si el importe no cambió.
+        val original: Triple<String?, Long?, String?>? = when {
+            s.entryCurrency != null ->
+                Triple(s.entryCurrency.code, s.enteredMinor, s.rate?.stripTrailingZeros()?.toPlainString())
+            editingId != 0L && existingTx?.originalCurrency != null && existingTx?.amountMinor == amount ->
+                Triple(existingTx?.originalCurrency, existingTx?.originalAmountMinor, existingTx?.exchangeRate)
+            else -> null
+        }
         _state.update { it.copy(saving = true) }
         viewModelScope.launch {
             // ¿Es el primer gasto que anota? (para el festejo del monito)
@@ -276,6 +341,9 @@ class TransactionFormViewModel(
                     categoryId = categoryId,
                     description = s.description.trim(),
                     date = s.date,
+                    originalCurrency = original?.first,
+                    originalAmountMinor = original?.second,
+                    exchangeRate = original?.third,
                 ),
             )
             attachments.apply(
