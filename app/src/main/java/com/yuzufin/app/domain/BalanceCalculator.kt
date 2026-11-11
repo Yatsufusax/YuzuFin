@@ -2,8 +2,18 @@ package com.yuzufin.app.domain
 
 import java.time.YearMonth
 
-data class MonthTotals(val income: Long, val expense: Long) {
+/**
+ * Ingresos y gastos reales de un mes. [opening] es el saldo con el que la persona empezó el mes
+ * (lo que le quedó del anterior, p. ej. un sueldo cobrado el 30).
+ */
+data class MonthTotals(val income: Long, val expense: Long, val opening: Long = 0L) {
     val net: Long get() = income - expense
+
+    /**
+     * Con lo que se contaba para gastar en el mes: lo que se traía del mes anterior (si era
+     * positivo) más lo que ingresó. Un mes que arranca en 0 de ingresos pero con saldo no está en rojo.
+     */
+    val available: Long get() = opening.coerceAtLeast(0L) + income
 }
 
 /**
@@ -34,7 +44,15 @@ object BalanceCalculator {
     ): MonthTotals {
         var income = 0L
         var expense = 0L
+        val monthStart = month.atDay(1)
+        // Saldo al empezar el mes: el inicial más todo lo anterior (los préstamos también mueven el saldo).
+        // Si el mes es anterior al saldo inicial no hay nada que traer.
+        val beforeInitial = month.atEndOfMonth().isBefore(initial.startDate)
+        var opening = if (beforeInitial) 0L else initial.amountMinor
         for (transaction in transactions) {
+            if (!beforeInitial && counts(initial, transaction) && transaction.date.isBefore(monthStart)) {
+                opening += signedAmount(transaction)
+            }
             // Los movimientos internos (préstamos) mueven el saldo pero no son ingresos ni gastos del mes.
             if (transaction.internalTransfer || !counts(initial, transaction) || YearMonth.from(transaction.date) != month) continue
             when (transaction.type) {
@@ -42,7 +60,7 @@ object BalanceCalculator {
                 TransactionType.EXPENSE -> expense += transaction.amountMinor
             }
         }
-        return MonthTotals(income = income, expense = expense)
+        return MonthTotals(income = income, expense = expense, opening = opening)
     }
 
     fun freeEstimate(balance: Long, pendingObligations: Long): Long = balance - pendingObligations

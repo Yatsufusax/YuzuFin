@@ -603,20 +603,21 @@ private fun MascotCard(state: HomeUiState) {
         suffix,
     )
     val daysAway = rememberAppContainer().sessionInfo.daysAway
-    val comfortable = state.balance > 0 && state.monthIncome > 0 && state.monthExpense * 10 <= state.monthIncome * 7
+    // Se mide contra lo que había para gastar (lo que quedó del mes anterior + ingresos), no solo contra los ingresos.
+    val comfortable = state.balance > 0 && state.monthAvailable > 0 && state.monthExpense * 10 <= state.monthAvailable * 7
     val mood = when {
         daysAway >= 7 -> MascotMood.AWAY
         state.balance < 0 -> MascotMood.NEGATIVE
         state.pendingIncomes.isNotEmpty() -> MascotMood.PENDING
         state.monthIncome == 0L && state.monthExpense == 0L -> MascotMood.EMPTY
-        state.monthExpense > state.monthIncome -> MascotMood.CAREFUL
+        state.monthExpense > state.monthAvailable -> MascotMood.CAREFUL
         comfortable -> MascotMood.RICH
         else -> MascotMood.GOOD
     }
     val number = if (mood == MascotMood.AWAY) {
         daysAway
     } else {
-        MascotTalk.spentPercent(state.monthExpense, state.monthIncome)
+        MascotTalk.spentPercent(state.monthExpense, state.monthAvailable)
     }
     TalkingMascot(
         mood = mood,

@@ -74,16 +74,20 @@ import kotlin.math.roundToLong
 /** Cuántos meses hacia atrás deja elegir el selector de la tarjeta. */
 internal const val SUMMARY_MONTHS_BACK = 12
 
-/** Cuánto del ingreso del mes se gastó, para dibujar la barra y el porcentaje. */
+/** Cuánto de lo que había para gastar en el mes se gastó, para dibujar la barra y el porcentaje. */
 internal data class SummaryProgress(
     /** De 0 a 1, solo para el largo de la barra. */
     val fraction: Float,
-    /** Porcentaje gastado, o null si no hubo ingresos (no se puede calcular). Tope 999. */
+    /** Porcentaje gastado, o null si no había con qué gastar (no se puede calcular). Tope 999. */
     val percent: Int?,
-    /** Gastaste más de lo que ingresó. */
+    /** Gastaste más de lo que había para gastar en el mes. */
     val over: Boolean,
 )
 
+/**
+ * [income] es la base del mes: lo que se traía del mes anterior más lo ingresado
+ * ([com.yuzufin.app.domain.MonthTotals.available]), no solo los ingresos del mes.
+ */
 internal fun summaryProgress(income: Long, expense: Long): SummaryProgress {
     val over = expense > income
     return when {
@@ -121,8 +125,9 @@ internal fun summaryMonthLabel(month: YearMonth, today: YearMonth): String {
 internal fun summaryHeadline(state: HomeUiState): Long = state.balance
 
 /**
- * Tarjeta de resumen de Inicio: el presupuesto disponible (el dinero que hay hoy), cuánto del
- * ingreso del mes elegido se gastó, y los ingresos y gastos de ese mes. El mes se elige arriba.
+ * Tarjeta de resumen de Inicio: el presupuesto disponible (el dinero que hay hoy), cuánto de lo que
+ * había para gastar en el mes elegido (lo que quedó del mes anterior más los ingresos) se gastó, y
+ * los ingresos y gastos de ese mes. El mes se elige arriba.
  * Tiene el monito de la moneda a la derecha y el brillo que la recorre de vez en cuando.
  */
 @Composable
@@ -151,7 +156,7 @@ private fun SummaryCardContent(
     val currency = state.currency
     val income = state.shownIncome
     val expense = state.shownExpense
-    val progress = summaryProgress(income, expense)
+    val progress = summaryProgress(state.shownAvailable, expense)
     val fill = rememberFillAnimation(progress.fraction)
     val shownBalance = rememberCountUp(summaryHeadline(state))
     val hiddenDots = "••••••"

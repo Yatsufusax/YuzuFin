@@ -39,6 +39,14 @@ class SummaryCardMathTest {
     }
 
     @Test
+    fun firstOfMonthWithSalaryFromThePreviousMonthIsNotOver() {
+        // Cobró el 30; el 1.º gasta 200.000 con ingresos del mes en 0: la base es lo que traía.
+        val p = summaryProgress(income = 6_000_000L, expense = 200_000L)
+        assertEquals(3, p.percent)
+        assertFalse(p.over)
+    }
+
+    @Test
     fun spendingExactlyTheIncomeIsNotOver() {
         val p = summaryProgress(income = 1_000L, expense = 1_000L)
         assertEquals(100, p.percent)

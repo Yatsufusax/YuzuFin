@@ -58,6 +58,13 @@ data class HomeUiState(
     /** Ingresos y gastos del mes elegido en la tarjeta de resumen (igual al actual si no se cambió). */
     val shownIncome: Long = 0L,
     val shownExpense: Long = 0L,
+    /**
+     * Con lo que se contaba para gastar en el mes actual / en el elegido: lo que quedó del mes anterior
+     * más los ingresos. Es la base de la barra y del ánimo del monito (si no, el 1.º de mes, con el
+     * sueldo cobrado el 30, todo gasto parecería pasarse de lo ingresado).
+     */
+    val monthAvailable: Long = 0L,
+    val shownAvailable: Long = 0L,
     val recent: List<MovementItem> = emptyList(),
     val hasMovements: Boolean = false,
     /** Nombre elegido por la persona; vacío si no puso ninguno. */
@@ -183,6 +190,8 @@ class HomeViewModel(
                 monthExpense = month.expense,
                 shownIncome = shown.income,
                 shownExpense = shown.expense,
+                monthAvailable = month.available,
+                shownAvailable = shown.available,
                 recent = buildMovementItems(transactions.take(4), categories),
                 hasMovements = transactions.isNotEmpty(),
                 userName = appSettings.userName,

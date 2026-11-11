@@ -1,6 +1,7 @@
 package com.yuzufin.app.assistant
 
 import com.yuzufin.app.core.money.MoneyFormatter
+import com.yuzufin.app.domain.BalanceCalculator
 import com.yuzufin.app.domain.MonkiProactiveMode
 import com.yuzufin.app.domain.SavingsMath
 import com.yuzufin.app.domain.StatsCalculator
@@ -109,8 +110,12 @@ object ProactiveMonki {
         val committed = snapshot.bills
             .filter { !it.paid && YearMonth.from(it.dueDate) == month }
             .sumOf { it.amountMinor }
-        val free = point.income - point.expense - committed
-        if (point.income > 0L && free * 5 < point.income) {
+        // Base: lo ingresado más lo que quedó del mes anterior (sueldo cobrado el 30, por ejemplo).
+        val base = snapshot.initial
+            ?.let { BalanceCalculator.monthTotals(it, snapshot.transactions, month).available }
+            ?: point.income
+        val free = base - point.expense - committed
+        if (base > 0L && free * 5 < base) {
             out += ProactiveNote(
                 ProactiveKind.LOW_FUNDS,
                 "monki:lowfunds:$monthKey",

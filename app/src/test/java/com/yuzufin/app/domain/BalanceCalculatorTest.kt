@@ -20,6 +20,42 @@ class BalanceCalculatorTest {
             date = date,
         )
 
+    @Test fun mes_que_empieza_sin_ingresos_cuenta_con_lo_que_quedo_del_anterior() {
+        // Saldo inicial 1.000.000 el 1/oct; sueldo de 5.000.000 el 30/oct; gasto de 200.000 el 1/nov.
+        val list = listOf(
+            tx(TransactionType.INCOME, 5_000_000L, LocalDate.of(2026, 10, 30)),
+            tx(TransactionType.EXPENSE, 200_000L, LocalDate.of(2026, 11, 1)),
+        )
+        val nov = BalanceCalculator.monthTotals(initial, list, YearMonth.of(2026, 11))
+        assertEquals(0L, nov.income)
+        assertEquals(200_000L, nov.expense)
+        assertEquals(6_000_000L, nov.opening)
+        assertEquals(6_000_000L, nov.available)
+        // Octubre sigue igual: el sueldo es su ingreso y arranca con el saldo inicial.
+        val oct = BalanceCalculator.monthTotals(initial, list, YearMonth.of(2026, 10))
+        assertEquals(5_000_000L, oct.income)
+        assertEquals(1_000_000L, oct.opening)
+    }
+
+    @Test fun un_saldo_negativo_al_empezar_el_mes_no_resta_a_lo_disponible() {
+        val list = listOf(tx(TransactionType.EXPENSE, 1_500_000L, LocalDate.of(2026, 10, 5)))
+        val nov = BalanceCalculator.monthTotals(initial, list, YearMonth.of(2026, 11))
+        assertEquals(-500_000L, nov.opening)
+        assertEquals(0L, nov.available)
+    }
+
+    @Test fun los_prestamos_cuentan_en_el_saldo_de_arranque_pero_no_como_ingreso() {
+        val list = listOf(tx(TransactionType.INCOME, 400_000L, LocalDate.of(2026, 10, 20)).copy(internalTransfer = true))
+        val nov = BalanceCalculator.monthTotals(initial, list, YearMonth.of(2026, 11))
+        assertEquals(1_400_000L, nov.opening)
+        assertEquals(0L, nov.income)
+    }
+
+    @Test fun un_mes_anterior_al_saldo_inicial_no_trae_nada() {
+        val sep = BalanceCalculator.monthTotals(initial, emptyList(), YearMonth.of(2026, 9))
+        assertEquals(0L, sep.opening)
+    }
+
     @Test fun sin_movimientos_el_saldo_es_el_inicial() {
         assertEquals(1_000_000L, BalanceCalculator.availableBalance(initial, emptyList()))
     }
