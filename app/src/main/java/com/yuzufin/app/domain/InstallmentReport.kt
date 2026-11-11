@@ -11,7 +11,7 @@ enum class InstallmentState {
     /** Pagada a tiempo o tarde. */
     PAID,
 
-    /** Pagada antes de su vencimiento. */
+    /** Pagada en un mes anterior al de su vencimiento. */
     ADVANCED,
 
     /** Ya tocó pagarla y sigue sin confirmar. */
@@ -88,7 +88,8 @@ object InstallmentReportBuilder {
             lines += when (occurrence.status) {
                 OccurrenceStatus.CONFIRMED -> {
                     val paid = occurrence.transactionId?.let { transactionDates[it] } ?: occurrence.dueDate
-                    val advanced = paid.isBefore(occurrence.dueDate)
+                    // Adelantada = pagada en un mes anterior al de su vencimiento. Pagar un par de días antes es pagar a tiempo.
+                    val advanced = YearMonth.from(paid).isBefore(YearMonth.from(occurrence.dueDate))
                     InstallmentLine(
                         number, occurrence.dueDate, paid,
                         if (advanced) InstallmentState.ADVANCED else InstallmentState.PAID,

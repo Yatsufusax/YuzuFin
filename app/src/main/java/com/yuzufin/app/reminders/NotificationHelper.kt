@@ -30,6 +30,9 @@ object NotificationHelper {
     /** Presupuestos: 3000 + id de la categoría (módulo 1000), un aviso por categoría. */
     const val ID_BUDGET_BASE = 3000
 
+    /** Mensajes proactivos de Monki: 4000 + un número de 0 a 1023 según el mensaje. */
+    const val ID_MONKI_BASE = 4000
+
     fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val channel = NotificationChannel(

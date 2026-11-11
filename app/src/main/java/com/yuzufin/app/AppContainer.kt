@@ -54,6 +54,9 @@ class AppContainer(context: Context) {
     val updateChecker: UpdateChecker by lazy { UpdateChecker() }
     val apkDownloader: ApkDownloader by lazy { ApkDownloader(appContext) }
     val appVersion: AppVersion by lazy { AppVersion.read(appContext) }
+
+    /** Revisa ya si Monki tiene algo que avisar (irregularidades o logros), sin esperar al chequeo diario. */
+    fun checkMonkiNow() = com.yuzufin.app.reminders.MonkiNotifier.checkSoon(appContext)
 }
 
 class MoneaApplication : Application() {

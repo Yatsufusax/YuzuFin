@@ -49,6 +49,7 @@ class SavingsViewModel(
     finance: FinanceRepository,
     private val savings: SavingsRepository,
     settings: SettingsRepository,
+    private val onSaved: () -> Unit = {},
 ) : ViewModel() {
 
     val uiState: StateFlow<SavingsUiState> = combine(
@@ -99,6 +100,7 @@ class SavingsViewModel(
             } catch (e: Exception) {
                 SavingsResult.INVALID
             }
+            if (result == SavingsResult.OK) runCatching { onSaved() }
             onResult(result)
         }
     }
@@ -112,7 +114,10 @@ class SavingsViewModel(
 
         fun factory(container: AppContainer) = viewModelFactory {
             initializer {
-                SavingsViewModel(container.financeRepository, container.savingsRepository, container.settingsRepository)
+                SavingsViewModel(
+                    container.financeRepository, container.savingsRepository, container.settingsRepository,
+                    onSaved = { container.checkMonkiNow() },
+                )
             }
         }
     }

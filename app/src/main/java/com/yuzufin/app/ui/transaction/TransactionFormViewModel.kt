@@ -120,6 +120,8 @@ class TransactionFormViewModel(
     private val obligations: ObligationsRepository,
     /** Frase dicha por voz para prellenar el movimiento nuevo (vacía si no hay). */
     private val say: String = "",
+    /** Se llama después de guardar: Monki revisa si hay algo que avisar. */
+    private val onSaved: () -> Unit = {},
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TransactionFormState(type = initialType))
@@ -367,6 +369,7 @@ class TransactionFormViewModel(
                     exchangeRate = original?.third,
                 ),
             )
+            runCatching { onSaved() }
             billToSettle?.let { bill ->
                 // El gasto ya existe: la factura se marca pagada con él y se arma la del mes siguiente.
                 runCatching { obligations.settleBillWithTransaction(bill.id, id, s.date) }
@@ -491,6 +494,7 @@ class TransactionFormViewModel(
                         container.voucherBuilder,
                         container.obligationsRepository,
                         say,
+                        onSaved = { container.checkMonkiNow() },
                     )
                 }
             }
