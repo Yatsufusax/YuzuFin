@@ -238,17 +238,20 @@ fun RecurringScreen(
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.primary,
                                     )
-                                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    FlowRow(
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(0.dp),
+                                    ) {
                                         if (row.installmentsLeft > 0 && row.expense.active) {
                                             TextButton(
                                                 onClick = { advancing = row },
                                                 contentPadding = PaddingValues(0.dp),
-                                            ) { Text(stringResource(R.string.recurring_advance)) }
+                                            ) { Text(stringResource(R.string.recurring_advance), maxLines = 1, softWrap = false) }
                                         }
                                         TextButton(
                                             onClick = { exportReceipt(row.expense.id) },
                                             contentPadding = PaddingValues(0.dp),
-                                        ) { Text(stringResource(R.string.recurring_receipt)) }
+                                        ) { Text(stringResource(R.string.recurring_receipt), maxLines = 1, softWrap = false) }
                                     }
                                     if (row.finished) {
                                         Text(
