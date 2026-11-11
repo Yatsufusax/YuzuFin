@@ -29,6 +29,12 @@ data class RecurringRow(
     val categoryName: String,
     val iconKey: String,
     val next: LocalDate?,
+    /** Cuotas pagadas o generadas (solo gastos en cuotas). */
+    val installmentsUsed: Int = 0,
+    /** Cuotas que todavía se pueden adelantar. */
+    val installmentsLeft: Int = 0,
+    /** Gasto en cuotas que ya terminó su ciclo. */
+    val finished: Boolean = false,
 )
 
 data class PendingRecurring(
@@ -72,11 +78,22 @@ class RecurringViewModel(
             currency = CurrencyInfo.fromCode(appSettings.currencyCode),
             rows = expenses.map { expense ->
                 val category = byId[expense.categoryId]
+                val mine = occurrences.filter { it.expenseId == expense.id }
+                val existing = mine.map { it.dueDate }.toSet()
+                val pendingCount = mine.count { it.status == OccurrenceStatus.PENDING }
+                val finished = RecurringScheduler.isFinished(expense, mine.size, pendingCount)
                 RecurringRow(
                     expense = expense,
                     categoryName = category?.name.orEmpty(),
                     iconKey = category?.iconKey.orEmpty(),
-                    next = if (expense.active) RecurringScheduler.nextDueDate(expense.dayOfMonth, today.minusDays(1)) else null,
+                    next = if (expense.active && !finished) {
+                        RecurringScheduler.upcomingFree(expense, existing, mine.size, today, 1).firstOrNull()
+                    } else {
+                        null
+                    },
+                    installmentsUsed = RecurringScheduler.used(expense, mine.size),
+                    installmentsLeft = if (expense.isInstallments) RecurringScheduler.remaining(expense, mine.size) else 0,
+                    finished = finished,
                 )
             },
             pending = occurrences
@@ -106,6 +123,19 @@ class RecurringViewModel(
                 runCatching { recurring.confirm(occurrenceId, amountMinor) }
             } finally {
                 inFlight.remove(occurrenceId)
+                refresh.value += 1
+            }
+        }
+    }
+
+    /** Paga por adelantado [count] cuotas de un gasto en cuotas, cada una por [amountMinor]. */
+    fun advance(expenseId: Long, count: Int, amountMinor: Long) {
+        if (!inFlight.add(-expenseId)) return
+        viewModelScope.launch {
+            try {
+                runCatching { recurring.advance(expenseId, count, amountMinor, LocalDate.now()) }
+            } finally {
+                inFlight.remove(-expenseId)
                 refresh.value += 1
             }
         }

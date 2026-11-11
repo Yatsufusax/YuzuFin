@@ -164,10 +164,11 @@ class HomeViewModel(
                 val upcoming = expenses
                     .filter { it.active }
                     .mapNotNull { expense ->
-                        val after = maxOf(today.minusDays(1), expense.startDate.minusDays(1))
-                        val date = RecurringScheduler.nextDueDate(expense.dayOfMonth, after) ?: return@mapNotNull null
-                        if ((expense.id to date) in existing) null
-                        else UpcomingDue(expense.name, date, expense.amountMinor, overdue = false)
+                        // Próxima cuota libre: salta las ya pagadas por adelantado y no pasa del total de cuotas.
+                        val mine = existing.filter { it.first == expense.id }.map { it.second }.toSet()
+                        val date = RecurringScheduler.upcomingFree(expense, mine, mine.size, today, 1).firstOrNull()
+                            ?: return@mapNotNull null
+                        UpcomingDue(expense.name, date, expense.amountMinor, overdue = false)
                     }
                 RecurringHome(due, upcoming)
             },

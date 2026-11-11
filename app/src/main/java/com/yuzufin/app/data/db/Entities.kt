@@ -276,6 +276,10 @@ data class RecurringExpenseEntity(
     val active: Boolean,
     val remind: Boolean,
     val createdAt: Long,
+    /** 0 = gasto fijo sin fin; mayor que 0 = cantidad total de cuotas. */
+    @ColumnInfo(defaultValue = "0") val totalInstallments: Int = 0,
+    /** Cuotas ya pagadas antes de anotar el gasto. */
+    @ColumnInfo(defaultValue = "0") val paidBefore: Int = 0,
 )
 
 /** Un pago concreto de un gasto fijo. El índice único (gasto, fecha) impide duplicarlo. */

@@ -73,6 +73,7 @@ fun RecurringScreen(
     // null = sin diálogo; id 0 = gasto nuevo.
     var editing by remember { mutableStateOf<RecurringExpense?>(null) }
     var confirming by remember { mutableStateOf<PendingRecurring?>(null) }
+    var advancing by remember { mutableStateOf<RecurringRow?>(null) }
     val haptic = rememberHaptic()
 
     val blank = {
@@ -182,28 +183,93 @@ fun RecurringScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(row.expense.name, style = MaterialTheme.typography.titleSmall, maxLines = 1)
                                 Text(
-                                    if (row.expense.active && row.next != null) {
-                                        stringResource(R.string.recurring_next, formatShortDate(row.next))
-                                    } else {
-                                        stringResource(R.string.recurring_paused)
+                                    when {
+                                        row.finished -> stringResource(R.string.recurring_installments_done)
+                                        row.expense.active && row.next != null -> stringResource(R.string.recurring_next, formatShortDate(row.next))
+                                        else -> stringResource(R.string.recurring_paused)
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                if (row.expense.isInstallments) {
+                                    Text(
+                                        stringResource(
+                                            R.string.recurring_installments_progress,
+                                            row.installmentsUsed,
+                                            row.expense.totalInstallments,
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                    if (row.installmentsLeft > 0 && row.expense.active) {
+                                        TextButton(
+                                            onClick = { advancing = row },
+                                            contentPadding = PaddingValues(0.dp),
+                                        ) { Text(stringResource(R.string.recurring_advance)) }
+                                    }
+                                }
                             }
                             Text(
                                 MoneyFormatter.format(-row.expense.amountMinor, state.currency),
                                 style = MaterialTheme.typography.titleSmall,
                             )
-                            Switch(
-                                checked = row.expense.active,
-                                onCheckedChange = { viewModel.setActive(row.expense.id, it) },
-                            )
+                            if (!row.finished) {
+                                Switch(
+                                    checked = row.expense.active,
+                                    onCheckedChange = { viewModel.setActive(row.expense.id, it) },
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    advancing?.let { row ->
+        var countText by remember(row.expense.id) { mutableStateOf("1") }
+        var amountText by remember(row.expense.id) { mutableStateOf(AmountParser.toInputText(row.expense.amountMinor, state.currency)) }
+        val count = countText.toIntOrNull()
+        val parsed = AmountParser.parseToMinorUnits(amountText, state.currency)
+        val countOk = count != null && count in 1..row.installmentsLeft
+        AlertDialog(
+            onDismissRequest = { advancing = null },
+            title = { Text(stringResource(R.string.recurring_advance_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(row.expense.name, style = MaterialTheme.typography.titleSmall)
+                    Text(stringResource(R.string.recurring_advance_body))
+                    OutlinedTextField(
+                        value = countText,
+                        onValueChange = { countText = it.filter(Char::isDigit).take(3) },
+                        label = { Text(stringResource(R.string.recurring_advance_count, row.installmentsLeft)) },
+                        singleLine = true,
+                        isError = !countOk,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = amountText,
+                        onValueChange = { amountText = AmountParser.sanitize(it, state.currency) },
+                        label = { Text(stringResource(R.string.recurring_amount)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = countOk && parsed != null && parsed > 0L,
+                    onClick = {
+                        viewModel.advance(row.expense.id, count ?: return@TextButton, parsed ?: return@TextButton)
+                        haptic()
+                        advancing = null
+                    },
+                ) { Text(stringResource(R.string.recurring_advance_confirm)) }
+            },
+            dismissButton = { TextButton(onClick = { advancing = null }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
 
     confirming?.let { item ->
@@ -247,12 +313,18 @@ fun RecurringScreen(
         var categoryId by remember(original.id) { mutableStateOf(original.categoryId) }
         var dayText by remember(original.id) { mutableStateOf(original.dayOfMonth.toString()) }
         var remind by remember(original.id) { mutableStateOf(original.remind) }
+        var inInstallments by remember(original.id) { mutableStateOf(original.isInstallments) }
+        var totalText by remember(original.id) { mutableStateOf(if (original.isInstallments) original.totalInstallments.toString() else "") }
+        var paidText by remember(original.id) { mutableStateOf(if (original.paidBefore > 0) original.paidBefore.toString() else "") }
         var confirmDelete by remember(original.id) { mutableStateOf(false) }
         var showErrors by remember(original.id) { mutableStateOf(false) }
 
         val parsedAmount = AmountParser.parseToMinorUnits(amount, state.currency)
         val day = dayText.toIntOrNull()
-        val valid = name.isNotBlank() && parsedAmount != null && parsedAmount > 0L && day != null && day in 1..31 &&
+        val total = totalText.toIntOrNull() ?: 0
+        val paidBefore = paidText.toIntOrNull() ?: 0
+        val installmentsOk = !inInstallments || (total in 1..600 && paidBefore in 0 until total)
+        val valid = installmentsOk && name.isNotBlank() && parsedAmount != null && parsedAmount > 0L && day != null && day in 1..31 &&
             state.allCategories.any { it.id == categoryId }
 
         AlertDialog(
@@ -304,6 +376,31 @@ fun RecurringScreen(
                         modifier = Modifier.fillMaxWidth(),
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.recurring_installments_switch), modifier = Modifier.weight(1f))
+                        Switch(checked = inInstallments, onCheckedChange = { inInstallments = it })
+                    }
+                    if (inInstallments) {
+                        OutlinedTextField(
+                            value = totalText,
+                            onValueChange = { totalText = it.filter(Char::isDigit).take(3) },
+                            label = { Text(stringResource(R.string.recurring_installments_total)) },
+                            singleLine = true,
+                            isError = showErrors && total !in 1..600,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        OutlinedTextField(
+                            value = paidText,
+                            onValueChange = { paidText = it.filter(Char::isDigit).take(3) },
+                            label = { Text(stringResource(R.string.recurring_installments_paid)) },
+                            supportingText = { Text(stringResource(R.string.recurring_installments_note)) },
+                            singleLine = true,
+                            isError = showErrors && paidBefore !in 0 until maxOf(total, 1),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.recurring_remind), modifier = Modifier.weight(1f))
                         Switch(checked = remind, onCheckedChange = { remind = it })
                     }
@@ -322,6 +419,8 @@ fun RecurringScreen(
                                     categoryId = categoryId,
                                     dayOfMonth = day ?: return@TextButton,
                                     remind = remind,
+                                    totalInstallments = if (inInstallments) total else 0,
+                                    paidBefore = if (inInstallments) paidBefore else 0,
                                 ),
                             )
                             editing = null

@@ -16,7 +16,7 @@
     <string name="hint_incomes_body">Cargá tu sueldo u otros cobros fijos una sola vez. Cuando llega la fecha, Monea te avisa y vos confirmás cuánto cobraste. Hasta que no confirmás, tu saldo no cambia.</string>
 
     <string name="hint_recurring_title">Gastos que se repiten</string>
-    <string name="hint_recurring_body">Alquiler, internet, suscripciones: cargalos una vez y cada mes aparece un pago pendiente. Tocá «Ya pagué» cuando lo hagas (podés corregir el importe) o salteá el mes. Tu saldo baja recién al confirmar.</string>
+    <string name="hint_recurring_body">Alquiler, internet, suscripciones: cargalos una vez y cada mes aparece un pago pendiente. Tocá «Ya pagué» cuando lo hagas (podés corregir el importe) o salteá el mes. Tu saldo baja recién al confirmar. Si es una compra en cuotas, activá «Es una compra en cuotas» y poné cuántos meses: termina sola.</string>
 
     <string name="hint_obligations_title">Facturas y préstamos</string>
     <string name="hint_obligations_body">Las facturas son lo que tenés que pagar; no bajan tu saldo hasta que las marcás como pagadas. Los préstamos (dados o recibidos) mueven tu saldo pero no cuentan como ingreso ni gasto en tus estadísticas.</string>

@@ -112,6 +112,49 @@ class RecurringRepository(private val db: AppDatabase) {
         }
     }
 
+    /**
+     * Adelanta las próximas [count] cuotas de un gasto en cuotas: crea los pagos de las próximas
+     * fechas libres ya confirmados, con su gasto fechado en [today]. Sirve para quien paga 2 o más
+     * cuotas en un mes para cancelar antes. Cada cuota existe una sola vez; no pasa del total.
+     * Devuelve cuántas cuotas se adelantaron.
+     */
+    suspend fun advance(expenseId: Long, count: Int, amountMinor: Long, today: LocalDate): Int {
+        if (count <= 0 || amountMinor <= 0L) return 0
+        return db.withTransaction {
+            val entity = dao.getExpense(expenseId) ?: return@withTransaction 0
+            val expense = entity.toDomain()
+            if (!expense.isInstallments) return@withTransaction 0
+            val existing = dao.dueDays(expenseId).map(LocalDate::ofEpochDay).toSet()
+            val dates = RecurringScheduler.upcomingFree(expense, existing, existing.size, today, count)
+            val now = System.currentTimeMillis()
+            for (due in dates) {
+                val transactionId = transactionDao.insert(
+                    TransactionEntity(
+                        type = TransactionType.EXPENSE,
+                        amountMinor = amountMinor,
+                        categoryId = expense.categoryId,
+                        description = expense.name,
+                        dateEpochDay = today.toEpochDay(),
+                        createdAt = now,
+                        updatedAt = now,
+                    ),
+                )
+                dao.insertOccurrence(
+                    RecurringOccurrenceEntity(
+                        expenseId = expenseId,
+                        dueEpochDay = due.toEpochDay(),
+                        amountMinor = amountMinor,
+                        status = OccurrenceStatus.CONFIRMED.name,
+                        transactionId = transactionId,
+                        notified = true,
+                        createdAt = now,
+                    ),
+                )
+            }
+            dates.size
+        }
+    }
+
     suspend fun skip(occurrenceId: Long) {
         db.withTransaction {
             val occurrence = dao.getOccurrence(occurrenceId) ?: return@withTransaction
@@ -135,6 +178,11 @@ class RecurringRepository(private val db: AppDatabase) {
         val tomorrow = today.plusDays(1)
         return dao.allExpenses().map { it.toDomain() }
             .filter { it.active && it.remind && RecurringScheduler.dueDates(it.dayOfMonth, tomorrow, tomorrow).isNotEmpty() }
+            .filter { expense ->
+                // Una cuota ya adelantada (o una que ya no existe porque el plan terminó) no se avisa.
+                val existing = dao.dueDays(expense.id).map(LocalDate::ofEpochDay).toSet()
+                tomorrow !in existing && RecurringScheduler.remaining(expense, existing.size) > 0
+            }
             .map { DueNotice(0, it.name, it.amountMinor, pending = true, remind = true) }
     }
 
@@ -152,6 +200,8 @@ private fun RecurringExpenseEntity.toDomain() = RecurringExpense(
     startDate = LocalDate.ofEpochDay(startEpochDay),
     active = active,
     remind = remind,
+    totalInstallments = totalInstallments,
+    paidBefore = paidBefore,
 )
 
 private fun RecurringExpense.toEntity(createdAt: Long) = RecurringExpenseEntity(
@@ -164,6 +214,8 @@ private fun RecurringExpense.toEntity(createdAt: Long) = RecurringExpenseEntity(
     active = active,
     remind = remind,
     createdAt = createdAt,
+    totalInstallments = totalInstallments,
+    paidBefore = paidBefore,
 )
 
 private fun RecurringOccurrenceEntity.toDomain() = RecurringOccurrence(

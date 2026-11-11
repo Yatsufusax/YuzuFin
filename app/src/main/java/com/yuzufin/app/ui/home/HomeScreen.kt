@@ -283,7 +283,7 @@ private fun AttentionBillRow(item: AttentionItem.BillDue, state: HomeUiState, on
                 color = if (overdue) MaterialTheme.monea.expense else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Text(MoneyFormatter.format(item.amountMinor, state.currency), style = MaterialTheme.typography.titleSmall)
+        Text(MoneyFormatter.format(item.bill.amountMinor, state.currency), style = MaterialTheme.typography.titleSmall)
         FilledTonalButton(onClick = onView) { Text(stringResource(R.string.home_attention_view)) }
     }
 }
@@ -364,7 +364,7 @@ private fun UpcomingBillsCard(state: HomeUiState, onClick: () -> Unit) {
                         content = MaterialTheme.colorScheme.onErrorContainer,
                     )
                 }
-                Text(MoneyFormatter.format(item.bill.amountMinor, state.currency), style = MaterialTheme.typography.titleSmall)
+                Text(MoneyFormatter.format(item.amountMinor, state.currency), style = MaterialTheme.typography.titleSmall)
             }
         }
         Spacer(Modifier.height(8.dp))
