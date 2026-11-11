@@ -43,7 +43,11 @@ data class MovementFilters(
     val maxAmountMinor: Long? = null,
 )
 
-data class DayGroup(val date: LocalDate, val items: List<MovementItem>)
+data class DayGroup(val date: LocalDate, val items: List<MovementItem>) {
+    /** Lo que dejó el día: ingresos menos gastos (los movimientos internos de préstamos no cuentan). */
+    val netMinor: Long
+        get() = items.filter { !it.isInternal }.sumOf { if (it.type == TransactionType.INCOME) it.amountMinor else -it.amountMinor }
+}
 
 data class MovementsUiState(
     val loading: Boolean = true,
@@ -59,6 +63,8 @@ data class MovementsUiState(
     /** Cantidad de movimientos que se ven con los filtros actuales. */
     val resultCount: Int = 0,
     val hasActiveFilters: Boolean = false,
+    /** Gastos del período por categoría, para el anillo. */
+    val ring: List<RingSlice> = emptyList(),
 )
 
 class MovementsViewModel(
@@ -93,6 +99,7 @@ class MovementsViewModel(
             canGoToNextMonth = f.month != null && f.month.isBefore(YearMonth.now()),
             resultCount = groups.sumOf { it.items.size },
             hasActiveFilters = f.hasActiveFilters(),
+            ring = expenseRing(transactions, categories, f),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MovementsUiState())
 

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ring_spent">Gastaste</string>
+    <string name="ring_other">Otros</string>
+    <string name="ring_hint">Tocá una categoría para ver solo esos movimientos.</string>
+    <string name="ring_entered">Entró %1$s</string>
+    <string name="ring_out">Salió %1$s</string>
+    <string name="ring_left">Te queda %1$d%%</string>
+</resources>

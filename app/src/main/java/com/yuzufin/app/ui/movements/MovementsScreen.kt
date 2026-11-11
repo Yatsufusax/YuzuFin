@@ -205,7 +205,8 @@ fun MovementsScreen(
             }
         }
 
-        item {
+        // Con Gastos o Todos, las categorías se eligen en el anillo; las chips quedan para Ingresos.
+        if (filters.type == TypeFilter.INCOME) item {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -246,8 +247,26 @@ fun MovementsScreen(
             }
         }
 
+        if (state.ring.isNotEmpty() && filters.type != TypeFilter.INCOME) {
+            item {
+                CategoryRingCard(
+                    slices = state.ring,
+                    totalExpense = state.ring.sumOf { it.amountMinor },
+                    selectedId = filters.categoryId,
+                    currency = state.currency,
+                    onSelect = viewModel::setCategory,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+            }
+        }
+
         if (state.groups.isNotEmpty()) {
             item {
+                val left = if (state.totalIncome > 0L) {
+                    ((state.totalIncome - state.totalExpense) * 100L / state.totalIncome).toInt()
+                } else {
+                    null
+                }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -255,21 +274,22 @@ fun MovementsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
-                        text = stringResource(
-                            R.string.movements_total_income,
-                            MoneyFormatter.format(state.totalIncome, state.currency),
-                        ),
+                        text = stringResource(R.string.ring_entered, MoneyFormatter.format(state.totalIncome, state.currency)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.monea.income,
                     )
                     Text(
-                        text = stringResource(
-                            R.string.movements_total_expense,
-                            MoneyFormatter.format(state.totalExpense, state.currency),
-                        ),
+                        text = stringResource(R.string.ring_out, MoneyFormatter.format(state.totalExpense, state.currency)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.monea.expense,
                     )
+                    if (left != null && left >= 0) {
+                        Text(
+                            text = stringResource(R.string.ring_left, left),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
@@ -288,12 +308,23 @@ fun MovementsScreen(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(
-                    text = dayLabel(group.date),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 4.dp),
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = dayLabel(group.date),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = MoneyFormatter.format(group.netMinor, state.currency, showPlus = group.netMinor > 0L),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (group.netMinor >= 0L) MaterialTheme.monea.income else MaterialTheme.monea.expense,
+                    )
+                }
                 MoneaCard(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
                     group.items.forEachIndexed { index, item ->
                         if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

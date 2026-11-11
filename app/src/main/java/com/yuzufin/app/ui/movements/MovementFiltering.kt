@@ -41,3 +41,34 @@ fun applyMovementFilters(
     val names = categories.associate { it.id to it.name }
     return transactions.filter { filters.matches(it, names[it.categoryId].orEmpty()) }
 }
+
+/** Una porción del anillo de gastos. [categoryId] es null en «Otros» (lo que no entra en las mayores). */
+data class RingSlice(val categoryId: Long?, val name: String, val amountMinor: Long, val percent: Int)
+
+/**
+ * Gastos del período por categoría: las mayores y, si hay más de [maxSlices], el resto junto en «Otros».
+ * Respeta mes, búsqueda e importes, pero no la categoría ni el tipo elegidos: así el anillo sigue mostrando
+ * todas las categorías aunque una esté seleccionada. Los movimientos internos de préstamos no cuentan.
+ */
+fun expenseRing(
+    transactions: List<FinanceTransaction>,
+    categories: List<Category>,
+    filters: MovementFilters,
+    maxSlices: Int = 4,
+): List<RingSlice> {
+    val base = filters.copy(categoryId = null, type = TypeFilter.EXPENSE)
+    val spent = applyMovementFilters(transactions, categories, base).filter { !it.internalTransfer }
+    val total = spent.sumOf { it.amountMinor }
+    if (total <= 0L) return emptyList()
+    val names = categories.associate { it.id to it.name }
+    val sorted = spent.groupBy { it.categoryId }
+        .map { (id, list) -> Triple(id, names[id].orEmpty(), list.sumOf { it.amountMinor }) }
+        .sortedByDescending { it.third }
+    fun percent(amount: Long) = ((amount * 100L + total / 2) / total).toInt()
+    if (sorted.size <= maxSlices) {
+        return sorted.map { RingSlice(it.first, it.second, it.third, percent(it.third)) }
+    }
+    val head = sorted.take(maxSlices - 1).map { RingSlice(it.first, it.second, it.third, percent(it.third)) }
+    val rest = sorted.drop(maxSlices - 1).sumOf { it.third }
+    return head + RingSlice(null, "", rest, percent(rest))
+}
