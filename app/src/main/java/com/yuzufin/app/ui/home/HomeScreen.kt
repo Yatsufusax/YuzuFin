@@ -283,7 +283,7 @@ private fun AttentionBillRow(item: AttentionItem.BillDue, state: HomeUiState, on
                 color = if (overdue) MaterialTheme.monea.expense else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Text(MoneyFormatter.format(item.bill.amountMinor, state.currency), style = MaterialTheme.typography.titleSmall)
+        Text(MoneyFormatter.format(item.amountMinor, state.currency), style = MaterialTheme.typography.titleSmall)
         FilledTonalButton(onClick = onView) { Text(stringResource(R.string.home_attention_view)) }
     }
 }
@@ -339,7 +339,7 @@ private fun NextIncomeCard(item: UpcomingIncome, state: HomeUiState, onClick: ()
     }
 }
 
-/** Próximos vencimientos: pendientes que todavía no descuentan el saldo. */
+/** Próximos vencimientos (facturas y gastos fijos), por fecha: todavía no descuentan el saldo. */
 @Composable
 private fun UpcomingBillsCard(state: HomeUiState, onClick: () -> Unit) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
@@ -350,14 +350,14 @@ private fun UpcomingBillsCard(state: HomeUiState, onClick: () -> Unit) {
             if (index > 0) HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(item.bill.name, style = MaterialTheme.typography.titleSmall)
+                    Text(item.name, style = MaterialTheme.typography.titleSmall)
                     Text(
-                        formatFullDate(item.bill.dueDate),
+                        formatFullDate(item.date),
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (item.status == BillStatus.OVERDUE) MaterialTheme.monea.expense else muted,
+                        color = if (item.overdue) MaterialTheme.monea.expense else muted,
                     )
                 }
-                if (item.status == BillStatus.OVERDUE) {
+                if (item.overdue) {
                     PillLabel(
                         text = stringResource(R.string.obl_pill_overdue),
                         container = MaterialTheme.colorScheme.errorContainer,

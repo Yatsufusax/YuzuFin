@@ -16,6 +16,7 @@ import com.yuzufin.app.domain.BalanceCalculator
 import com.yuzufin.app.domain.Bill
 import com.yuzufin.app.domain.BillStatus
 import com.yuzufin.app.domain.ObligationMath
+import com.yuzufin.app.domain.RecurringScheduler
 import com.yuzufin.app.domain.OccurrenceStatus
 import com.yuzufin.app.domain.SavingsMath
 import com.yuzufin.app.ui.common.MovementItem
@@ -73,8 +74,11 @@ data class HomeUiState(
     val pendingIncomes: List<PendingIncome> = emptyList(),
     /** Próximo cobro previsto (no es dinero real todavía). */
     val nextIncome: UpcomingIncome? = null,
-    /** Próximas facturas pendientes (las más cercanas primero, con las vencidas arriba). */
-    val upcomingBills: List<UpcomingBill> = emptyList(),
+    /**
+     * Próximos vencimientos: facturas pendientes y gastos fijos que vienen, mezclados y ordenados por
+     * fecha (las vencidas arriba). Un gasto fijo que ya tocó va en [attention], no acá.
+     */
+    val upcomingBills: List<UpcomingDue> = emptyList(),
     /**
      * Lo que conviene resolver ya, en este orden: cobros por confirmar, facturas vencidas o por
      * vencer (hasta 3 días) y gastos fijos que ya tocan. Inicio muestra el primero y el resto
@@ -83,7 +87,11 @@ data class HomeUiState(
     val attention: List<AttentionItem> = emptyList(),
 )
 
-data class UpcomingBill(val bill: Bill, val status: BillStatus)
+/** Un vencimiento próximo: una factura pendiente o el próximo pago de un gasto fijo. */
+data class UpcomingDue(val name: String, val date: LocalDate, val amountMinor: Long, val overdue: Boolean)
+
+/** Gastos fijos para Inicio: los que ya tocan y esperan confirmación, y los próximos pagos previstos. */
+private data class RecurringHome(val due: List<PendingRecurring>, val upcoming: List<UpcomingDue>)
 
 /** Algo que requiere una acción de la persona. */
 sealed interface AttentionItem {
@@ -105,7 +113,7 @@ private data class HomeExtras(
     val occurrences: List<com.yuzufin.app.domain.IncomeOccurrence>,
     val savingEntries: List<com.yuzufin.app.domain.SavingsEntry>,
     val bills: List<Bill>,
-    val recurringDue: List<PendingRecurring>,
+    val recurring: RecurringHome,
 )
 
 class HomeViewModel(
@@ -143,16 +151,28 @@ class HomeViewModel(
             combine(recurring.expenses, recurring.occurrences) { expenses, occurrences ->
                 val names = expenses.associateBy { it.id }
                 val today = LocalDate.now()
-                occurrences
+                val due = occurrences
                     .filter { it.status == OccurrenceStatus.PENDING && !it.dueDate.isAfter(today) }
                     .mapNotNull { occurrence ->
                         val expense = names[occurrence.expenseId] ?: return@mapNotNull null
                         PendingRecurring(occurrence.id, expense.name, occurrence.dueDate, occurrence.amountMinor)
                     }
                     .sortedBy { it.dueDate }
+                // Próximo pago de cada gasto fijo activo (igual que en la pantalla Gastos fijos), salvo que
+                // ese pago ya exista como ocurrencia (pendiente o confirmada).
+                val existing = occurrences.map { it.expenseId to it.dueDate }.toSet()
+                val upcoming = expenses
+                    .filter { it.active }
+                    .mapNotNull { expense ->
+                        val after = maxOf(today.minusDays(1), expense.startDate.minusDays(1))
+                        val date = RecurringScheduler.nextDueDate(expense.dayOfMonth, after) ?: return@mapNotNull null
+                        if ((expense.id to date) in existing) null
+                        else UpcomingDue(expense.name, date, expense.amountMinor, overdue = false)
+                    }
+                RecurringHome(due, upcoming)
             },
-        ) { sources, occurrences, entries, bills, recurringDue ->
-            HomeExtras(sources, occurrences, entries, bills, recurringDue)
+        ) { sources, occurrences, entries, bills, recurringHome ->
+            HomeExtras(sources, occurrences, entries, bills, recurringHome)
         },
     ) { initial, transactions, categories, appSettings, incomeData ->
         val sources = incomeData.sources
@@ -198,19 +218,28 @@ class HomeViewModel(
                 balanceHidden = appSettings.balanceHidden,
                 pendingIncomes = pendingIncomes,
                 nextIncome = buildUpcoming(sources, today).firstOrNull(),
-                upcomingBills = incomeData.bills
-                    .filter { !it.paid }
-                    .sortedBy { it.dueDate }
-                    .take(3)
-                    .map { UpcomingBill(it, ObligationMath.status(it, today)) },
+                upcomingBills = buildUpcomingDues(incomeData.bills, incomeData.recurring.upcoming, today),
                 attention = buildList<AttentionItem> {
                     pendingIncomes.forEach { add(AttentionItem.IncomeToConfirm(it)) }
                     addAll(dueBills)
-                    incomeData.recurringDue.forEach { add(AttentionItem.RecurringDue(it)) }
+                    incomeData.recurring.due.forEach { add(AttentionItem.RecurringDue(it)) }
                 },
             )
         }
     } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+
+    /**
+     * Lo que vence primero, sea factura o gasto fijo, las 3 más cercanas. Si un gasto fijo coincide en
+     * nombre y fecha con una factura pendiente (el mismo pago cargado en las dos listas), se muestra uno solo.
+     */
+    private fun buildUpcomingDues(bills: List<Bill>, fixed: List<UpcomingDue>, today: LocalDate): List<UpcomingDue> {
+        val fromBills = bills.filter { !it.paid }.map {
+            UpcomingDue(it.name, it.dueDate, it.amountMinor, ObligationMath.status(it, today) == BillStatus.OVERDUE)
+        }
+        val keys = fromBills.map { it.name.trim().lowercase() to it.date }.toSet()
+        val fromFixed = fixed.filter { (it.name.trim().lowercase() to it.date) !in keys }
+        return (fromBills + fromFixed).sortedBy { it.date }.take(3)
+    }
 
     fun setBalanceHidden(hidden: Boolean) {
         viewModelScope.launch { runCatching { settings.setBalanceHidden(hidden) } }

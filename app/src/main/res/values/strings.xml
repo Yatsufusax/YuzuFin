@@ -44,7 +44,7 @@
     <string name="home_month_ratio">Gastaste el %1$d%% de tus ingresos reales</string>
     <string name="home_month_difference">Diferencia del mes</string>
     <string name="home_bills_title">Próximos vencimientos</string>
-    <string name="home_bills_note">Las facturas pendientes no descuentan tu saldo hasta que las marcás como pagadas.</string>
+    <string name="home_bills_note">Los vencimientos no descuentan tu saldo hasta que los pagás o los marcás como pagados.</string>
     <string name="home_bill_pending">Pendiente</string>
     <string name="home_recent_title">Movimientos recientes</string>
     <string name="home_see_all">Ver todo</string>
