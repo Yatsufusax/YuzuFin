@@ -160,7 +160,7 @@ class HomeViewModel(
             val month = BalanceCalculator.monthTotals(initial, transactions, YearMonth.now())
             val shown = BalanceCalculator.monthTotals(initial, transactions, selected)
             val today = LocalDate.now()
-            val committed = ObligationMath.committed(incomeData.bills)
+            val committed = ObligationMath.committed(incomeData.bills, today)
             val pendingIncomes = buildPending(sources, occurrences)
             val dueBills = incomeData.bills
                 .filter { !it.paid }

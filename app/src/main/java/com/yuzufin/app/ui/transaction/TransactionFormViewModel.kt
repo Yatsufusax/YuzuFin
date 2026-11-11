@@ -12,6 +12,8 @@ import com.yuzufin.app.core.money.CurrencyInfo
 import android.net.Uri
 import com.yuzufin.app.data.AttachmentRepository
 import com.yuzufin.app.data.FinanceRepository
+import com.yuzufin.app.data.ObligationsRepository
+import com.yuzufin.app.domain.Bill
 import com.yuzufin.app.domain.MAX_ATTACHMENTS
 import com.yuzufin.app.export.VoucherBuilder
 import java.io.File
@@ -76,6 +78,8 @@ data class TransactionFormState(
     /** PDF recién generado, listo para compartir; la pantalla lo consume con [TransactionFormViewModel.voucherShared]. */
     val voucherFile: File? = null,
     val voucherError: Boolean = false,
+    /** Factura pendiente que el gasto que se está guardando parece pagar: se le pregunta a la persona. */
+    val billMatch: Bill? = null,
 ) {
     val photoLimitReached: Boolean get() = photos.size >= MAX_ATTACHMENTS
 
@@ -113,6 +117,7 @@ class TransactionFormViewModel(
     initialType: TransactionType,
     private val attachments: AttachmentRepository,
     private val voucherBuilder: VoucherBuilder,
+    private val obligations: ObligationsRepository,
     /** Frase dicha por voz para prellenar el movimiento nuevo (vacía si no hay). */
     private val say: String = "",
 ) : ViewModel() {
@@ -125,6 +130,12 @@ class TransactionFormViewModel(
     private var existingTx: FinanceTransaction? = null
     private val removedPhotoIds = mutableListOf<Long>()
     private var saved = false
+
+    /** Ya se le preguntó si el gasto paga una factura (o no había nada que preguntar). */
+    private var billChecked = false
+
+    /** Factura que la persona confirmó que este gasto paga. */
+    private var billToSettle: Bill? = null
 
     init {
         viewModelScope.launch { load() }
@@ -311,7 +322,7 @@ class TransactionFormViewModel(
 
     fun save() {
         val s = _state.value
-        if (s.saving || s.loading) return
+        if (s.saving || s.loading || s.billMatch != null) return
         val amount = s.amountMinor
         val categoryId = s.categoryId
         val dateOk = !s.date.isBefore(s.minDate) && !s.date.isAfter(LocalDate.now())
@@ -329,6 +340,16 @@ class TransactionFormViewModel(
         }
         _state.update { it.copy(saving = true) }
         viewModelScope.launch {
+            // Gasto nuevo: si parece pagar una factura pendiente (aunque venza más adelante), se pregunta.
+            if (editingId == 0L && s.type == TransactionType.EXPENSE && !billChecked) {
+                val match = runCatching {
+                    obligations.findBillPaidBy(categoryId, amount, s.description, s.date)
+                }.getOrNull()
+                if (match != null) {
+                    _state.update { it.copy(saving = false, billMatch = match) }
+                    return@launch
+                }
+            }
             // ¿Es el primer gasto que anota? (para el festejo del monito)
             val isFirstExpense = editingId == 0L && s.type == TransactionType.EXPENSE &&
                 runCatching { finance.transactions.first().none { it.type == TransactionType.EXPENSE } }
@@ -346,6 +367,10 @@ class TransactionFormViewModel(
                     exchangeRate = original?.third,
                 ),
             )
+            billToSettle?.let { bill ->
+                // El gasto ya existe: la factura se marca pagada con él y se arma la del mes siguiente.
+                runCatching { obligations.settleBillWithTransaction(bill.id, id, s.date) }
+            }
             attachments.apply(
                 transactionId = id,
                 addNames = _state.value.photos.filter { it.attachmentId == 0L }.map { it.fileName },
@@ -356,6 +381,18 @@ class TransactionFormViewModel(
             _state.update { it.copy(saving = false, finished = true) }
         }
     }
+
+    /** Respuesta a “¿este gasto paga la factura X?”: sí la marca pagada, no la deja como estaba. */
+    fun answerBillMatch(paysBill: Boolean) {
+        val bill = _state.value.billMatch ?: return
+        billChecked = true
+        billToSettle = if (paysBill) bill else null
+        _state.update { it.copy(billMatch = null) }
+        save()
+    }
+
+    /** Cerró el aviso sin responder: no se guarda nada y puede seguir editando. */
+    fun dismissBillMatch() = _state.update { it.copy(billMatch = null) }
 
     fun addPhoto(uri: Uri) {
         if (_state.value.photoLimitReached || _state.value.photoBusy) return
@@ -452,6 +489,7 @@ class TransactionFormViewModel(
                         initialType,
                         container.attachmentRepository,
                         container.voucherBuilder,
+                        container.obligationsRepository,
                         say,
                     )
                 }

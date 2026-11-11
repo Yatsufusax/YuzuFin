@@ -2,12 +2,12 @@
 <resources>
     <!-- Obligaciones (Fase 5) -->
     <string name="obl_available">Disponible</string>
-    <string name="obl_committed">Facturas pendientes</string>
+    <string name="obl_committed">Pendientes del mes</string>
     <string name="obl_free">Libre estimado</string>
     <string name="obl_receivable">Te deben</string>
     <string name="obl_debts">Debés</string>
     <string name="obl_net_worth">Patrimonio</string>
-    <string name="obl_summary_note">El libre estimado descuenta las facturas pendientes, pero tu saldo no baja hasta que las pagás. Los préstamos mueven tu saldo sin ser ingresos ni gastos.</string>
+    <string name="obl_summary_note">El libre estimado descuenta las facturas pendientes que vencen este mes (o que ya vencieron), pero tu saldo no baja hasta que las pagás. Las del mes siguiente todavía no descuentan. Los préstamos mueven tu saldo sin ser ingresos ni gastos.</string>
     <string name="obl_tab_bills">Facturas</string>
     <string name="obl_tab_loans">Préstamos</string>
 

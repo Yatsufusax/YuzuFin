@@ -101,6 +101,11 @@ fun SettingsScreen(
                 onTextScaleChange = { value -> scope.launch { container.settingsRepository.setTextScale(value) } },
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
+            MonkiProactiveCard(
+                mode = current.monkiProactive,
+                onModeChange = { value -> scope.launch { container.settingsRepository.setMonkiProactive(value) } },
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
             RemindersCard(
                 settings = current,
                 onEnabledChange = { value -> scope.launch { container.settingsRepository.setRemindersEnabled(value) } },

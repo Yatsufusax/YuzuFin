@@ -1,5 +1,9 @@
 package com.yuzufin.app.reminders
 
+import com.yuzufin.app.domain.MonkiProactiveMode
+import com.yuzufin.app.assistant.RepositoryMonkiDataSource
+import com.yuzufin.app.assistant.ProactivePrefs
+import com.yuzufin.app.assistant.ProactiveMonki
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -60,12 +64,40 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             remindBills(container, today)
             remindLoans(container, today)
             remindBudgets(container, today)
+            remindMonki(container, today)
             Result.success()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             // Sin detalles en el log: no se escribe ningún dato financiero.
             Result.retry()
+        }
+    }
+
+    /**
+     * Mensajes proactivos de Monki: van solo a la campanilla (sin notificación en pantalla).
+     * Cada uno se guarda con su clave, así no se repite; se publican hasta 2 nuevos por día.
+     */
+    private suspend fun remindMonki(container: com.yuzufin.app.AppContainer, today: LocalDate) {
+        val settings = container.settingsRepository.settings.first()
+        if (settings.monkiProactive == MonkiProactiveMode.OFF) return
+        val snapshot = RepositoryMonkiDataSource(
+            container.financeRepository,
+            container.budgetRepository,
+            container.savingsRepository,
+            container.obligationsRepository,
+            container.settingsRepository,
+        ).load()
+        val prefs = ProactivePrefs(
+            mode = settings.monkiProactive,
+            showAmounts = settings.showAmountsInNotifications,
+            lastOpenEpochDay = container.settingsRepository.lastOpenDay(),
+        )
+        val title = applicationContext.getString(R.string.monki_proactive_title)
+        var published = 0
+        for (note in ProactiveMonki.notes(snapshot, today, prefs, limit = Int.MAX_VALUE)) {
+            if (published >= ProactiveMonki.MAX_NOTES_PER_DAY) break
+            if (container.notificationRepository.log(NotificationKind.MONKI, title, note.text, note.dedupeKey)) published++
         }
     }
 

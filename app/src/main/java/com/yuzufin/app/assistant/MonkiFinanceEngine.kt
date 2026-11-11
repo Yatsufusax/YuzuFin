@@ -272,7 +272,7 @@ class MonkiFinanceEngine {
         val total = BalanceCalculator.availableBalance(initial, env.data.transactions)
         val saved = env.data.savingsEntries.sumOf { it.amountMinor }
         val spendable = SavingsMath.spendable(total, saved)
-        val committed = ObligationMath.committed(env.data.bills)
+        val committed = ObligationMath.committed(env.data.bills, env.today)
         val free = ObligationMath.freeEstimate(spendable, committed)
         val have = env.voice.vos("tenés", "tienes")
 
@@ -284,7 +284,7 @@ class MonkiFinanceEngine {
             text.append("así que tu saldo disponible es ${env.money(spendable)}.")
         }
         if (committed > 0L) {
-            text.append(" Además $have ${env.money(committed)} en facturas pendientes: el libre estimado es ${env.money(free)} (es una estimación).")
+            text.append(" Además $have ${env.money(committed)} en facturas pendientes de este mes: el libre estimado es ${env.money(free)} (es una estimación).")
         }
         val point = StatsCalculator.monthPoint(initial, env.data.transactions, YearMonth.from(env.today))
         if (point.income > 0L || point.expense > 0L) {
@@ -864,8 +864,8 @@ class MonkiFinanceEngine {
         antGroups(list).second.takeIf { it.isNotEmpty() }?.let { groups ->
             lines.add("• Hay gastos chicos repetidos (${groups.take(2).joinToString(", ") { antLabel(env, it) }}) que suman ${env.money(groups.sumOf { it.totalMinor })}.")
         }
-        val committed = ObligationMath.committed(env.data.bills)
-        if (committed > 0L) lines.add("• Tenés ${env.money(committed)} en facturas pendientes que van a salir de tu saldo.")
+        val committed = ObligationMath.committed(env.data.bills, env.today)
+        if (committed > 0L) lines.add("• Tenés ${env.money(committed)} en facturas de este mes que van a salir de tu saldo.")
         env.data.initial?.let { initial ->
             val available = BalanceCalculator.availableBalance(initial, env.data.transactions)
             val spendable = SavingsMath.spendable(available, env.data.savingsEntries.sumOf { it.amountMinor })

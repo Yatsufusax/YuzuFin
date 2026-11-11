@@ -54,11 +54,24 @@ data class LoanPayment(
 
 enum class LoanResult { OK, INVALID, TOO_MUCH, NOT_FOUND }
 
+/** Hasta cuántos días antes del vencimiento se puede haber pagado una factura para emparejar el gasto. */
+private const val PAYMENT_MATCH_DAYS_BEFORE = 45L
+
 /** Cuentas de facturas y préstamos: funciones puras con enteros. */
 object ObligationMath {
 
-    /** Total de facturas pendientes: baja el libre estimado, no el saldo. */
+    /** Total de TODAS las facturas pendientes, sin importar cuándo vencen. */
     fun committed(bills: List<Bill>): Long = bills.filter { !it.paid }.sumOf { it.amountMinor }
+
+    /**
+     * Lo que baja el libre estimado: las facturas pendientes que vencen hasta el final del mes de
+     * [today], más las que ya vencieron y siguen sin pagar. Una factura del mes siguiente todavía no
+     * descuenta: se paga con la plata de ese mes.
+     */
+    fun committed(bills: List<Bill>, today: LocalDate): Long {
+        val endOfMonth = YearMonth.from(today).atEndOfMonth()
+        return bills.filter { !it.paid && !it.dueDate.isAfter(endOfMonth) }.sumOf { it.amountMinor }
+    }
 
     /** Libre estimado = disponible - facturas pendientes. Puede ser negativo. */
     fun freeEstimate(spendable: Long, committed: Long): Long = spendable - committed
@@ -77,6 +90,27 @@ object ObligationMath {
     fun nextDueDate(due: LocalDate, repeatDay: Int): LocalDate {
         val month = YearMonth.from(due).plusMonths(1)
         return month.atDay(repeatDay.coerceIn(1, month.lengthOfMonth()))
+    }
+
+    /**
+     * ¿Este gasto nuevo probablemente paga la factura pendiente [bill]? Tiene que ser de la misma
+     * categoría y coincidir en el monto o en el nombre (ej. "Luz" dentro de "Luz ANDE"), y no ser
+     * de mucho antes del vencimiento. Pagar antes del vencimiento sí cuenta; pagar tarde también.
+     */
+    fun looksLikePayment(
+        bill: Bill,
+        categoryId: Long,
+        amountMinor: Long,
+        description: String,
+        date: LocalDate,
+    ): Boolean {
+        if (bill.paid || bill.categoryId != categoryId) return false
+        if (date.isBefore(bill.dueDate.minusDays(PAYMENT_MATCH_DAYS_BEFORE))) return false
+        val text = description.trim()
+        val name = bill.name.trim()
+        val sameName = text.isNotEmpty() && name.isNotEmpty() &&
+            (text.contains(name, ignoreCase = true) || name.contains(text, ignoreCase = true))
+        return amountMinor == bill.amountMinor || sameName
     }
 
     /** Aviso de factura: pendiente, con recordatorio, sin avisar todavía y vence mañana, hoy o ya venció. */

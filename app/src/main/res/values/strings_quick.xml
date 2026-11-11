@@ -20,4 +20,8 @@
     <string name="movement_rate_line">%1$s · cambio %2$s</string>
     <string name="quick_description_hint">Descripción (opcional)</string>
     <string name="quick_attach">Adjuntar ticket o factura</string>
+    <string name="quick_bill_match_title">¿Pagaste una factura?</string>
+    <string name="quick_bill_match_text">Este gasto parece ser el pago de “%1$s” (%2$s), que vence %3$s. ¿Querés marcarla como pagada?</string>
+    <string name="quick_bill_match_yes">Sí, marcar pagada</string>
+    <string name="quick_bill_match_no">No, es otro gasto</string>
 </resources>

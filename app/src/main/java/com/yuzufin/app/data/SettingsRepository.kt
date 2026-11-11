@@ -1,5 +1,6 @@
 package com.yuzufin.app.data
 
+import com.yuzufin.app.domain.MonkiProactiveMode
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -42,6 +43,7 @@ class SettingsRepository(private val context: Context) {
             tourPending = prefs[TOUR_PENDING] ?: false,
             firstExpensePending = prefs[FIRST_EXPENSE_PENDING] ?: false,
             balanceHidden = prefs[BALANCE_HIDDEN] ?: false,
+            monkiProactive = MonkiProactiveMode.fromName(prefs[MONKI_PROACTIVE]),
         )
     }
 
@@ -135,6 +137,7 @@ class SettingsRepository(private val context: Context) {
             put("themePalette", prefs[THEME_PALETTE] ?: ThemePalette.GREEN.name)
             put("themeMode", prefs[THEME_MODE] ?: ThemeMode.SYSTEM.name)
             put("textScale", prefs[TEXT_SCALE] ?: TextScale.NORMAL.name)
+            put("monkiProactive", prefs[MONKI_PROACTIVE] ?: MonkiProactiveMode.IMPORTANT.name)
         }.toString()
     }
 
@@ -157,6 +160,7 @@ class SettingsRepository(private val context: Context) {
             prefs[THEME_PALETTE] = ThemePalette.fromName(json.optString("themePalette")).name
             prefs[THEME_MODE] = ThemeMode.fromName(json.optString("themeMode")).name
             prefs[TEXT_SCALE] = TextScale.fromName(json.optString("textScale")).name
+            prefs[MONKI_PROACTIVE] = MonkiProactiveMode.fromName(json.optString("monkiProactive")).name
         }
     }
 
@@ -181,6 +185,13 @@ class SettingsRepository(private val context: Context) {
             prefs[LAST_OPEN_DAY] = epochDay
         }
         return previous
+    }
+
+    /** El último día (epoch day) en que se abrió la app; 0 si nunca se registró. Solo lectura. */
+    suspend fun lastOpenDay(): Long = context.settingsDataStore.data.first()[LAST_OPEN_DAY] ?: 0L
+
+    suspend fun setMonkiProactive(mode: MonkiProactiveMode) {
+        context.settingsDataStore.edit { prefs -> prefs[MONKI_PROACTIVE] = mode.name }
     }
 
     suspend fun setThemePalette(palette: ThemePalette) {
@@ -216,5 +227,6 @@ class SettingsRepository(private val context: Context) {
         private val TOUR_PENDING = booleanPreferencesKey("tour_pending")
         private val DISMISSED_HINTS = stringSetPreferencesKey("dismissed_hints")
         private val LAST_OPEN_DAY = longPreferencesKey("last_open_day")
+        private val MONKI_PROACTIVE = stringPreferencesKey("monki_proactive")
     }
 }

@@ -99,7 +99,7 @@ class ObligationsViewModel(
         } else {
             val today = LocalDate.now()
             val spendable = SavingsMath.spendable(BalanceCalculator.availableBalance(initial, data.transactions), data.saved)
-            val committed = ObligationMath.committed(bills)
+            val committed = ObligationMath.committed(bills, today)
             val receivable = ObligationMath.totalOutstanding(LoanDirection.LENT, loans, payments)
             val debts = ObligationMath.totalOutstanding(LoanDirection.BORROWED, loans, payments)
             val categoryNames = data.categories.associate { it.id to it.name }

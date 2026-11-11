@@ -90,24 +90,51 @@ class ObligationsRepository(private val db: AppDatabase) {
                     updatedAt = now,
                 ),
             )
-            billDao.update(
-                bill.copy(paid = true, paidTransactionId = transactionId, paidEpochDay = date.toEpochDay(), notified = true),
-            )
-            if (bill.repeatDay > 0) {
-                val next = ObligationMath.nextDueDate(LocalDate.ofEpochDay(bill.dueEpochDay), bill.repeatDay)
-                billDao.insert(
-                    bill.copy(
-                        id = 0,
-                        dueEpochDay = next.toEpochDay(),
-                        paid = false,
-                        paidTransactionId = null,
-                        paidEpochDay = null,
-                        notified = false,
-                        createdAt = now,
-                    ),
-                )
-            }
+            markPaidAndScheduleNext(bill, transactionId, date, now)
             true
+        }
+    }
+
+    /**
+     * Factura pendiente que un gasto recién anotado probablemente está pagando (misma categoría y
+     * mismo monto o nombre). Si hay varias, la que vence primero. Null si ninguna coincide.
+     */
+    suspend fun findBillPaidBy(categoryId: Long, amountMinor: Long, description: String, date: LocalDate): Bill? =
+        billDao.allUnpaid()
+            .map { it.toDomain() }
+            .filter { ObligationMath.looksLikePayment(it, categoryId, amountMinor, description, date) }
+            .minByOrNull { it.dueDate }
+
+    /**
+     * Marca la factura como pagada con un gasto que YA existe ([transactionId]), sin crear otro.
+     * Si es mensual, deja lista la del mes siguiente. Devuelve false si no existe o ya estaba pagada.
+     */
+    suspend fun settleBillWithTransaction(id: Long, transactionId: Long, date: LocalDate): Boolean =
+        db.withTransaction {
+            val bill = billDao.getById(id) ?: return@withTransaction false
+            if (bill.paid) return@withTransaction false
+            markPaidAndScheduleNext(bill, transactionId, date, System.currentTimeMillis())
+            true
+        }
+
+    /** Marca la factura pagada y, si es mensual, crea la del mes siguiente (mismo día). */
+    private suspend fun markPaidAndScheduleNext(bill: BillEntity, transactionId: Long, date: LocalDate, now: Long) {
+        billDao.update(
+            bill.copy(paid = true, paidTransactionId = transactionId, paidEpochDay = date.toEpochDay(), notified = true),
+        )
+        if (bill.repeatDay > 0) {
+            val next = ObligationMath.nextDueDate(LocalDate.ofEpochDay(bill.dueEpochDay), bill.repeatDay)
+            billDao.insert(
+                bill.copy(
+                    id = 0,
+                    dueEpochDay = next.toEpochDay(),
+                    paid = false,
+                    paidTransactionId = null,
+                    paidEpochDay = null,
+                    notified = false,
+                    createdAt = now,
+                ),
+            )
         }
     }
 

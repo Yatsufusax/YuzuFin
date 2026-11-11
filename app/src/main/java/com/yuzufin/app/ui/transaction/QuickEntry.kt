@@ -27,6 +27,15 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -83,6 +92,7 @@ import com.yuzufin.app.domain.Category
 import com.yuzufin.app.domain.TransactionType
 import com.yuzufin.app.ui.common.categoryIcon
 import com.yuzufin.app.ui.common.dayLabel
+import com.yuzufin.app.ui.common.formatShortDate
 import com.yuzufin.app.ui.components.DateField
 import com.yuzufin.app.ui.components.Mascot
 import com.yuzufin.app.ui.components.MascotPose
@@ -97,7 +107,7 @@ private const val SHOWN_CATEGORIES = 4
  * propio, las 4 categorías más usadas más “Todas” (abre la grilla completa), la descripción opcional
  * con un “+” para adjuntar el ticket o la factura, y la fecha y la moneda en dos chips.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ColumnScope.QuickEntryBody(
     state: TransactionFormState,
@@ -116,6 +126,15 @@ fun ColumnScope.QuickEntryBody(
     val today = LocalDate.now()
     val yesterday = today.minusDays(1)
     val feedback = LocalHapticFeedback.current
+    // Mientras se escribe la descripción con el teclado del teléfono, el teclado numérico propio se
+    // esconde (si no, los dos se apretaban y la pantalla quedaba mal). Al cerrar el teclado, vuelve.
+    val imeVisible = WindowInsets.isImeVisible
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    val closeKeyboard: () -> Unit = {
+        focusManager.clearFocus()
+        keyboard?.hide()
+    }
     val onKey: (String) -> Unit = { key ->
         feedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
         viewModel.onKey(key)
@@ -149,7 +168,7 @@ fun ColumnScope.QuickEntryBody(
     ) {
         if (state.fromVoice) VoiceFilledNotice()
 
-        AmountCard(state)
+        AmountCard(state, onClick = closeKeyboard)
 
         // Las 4 más usadas (la elegida siempre se ve) y “Todas” en el quinto lugar.
         val picked = state.categories.firstOrNull { it.id == state.categoryId }
@@ -180,6 +199,8 @@ fun ColumnScope.QuickEntryBody(
                 onValueChange = viewModel::onDescriptionChange,
                 placeholder = { Text(stringResource(R.string.quick_description_hint)) },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { closeKeyboard() }),
                 shape = RoundedCornerShape(28.dp),
                 modifier = Modifier.weight(1f),
             )
@@ -311,7 +332,7 @@ fun ColumnScope.QuickEntryBody(
         }
     }
 
-    Keypad(currency = inputCurrency, onKey = onKey)
+    if (!imeVisible) Keypad(currency = inputCurrency, onKey = onKey)
 
     val amountLabel = state.enteredMinor?.takeIf { it > 0L }?.let { MoneyFormatter.format(it, inputCurrency) }
     Button(
@@ -330,6 +351,33 @@ fun ColumnScope.QuickEntryBody(
                 stringResource(R.string.action_save)
             },
             fontWeight = FontWeight.Bold,
+        )
+    }
+
+    state.billMatch?.let { bill ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissBillMatch,
+            title = { Text(stringResource(R.string.quick_bill_match_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.quick_bill_match_text,
+                        bill.name,
+                        MoneyFormatter.format(bill.amountMinor, currency),
+                        formatShortDate(bill.dueDate),
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.answerBillMatch(true) }) {
+                    Text(stringResource(R.string.quick_bill_match_yes))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.answerBillMatch(false) }) {
+                    Text(stringResource(R.string.quick_bill_match_no))
+                }
+            },
         )
     }
 
@@ -478,7 +526,7 @@ private fun currencyName(currency: CurrencyInfo): String = runCatching {
  * El aviso de error o de saldo va debajo, fuera de la tarjeta, para que se lea bien.
  */
 @Composable
-private fun AmountCard(state: TransactionFormState) {
+private fun AmountCard(state: TransactionFormState, onClick: () -> Unit) {
     val currency = state.currency
     val input = state.inputCurrency
     val display = if (input.fractionDigits == 0) {
@@ -499,6 +547,8 @@ private fun AmountCard(state: TransactionFormState) {
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.primary)
+                // Tocar el importe cierra el teclado del teléfono y vuelve el teclado numérico.
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
                 .padding(start = 20.dp, top = 16.dp, end = 12.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

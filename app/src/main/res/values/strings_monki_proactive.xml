@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="monki_proactive_title">Monki</string>
+    <string name="settings_monki_title">Monki te escribe</string>
+    <string name="settings_monki_full">Todo</string>
+    <string name="settings_monki_important">Solo lo importante</string>
+    <string name="settings_monki_off">Nunca</string>
+    <string name="settings_monki_note">Monki te deja mensajes en la campanilla: metas cumplidas, buenos ingresos, gastos que se disparan y más. Si tenés apagados los montos en los avisos, no dice importes.</string>
+</resources>

@@ -76,4 +76,14 @@ data class AppSettings(
     val firstExpensePending: Boolean = false,
     /** El saldo de Inicio se muestra tapado (ojo cerrado); se recuerda entre aperturas. */
     val balanceHidden: Boolean = false,
+    /** Cuánto te escribe Monki por su cuenta (campanilla): todo, solo lo importante o nada. */
+    val monkiProactive: MonkiProactiveMode = MonkiProactiveMode.IMPORTANT,
 )
+
+enum class MonkiProactiveMode {
+    FULL, IMPORTANT, OFF;
+
+    companion object {
+        fun fromName(name: String?): MonkiProactiveMode = entries.firstOrNull { it.name == name } ?: IMPORTANT
+    }
+}

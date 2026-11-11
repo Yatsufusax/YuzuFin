@@ -1,5 +1,6 @@
 package com.yuzufin.app.ui.notifications
 
+import androidx.compose.material.icons.rounded.Pets
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -292,6 +293,7 @@ private fun kindIcon(kind: NotificationKind): ImageVector = when (kind) {
     NotificationKind.SAVINGS -> Icons.Rounded.Savings
     NotificationKind.BUDGET -> Icons.Rounded.PieChart
     NotificationKind.UPDATE -> Icons.Rounded.NewReleases
+    NotificationKind.MONKI -> Icons.Rounded.Pets
     NotificationKind.OTHER, NotificationKind.HABIT, NotificationKind.SUMMARY -> Icons.Rounded.AccountBalanceWallet
 }
 

@@ -29,6 +29,48 @@ class ObligationMathTest {
         assertEquals(350_000L, ObligationMath.committed(bills))
     }
 
+    @Test fun comprometido_del_mes_no_cuenta_las_facturas_del_mes_siguiente() {
+        // today = 14/oct: la de fin de mes entra; la del 10/nov todavía no.
+        val bills = listOf(
+            bill(100_000L, due = LocalDate.of(2026, 10, 31)),
+            bill(250_000L, due = LocalDate.of(2026, 11, 10)),
+        )
+        assertEquals(100_000L, ObligationMath.committed(bills, today))
+    }
+
+    @Test fun comprometido_del_mes_incluye_las_vencidas_sin_pagar() {
+        val bills = listOf(
+            bill(80_000L, due = LocalDate.of(2026, 9, 28)),
+            bill(120_000L, due = today.plusDays(2)),
+            bill(900_000L, due = today.plusDays(3), paid = true),
+        )
+        assertEquals(200_000L, ObligationMath.committed(bills, today))
+    }
+
+    @Test fun un_gasto_con_misma_categoria_y_monto_parece_pago_de_la_factura() {
+        val b = bill(due = LocalDate.of(2026, 11, 10))
+        assertTrue(ObligationMath.looksLikePayment(b, categoryId = 1, amountMinor = 100_000L, description = "", date = LocalDate.of(2026, 11, 2)))
+    }
+
+    @Test fun el_nombre_alcanza_aunque_el_monto_cambie() {
+        val b = bill(due = LocalDate.of(2026, 11, 10)) // se llama "Luz"
+        assertTrue(ObligationMath.looksLikePayment(b, 1, 137_000L, "luz ANDE", LocalDate.of(2026, 11, 2)))
+    }
+
+    @Test fun no_empareja_si_cambia_la_categoria_o_ni_monto_ni_nombre_coinciden() {
+        val b = bill(due = LocalDate.of(2026, 11, 10))
+        assertFalse(ObligationMath.looksLikePayment(b, categoryId = 2, amountMinor = 100_000L, description = "Luz", date = LocalDate.of(2026, 11, 2)))
+        assertFalse(ObligationMath.looksLikePayment(b, 1, 55_000L, "Almuerzo", LocalDate.of(2026, 11, 2)))
+    }
+
+    @Test fun no_empareja_facturas_ya_pagadas_ni_gastos_muy_anteriores_al_vencimiento() {
+        val due = LocalDate.of(2026, 11, 10)
+        assertFalse(ObligationMath.looksLikePayment(bill(due = due, paid = true), 1, 100_000L, "", LocalDate.of(2026, 11, 2)))
+        assertFalse(ObligationMath.looksLikePayment(bill(due = due), 1, 100_000L, "", due.minusDays(60)))
+        // Pagar tarde (ya vencida) sí empareja.
+        assertTrue(ObligationMath.looksLikePayment(bill(due = due), 1, 100_000L, "", due.plusDays(5)))
+    }
+
     @Test fun libre_estimado_es_disponible_menos_comprometido_y_puede_ser_negativo() {
         assertEquals(650_000L, ObligationMath.freeEstimate(1_000_000L, 350_000L))
         assertEquals(-50_000L, ObligationMath.freeEstimate(300_000L, 350_000L))
