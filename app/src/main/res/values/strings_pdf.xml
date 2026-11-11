@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pdf_tagline">Tu dinero, en equilibrio</string>
+    <string name="pdf_disclaimer">Documento personal generado en tu teléfono con los datos que cargaste en Monea. No es una factura ni tiene validez fiscal.</string>
+    <string name="pdf_secure_body_voucher">Este comprobante se genera localmente\nen tu dispositivo. No se comparte\ncon terceros.</string>
+    <string name="pdf_secure_body_summary">Este resumen se genera localmente\nen tu dispositivo. No se comparte\ncon terceros.</string>
+
+    <!-- Comprobante de un plan en cuotas -->
+    <string name="pdf_inst_title">Comprobante de cuotas</string>
+    <string name="pdf_inst_number">N.º %1$s</string>
+    <string name="pdf_issued">Emitido el %1$s</string>
+    <string name="pdf_inst_kicker">Compra en cuotas</string>
+    <string name="pdf_inst_subtitle">%1$d cuotas de %2$s · vencen el día %3$d de cada mes · categoría %4$s</string>
+    <string name="pdf_holder">Titular</string>
+    <string name="pdf_inst_progress_tail">de %1$d cuotas pagadas</string>
+    <string name="pdf_inst_complete">Plan completo</string>
+    <plurals name="pdf_inst_left">
+        <item quantity="one">Te falta %1$d cuota</item>
+        <item quantity="other">Te faltan %1$d cuotas</item>
+    </plurals>
+    <string name="pdf_paid">Pagado</string>
+    <string name="pdf_to_pay">Por pagar</string>
+    <string name="pdf_plan_total">Total del plan</string>
+    <string name="pdf_detail">Detalle de cuotas</string>
+    <string name="pdf_col_installment">Cuota</string>
+    <string name="pdf_col_due">Vence</string>
+    <string name="pdf_col_paid_on">Pagada el</string>
+    <string name="pdf_col_state">Estado</string>
+    <string name="pdf_col_amount">Importe</string>
+    <string name="pdf_state_paid">Pagada</string>
+    <string name="pdf_state_advanced">Adelantada</string>
+    <string name="pdf_state_pending">Pendiente</string>
+    <string name="pdf_state_skipped">Omitida</string>
+    <string name="pdf_state_before">Ya pagada</string>
+    <string name="pdf_total_paid">Total pagado a la fecha</string>
+    <string name="pdf_inst_note_next">Próxima cuota a pagar: %1$s.</string>
+    <string name="pdf_inst_note_done">Plan completo. Última cuota pagada el %1$s.</string>
+    <plurals name="pdf_inst_note_advanced">
+        <item quantity="one">%1$d cuota se pagó por adelantado: ese mes ya no se te pide.</item>
+        <item quantity="other">%1$d cuotas se pagaron por adelantado: esos meses ya no se te piden.</item>
+    </plurals>
+
+    <!-- Resumen de todos los planes -->
+    <string name="pdf_sum_title">Resumen de cuotas</string>
+    <string name="pdf_sum_asof">Al %1$s</string>
+    <string name="pdf_sum_headline">Tus compromisos en cuotas</string>
+    <string name="pdf_sum_counts">Planes activos: %1$d · terminados: %2$d</string>
+    <string name="pdf_sum_paid">Ya pagaste</string>
+    <string name="pdf_sum_left">Te falta pagar</string>
+    <string name="pdf_sum_month">Cuota del mes</string>
+    <string name="pdf_sum_plans">Planes</string>
+    <string name="pdf_sum_progress">Cuota %1$d de %2$d · %3$s / mes</string>
+    <string name="pdf_sum_paid_left">Pagado %1$s · Falta %2$s</string>
+    <string name="pdf_sum_next">Próxima: %1$s</string>
+    <string name="pdf_sum_done">Completo</string>
+    <string name="pdf_sum_done_line">%1$d cuotas de %2$s · terminado el %3$s</string>
+    <string name="pdf_sum_done_line_nodate">%1$d cuotas de %2$s · terminado</string>
+    <string name="pdf_sum_upcoming">Lo que viene</string>
+    <string name="pdf_sum_upcoming_row">%1$s · %2$d/%3$d</string>
+    <string name="pdf_sum_upcoming_last">%1$s · %2$d/%3$d (última)</string>
+
+    <!-- Extracto de movimientos -->
+    <string name="pdf_mov_title">Extracto de movimientos</string>
+    <string name="pdf_mov_closing">Saldo al cierre</string>
+    <string name="pdf_mov_opening_line">Inicio del período: %1$s</string>
+    <string name="pdf_mov_where">En qué se fue tu plata</string>
+    <string name="pdf_mov_table">Movimientos</string>
+    <string name="pdf_mov_balance_on">Saldo al %1$s</string>
+    <string name="pdf_mov_b_hello">Así quedó tu saldo, %1$s</string>
+    <string name="pdf_mov_b_hello_anon">Así quedó tu saldo</string>
+    <string name="pdf_mov_up">%1$s más que al empezar el período</string>
+    <string name="pdf_mov_down">%1$s menos que al empezar el período</string>
+    <string name="pdf_mov_in">Entró</string>
+    <string name="pdf_mov_out">Salió</string>
+    <string name="pdf_mov_saved">Ahorraste</string>
+    <string name="pdf_mov_where_b">Dónde se fue lo que gastaste</string>
+    <string name="pdf_mov_by_day">Día por día</string>
+    <string name="pdf_mov_other">Otros</string>
+    <string name="pdf_mov_empty">Sin movimientos en este período.</string>
+</resources>

@@ -31,9 +31,14 @@
     <string name="recurring_installments_left">Te faltan %1$d</string>
     <string name="recurring_advance">Adelantar cuotas</string>
     <string name="recurring_advance_title">Adelantar cuotas</string>
-    <string name="recurring_advance_body">Pagaste más de una cuota este mes. Elegí cuántas y el importe de cada una; se registran hoy y se descuentan del final del plan.</string>
+    <string name="recurring_advance_body">Pagaste más de una cuota este mes. Elegí cuántas y el importe de cada una; se registran hoy y esos meses ya no te las piden.</string>
     <string name="recurring_advance_count">¿Cuántas cuotas? (máx. %1$d)</string>
     <string name="recurring_advance_confirm">Registrar</string>
+    <string name="recurring_receipt">Comprobante</string>
+    <string name="recurring_receipt_all">Resumen de cuotas</string>
+    <string name="recurring_receipt_error">No se pudo generar el comprobante. Probá de nuevo.</string>
+    <string name="recurring_finished_hint">Plan terminado. Queda acá hasta que lo borres; podés descargar su comprobante cuando quieras.</string>
+    <string name="recurring_delete_installments_body">Los gastos que ya registraste se conservan, pero se pierde el detalle de las cuotas. Si lo necesitás, descargá antes el comprobante.</string>
     <plurals name="reminders_recurring_title">
         <item quantity="one">Tenés un gasto fijo por pagar</item>
         <item quantity="other">Tenés %1$d gastos fijos por pagar</item>

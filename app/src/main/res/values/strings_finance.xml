@@ -146,6 +146,9 @@
     <string name="export_custom">Fechas a elección</string>
     <string name="export_from">Desde</string>
     <string name="export_to">Hasta</string>
+    <string name="export_style_label">Diseño</string>
+    <string name="export_style_classic">Clásico: tarjetas, gráfico y tabla con saldo</string>
+    <string name="export_style_editorial">Por meses: saldo grande y día por día</string>
     <string name="export_generate">Generar PDF</string>
     <string name="export_generating">Generando…</string>
     <string name="export_error">No se pudo generar el PDF. Probá de nuevo.</string>

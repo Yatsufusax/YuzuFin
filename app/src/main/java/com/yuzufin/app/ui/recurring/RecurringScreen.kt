@@ -18,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -32,12 +33,14 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -57,6 +60,10 @@ import com.yuzufin.app.ui.components.IconBadge
 import com.yuzufin.app.ui.components.ScreenHeader
 import com.yuzufin.app.ui.components.SectionHeader
 import com.yuzufin.app.ui.components.MoneaCard
+import com.yuzufin.app.ui.common.sharePdf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
 /** Gastos fijos mensuales: la app te avisa cuando toca pagarlos y vos confirmás. */
@@ -75,6 +82,20 @@ fun RecurringScreen(
     var confirming by remember { mutableStateOf<PendingRecurring?>(null) }
     var advancing by remember { mutableStateOf<RecurringRow?>(null) }
     val haptic = rememberHaptic()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var receiptError by remember { mutableStateOf(false) }
+
+    /** Genera el comprobante de un plan (o el resumen de todos con null) y abre el menú de compartir. */
+    val exportReceipt: (Long?) -> Unit = { expenseId ->
+        receiptError = false
+        scope.launch {
+            val file = runCatching {
+                withContext(Dispatchers.IO) { InstallmentExport.generate(context, container, expenseId) }
+            }.getOrNull()
+            if (file != null) sharePdf(context, file) else receiptError = true
+        }
+    }
 
     val blank = {
         RecurringExpense(
@@ -93,6 +114,11 @@ fun RecurringScreen(
                 title = stringResource(R.string.menu_recurring),
                 onBack = onBack,
                 actions = {
+                    if (state.rows.any { it.expense.isInstallments }) {
+                        IconButton(onClick = { exportReceipt(null) }) {
+                            Icon(Icons.Rounded.Description, contentDescription = stringResource(R.string.recurring_receipt_all))
+                        }
+                    }
                     IconButton(onClick = { editing = blank() }) {
                         Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.recurring_add))
                     }
@@ -107,6 +133,17 @@ fun RecurringScreen(
                 pose = MascotPose.PLANNING,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
+        }
+
+        if (receiptError) {
+            item {
+                Text(
+                    stringResource(R.string.recurring_receipt_error),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+            }
         }
 
         if (!state.loading && state.rows.isEmpty()) {
@@ -201,11 +238,24 @@ fun RecurringScreen(
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.primary,
                                     )
-                                    if (row.installmentsLeft > 0 && row.expense.active) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                        if (row.installmentsLeft > 0 && row.expense.active) {
+                                            TextButton(
+                                                onClick = { advancing = row },
+                                                contentPadding = PaddingValues(0.dp),
+                                            ) { Text(stringResource(R.string.recurring_advance)) }
+                                        }
                                         TextButton(
-                                            onClick = { advancing = row },
+                                            onClick = { exportReceipt(row.expense.id) },
                                             contentPadding = PaddingValues(0.dp),
-                                        ) { Text(stringResource(R.string.recurring_advance)) }
+                                        ) { Text(stringResource(R.string.recurring_receipt)) }
+                                    }
+                                    if (row.finished) {
+                                        Text(
+                                            stringResource(R.string.recurring_finished_hint),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
                                     }
                                 }
                             }
@@ -444,7 +494,9 @@ fun RecurringScreen(
             AlertDialog(
                 onDismissRequest = { confirmDelete = false },
                 title = { Text(stringResource(R.string.recurring_delete_title)) },
-                text = { Text(stringResource(R.string.recurring_delete_body)) },
+                text = {
+                    Text(stringResource(if (original.isInstallments) R.string.recurring_delete_installments_body else R.string.recurring_delete_body))
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {

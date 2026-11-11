@@ -1,8 +1,6 @@
 package com.yuzufin.app.ui.statement
 
-import android.content.ClipData
 import android.content.Context
-import android.content.Intent
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,13 +27,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import com.yuzufin.app.AppContainer
 import com.yuzufin.app.R
 import com.yuzufin.app.core.money.CurrencyInfo
 import com.yuzufin.app.domain.StatementBuilder
-import com.yuzufin.app.export.StatementPdfWriter
+import com.yuzufin.app.export.MovementsPdfWriter
+import com.yuzufin.app.export.PdfColors
+import com.yuzufin.app.export.StatementStyle
 import com.yuzufin.app.rememberAppContainer
+import com.yuzufin.app.ui.common.sharePdf
 import com.yuzufin.app.ui.components.DateField
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -65,6 +65,8 @@ fun StatementExportDialog(onDismiss: () -> Unit) {
     val today = remember { LocalDate.now() }
     var from by remember { mutableStateOf(today.withDayOfMonth(1)) }
     var to by remember { mutableStateOf(today) }
+    var styleIndex by rememberSaveable { mutableIntStateOf(0) }
+    val style = StatementStyle.entries[styleIndex]
     var working by remember { mutableStateOf(false) }
     var errorRes by remember { mutableStateOf<Int?>(null) }
 
@@ -90,6 +92,28 @@ fun StatementExportDialog(onDismiss: () -> Unit) {
                     ) {
                         RadioButton(selected = index == rangeIndex, onClick = null, enabled = !working)
                         Text(stringResource(option.labelRes), style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+                Text(
+                    stringResource(R.string.export_style_label),
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+                StatementStyle.entries.forEachIndexed { index, option ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(enabled = !working, role = Role.RadioButton) { styleIndex = index },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        RadioButton(selected = index == styleIndex, onClick = null, enabled = !working)
+                        Text(
+                            stringResource(
+                                if (option == StatementStyle.CLASSIC) R.string.export_style_classic else R.string.export_style_editorial,
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
                     }
                 }
                 if (range == ExportRange.CUSTOM) {
@@ -134,13 +158,13 @@ fun StatementExportDialog(onDismiss: () -> Unit) {
                     scope.launch {
                         val result = runCatching {
                             withContext(Dispatchers.IO) {
-                                generate(context, container, range, from, to)
+                                generate(context, container, range, from, to, style)
                             }
                         }
                         working = false
                         val file = result.getOrNull()
                         if (file != null) {
-                            share(context, file)
+                            sharePdf(context, file)
                             onDismiss()
                         } else {
                             errorRes = if (result.exceptionOrNull() is SetupMissing) R.string.export_no_setup
@@ -168,6 +192,7 @@ private suspend fun generate(
     range: ExportRange,
     customFrom: LocalDate,
     customTo: LocalDate,
+    style: StatementStyle,
 ): File {
     val finance = container.financeRepository
     val initial = finance.initialBalance.first() ?: throw SetupMissing()
@@ -199,25 +224,14 @@ private suspend fun generate(
     val stamp = DateTimeFormatter.ofPattern("yyyyMMdd")
     val file = File(dir, "Extracto-Monea-${statement.from.format(stamp)}-${statement.to.format(stamp)}.pdf")
 
-    StatementPdfWriter(context).write(
+    // Los colores del PDF siguen la paleta que la persona eligió en la app.
+    MovementsPdfWriter(context, PdfColors.of(settings.themePalette)).write(
         statement = statement,
         currency = currency,
         userName = settings.userName,
         generatedAt = LocalDateTime.now(),
+        style = style,
         output = file,
     )
     return file
-}
-
-private fun share(context: Context, file: File) {
-    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-    val send = Intent(Intent.ACTION_SEND).apply {
-        type = "application/pdf"
-        putExtra(Intent.EXTRA_STREAM, uri)
-        clipData = ClipData.newRawUri(file.name, uri)
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    }
-    val chooser = Intent.createChooser(send, context.getString(R.string.export_share_title))
-    chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    context.startActivity(chooser)
 }
