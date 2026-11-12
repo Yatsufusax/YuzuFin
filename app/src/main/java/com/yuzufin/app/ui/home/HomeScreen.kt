@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
@@ -30,6 +32,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -86,6 +89,9 @@ import com.yuzufin.app.ui.components.MoneaCard
 import com.yuzufin.app.ui.navigation.Destination
 import com.yuzufin.app.ui.theme.monea
 
+/** Cuántos movimientos recientes se muestran en Inicio (1 o 2; el detalle está en Movimientos). */
+private const val RECENT_HOME_LIMIT = 2
+
 /**
  * Pantalla de Inicio con datos reales: saldo disponible, atajos, resumen del mes y últimos
  * movimientos. Las tarjetas de ahorros, obligaciones y patrimonio llegan en las Fases 4 y 5.
@@ -107,6 +113,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
 ) {
     var confirming by remember { mutableStateOf<PendingIncome?>(null) }
+    var shortcutsOpen by remember { mutableStateOf(false) }
     val haptic = rememberHaptic()
     val headerTop = MaterialTheme.monea.headerTop
     val background = MaterialTheme.colorScheme.background
@@ -134,6 +141,7 @@ fun HomeScreen(
             unread = unreadNotifications,
             onNotificationsClick = onNotificationsClick,
             onMonkiClick = onMonkiClick,
+            onShortcutsClick = { shortcutsOpen = true },
         )
 
         if (!state.loading) {
@@ -168,9 +176,17 @@ fun HomeScreen(
                 bodyRes = R.string.hint_home_body,
                 pose = MascotPose.TIP,
             )
-            Box(Modifier.entrance(2)) { ShortcutsCard(onQuickAction) }
-            if (!state.hasMovements) {
+            // Lo que viene: previsiones fundamentales, visibles sin bajar hasta el final.
+            state.nextIncome?.let {
+                Box(Modifier.entrance(2)) { NextIncomeCard(it, state, onClick = { onNavigate(Destination.Incomes) }) }
+            }
+            if (state.upcomingBills.isNotEmpty()) {
                 Box(Modifier.entrance(3)) {
+                    UpcomingBillsCard(state, onClick = { onNavigate(Destination.Obligations) })
+                }
+            }
+            if (!state.hasMovements) {
+                Box(Modifier.entrance(4)) {
                     EmptyBanner(onRegister = { onQuickAction(QuickAction.Expense) })
                 }
             }
@@ -181,15 +197,6 @@ fun HomeScreen(
                         onSeeAll = { onNavigate(Destination.Movements) },
                         onEdit = onEditMovement,
                     )
-                }
-            }
-            // Lo que viene, más abajo: previsiones que no hace falta resolver hoy.
-            state.nextIncome?.let {
-                Box(Modifier.entrance(6)) { NextIncomeCard(it, state, onClick = { onNavigate(Destination.Incomes) }) }
-            }
-            if (state.upcomingBills.isNotEmpty()) {
-                Box(Modifier.entrance(7)) {
-                    UpcomingBillsCard(state, onClick = { onNavigate(Destination.Obligations) })
                 }
             }
         }
@@ -207,6 +214,44 @@ fun HomeScreen(
             },
             onDismiss = { confirming = null },
         )
+    }
+
+    // Atajos en hoja inferior: Pagar, Préstamo y Ahorro, desde el botón flotante del encabezado.
+    if (shortcutsOpen) {
+        ModalBottomSheet(onDismissRequest = { shortcutsOpen = false }) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.home_shortcuts),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                Spacer(Modifier.height(12.dp))
+                QuickAction.shortcuts.forEach { action ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.medium)
+                            .clickable(role = Role.Button) {
+                                shortcutsOpen = false
+                                onQuickAction(action)
+                            }
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        IconBadge(icon = action.icon, size = 48.dp)
+                        Text(
+                            text = stringResource(action.labelRes),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -373,7 +418,13 @@ private fun UpcomingBillsCard(state: HomeUiState, onClick: () -> Unit) {
 }
 
 @Composable
-private fun HomeHeader(currencyCode: String, unread: Int, onNotificationsClick: () -> Unit, onMonkiClick: () -> Unit) {
+private fun HomeHeader(
+    currencyCode: String,
+    unread: Int,
+    onNotificationsClick: () -> Unit,
+    onMonkiClick: () -> Unit,
+    onShortcutsClick: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -407,6 +458,22 @@ private fun HomeHeader(currencyCode: String, unread: Int, onNotificationsClick: 
             }
         }
         Spacer(Modifier.weight(1f))
+        // Atajos: botón con el color de la marca, en el lugar del botón de chat de WhatsApp.
+        Surface(
+            onClick = onShortcutsClick,
+            shape = RoundedCornerShape(18.dp),
+            color = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier.size(48.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    Icons.Rounded.Apps,
+                    contentDescription = stringResource(R.string.home_shortcuts),
+                )
+            }
+        }
+        Spacer(Modifier.width(8.dp))
         Surface(
             onClick = onNotificationsClick,
             shape = CircleShape,
@@ -497,50 +564,6 @@ private fun BalanceCard(
             color = if (state.freeEstimate < 0) MaterialTheme.monea.expense else muted,
             modifier = Modifier.padding(horizontal = 4.dp),
         )
-    }
-}
-
-@Composable
-private fun ShortcutsCard(onQuickAction: (QuickAction) -> Unit) {
-    MoneaCard(contentPadding = PaddingValues(horizontal = 12.dp, vertical = 20.dp)) {
-        Row(
-            modifier = Modifier.padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Icon(
-                Icons.Rounded.Apps,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(22.dp),
-            )
-            Text(
-                text = stringResource(R.string.home_shortcuts),
-                style = MaterialTheme.typography.titleMedium,
-            )
-        }
-        Spacer(Modifier.height(16.dp))
-        Row(modifier = Modifier.fillMaxWidth()) {
-            QuickAction.shortcuts.forEach { action ->
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(MaterialTheme.shapes.medium)
-                        .clickable(role = Role.Button) { onQuickAction(action) }
-                        .padding(vertical = 4.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    IconBadge(icon = action.icon, size = 52.dp)
-                    Text(
-                        text = stringResource(action.labelRes),
-                        style = MaterialTheme.typography.labelMedium,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                    )
-                }
-            }
-        }
     }
 }
 
@@ -640,7 +663,7 @@ private fun RecentMovementsCard(
             actionLabel = stringResource(R.string.home_see_all),
             onAction = onSeeAll,
         )
-        state.recent.forEachIndexed { index, item ->
+        state.recent.take(RECENT_HOME_LIMIT).forEachIndexed { index, item ->
             if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             RecentRow(item = item, state = state, onClick = { if (!item.isInternal) onEdit(item.id) })
         }

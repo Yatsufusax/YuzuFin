@@ -58,8 +58,9 @@ private val rightEntries = listOf(
 )
 
 /**
- * Barra inferior flotante con botón central “+”: un toque abre directo anotar un gasto;
- * mantenerlo apretado abre la pantalla para anotar con la voz.
+ * Barra inferior con botón central “+”: un toque abre directo anotar un gasto;
+ * mantenerlo apretado abre la pantalla para anotar con la voz. Anclada al borde inferior
+ * (estilo WhatsApp): el contenido que scrollea desaparece debajo de una barra opaca.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -76,8 +77,8 @@ fun FloatingNavBar(
         Surface(
             modifier = modifier
                 .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
-            shape = RoundedCornerShape(32.dp),
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 12.dp,
         ) {
