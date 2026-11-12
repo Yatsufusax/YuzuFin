@@ -1,6 +1,16 @@
 package com.yuzufin.app.ui.home
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Savings
@@ -28,12 +39,10 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -48,6 +57,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import com.yuzufin.app.ui.common.entrance
 import com.yuzufin.app.ui.common.rememberHaptic
 import com.yuzufin.app.ui.components.Mascot
@@ -97,7 +108,6 @@ private const val RECENT_HOME_LIMIT = 2
  * Pantalla de Inicio con datos reales: saldo disponible, atajos, resumen del mes y últimos
  * movimientos. Las tarjetas de ahorros, obligaciones y patrimonio llegan en las Fases 4 y 5.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     contentPadding: PaddingValues,
@@ -120,8 +130,9 @@ fun HomeScreen(
     val headerTop = MaterialTheme.monea.headerTop
     val background = MaterialTheme.colorScheme.background
 
+    Box(modifier = modifier.fillMaxSize()) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .drawBehind {
@@ -143,7 +154,6 @@ fun HomeScreen(
             unread = unreadNotifications,
             onNotificationsClick = onNotificationsClick,
             onMonkiClick = onMonkiClick,
-            onShortcutsClick = { shortcutsOpen = true },
         )
 
         if (!state.loading) {
@@ -202,7 +212,17 @@ fun HomeScreen(
                 }
             }
         }
-        Spacer(Modifier.height(contentPadding.calculateBottomPadding()))
+        // Espacio extra al final para que el botón flotante no tape la última tarjeta.
+        Spacer(Modifier.height(contentPadding.calculateBottomPadding() + 88.dp))
+    }
+
+    // Botón flotante de atajos: al tocarlo se despliega hacia arriba (Pagar, Préstamo, Ahorro).
+    ShortcutsFab(
+        expanded = shortcutsOpen,
+        onExpandedChange = { shortcutsOpen = it },
+        onAction = onQuickAction,
+        bottomPadding = contentPadding.calculateBottomPadding(),
+    )
     }
 
     confirming?.let { item ->
@@ -217,38 +237,104 @@ fun HomeScreen(
             onDismiss = { confirming = null },
         )
     }
+}
 
-    // Atajos en hoja inferior: Pagar, Préstamo y Ahorro, desde el botón flotante del encabezado.
-    if (shortcutsOpen) {
-        ModalBottomSheet(onDismissRequest = { shortcutsOpen = false }) {
-            Column(
+/**
+ * Botón flotante (abajo a la derecha, sobre la barra inferior) que al tocarlo despliega hacia
+ * arriba los atajos, con un velo oscuro detrás. Se cierra tocando el velo, un atajo o “atrás”.
+ */
+@Composable
+private fun ShortcutsFab(
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    onAction: (QuickAction) -> Unit,
+    bottomPadding: Dp,
+    modifier: Modifier = Modifier,
+) {
+    BackHandler(enabled = expanded) { onExpandedChange(false) }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        AnimatedVisibility(
+            visible = expanded,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            Box(
                 modifier = Modifier
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.45f))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) { onExpandedChange(false) },
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = bottomPadding + 16.dp),
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn() + slideInVertically { it / 2 } + expandVertically(expandFrom = Alignment.Bottom),
+                exit = fadeOut() + slideOutVertically { it / 2 } + shrinkVertically(shrinkTowards = Alignment.Bottom),
             ) {
-                Text(
-                    text = stringResource(R.string.home_shortcuts),
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                Spacer(Modifier.height(12.dp))
-                QuickAction.shortcuts.forEach { action ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(MaterialTheme.shapes.medium)
-                            .clickable(role = Role.Button) {
-                                shortcutsOpen = false
-                                onQuickAction(action)
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    QuickAction.shortcuts.forEach { action ->
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .clickable(role = Role.Button) {
+                                    onExpandedChange(false)
+                                    onAction(action)
+                                },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.surface,
+                                shadowElevation = 4.dp,
+                            ) {
+                                Text(
+                                    text = stringResource(action.labelRes),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                )
                             }
-                            .padding(horizontal = 8.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        IconBadge(icon = action.icon, size = 48.dp)
-                        Text(
-                            text = stringResource(action.labelRes),
-                            style = MaterialTheme.typography.titleMedium,
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = MaterialTheme.colorScheme.surface,
+                                shadowElevation = 6.dp,
+                            ) {
+                                IconBadge(icon = action.icon, size = 48.dp)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Botón principal: cuadrado redondeado con el color de la marca, como el de WhatsApp.
+            Surface(
+                onClick = { onExpandedChange(!expanded) },
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shadowElevation = 6.dp,
+                modifier = Modifier.size(60.dp),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Crossfade(targetState = expanded, label = "shortcutsFabIcon") { open ->
+                        Icon(
+                            imageVector = if (open) Icons.Rounded.Close else Icons.Rounded.Apps,
+                            contentDescription = stringResource(R.string.home_shortcuts),
+                            modifier = Modifier.size(28.dp),
                         )
                     }
                 }
@@ -425,7 +511,6 @@ private fun HomeHeader(
     unread: Int,
     onNotificationsClick: () -> Unit,
     onMonkiClick: () -> Unit,
-    onShortcutsClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -460,22 +545,6 @@ private fun HomeHeader(
             }
         }
         Spacer(Modifier.weight(1f))
-        // Atajos: botón con el color de la marca, en el lugar del botón de chat de WhatsApp.
-        Surface(
-            onClick = onShortcutsClick,
-            shape = RoundedCornerShape(18.dp),
-            color = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.size(48.dp),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Rounded.Apps,
-                    contentDescription = stringResource(R.string.home_shortcuts),
-                )
-            }
-        }
-        Spacer(Modifier.width(8.dp))
         Surface(
             onClick = onNotificationsClick,
             shape = CircleShape,
