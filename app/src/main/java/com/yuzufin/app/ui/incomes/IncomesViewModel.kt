@@ -63,8 +63,11 @@ class IncomesViewModel(
             loading = false,
             currency = CurrencyInfo.fromCode(appSettings.currencyCode),
             pending = buildPending(sources, occurrences),
-            upcoming = buildUpcoming(sources, today),
-            sources = sources.map { SourceRow(it, if (it.active) IncomeScheduler.nextDueDate(it, today) else null) },
+            upcoming = buildUpcoming(sources, today, occurrences),
+            sources = sources.map { source ->
+                val taken = occurrences.filter { it.sourceId == source.id }.map { it.dueDate }.toSet()
+                SourceRow(source, if (source.active) IncomeScheduler.nextFreeDueDate(source, today, taken) else null)
+            },
             history = occurrences
                 .filter { it.status != OccurrenceStatus.PENDING }
                 .take(HISTORY_LIMIT)
@@ -84,6 +87,19 @@ class IncomesViewModel(
                 runCatching { income.confirm(occurrenceId, amountMinor) }
             } finally {
                 inFlight.remove(occurrenceId)
+                refresh.value += 1
+            }
+        }
+    }
+
+    /** "Ya cobré" antes de la fecha prevista: registra ya ese cobro, con el ingreso fechado hoy. */
+    fun collectEarly(sourceId: Long, dueDate: LocalDate, amountMinor: Long) {
+        if (!inFlight.add(-sourceId)) return
+        viewModelScope.launch {
+            try {
+                runCatching { income.collectEarly(sourceId, dueDate, amountMinor, LocalDate.now()) }
+            } finally {
+                inFlight.remove(-sourceId)
                 refresh.value += 1
             }
         }

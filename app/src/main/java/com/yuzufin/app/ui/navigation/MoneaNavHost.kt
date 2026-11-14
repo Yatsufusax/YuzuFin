@@ -93,6 +93,9 @@ fun MoneaNavHost(
                 onEditMovement = { id -> openForm(id, TransactionType.EXPENSE) },
                 onConfirmIncome = homeViewModel::confirmIncome,
                 onSkipIncome = homeViewModel::skipIncome,
+                onCollectEarly = { income, amount ->
+                    homeViewModel.collectIncomeEarly(income.sourceId, income.date, amount)
+                },
                 onBalanceHiddenChange = homeViewModel::setBalanceHidden,
                 onMonthChange = homeViewModel::selectMonth,
             )

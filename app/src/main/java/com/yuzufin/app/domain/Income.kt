@@ -91,6 +91,16 @@ object IncomeScheduler {
     }
 
     /**
+     * El próximo cobro previsto después de [after] que todavía no tiene registro en [taken]
+     * (por ejemplo, uno que la persona ya marcó como cobrado antes de su fecha).
+     */
+    fun nextFreeDueDate(source: IncomeSource, after: LocalDate, taken: Set<LocalDate>): LocalDate? {
+        val from = after.plusDays(1)
+        val until = if (source.schedule == IncomeSchedule.CUSTOM) LocalDate.MAX else from.plusMonths(14)
+        return dueDates(source, from, until).firstOrNull { it !in taken }
+    }
+
+    /**
      * Cobros vencidos (hasta [today]) que todavía no tienen registro en [existing].
      * [floor] es la fecha inicial de las cuentas: antes de ella no se genera nada.
      */

@@ -141,6 +141,19 @@ class RecurringViewModel(
         }
     }
 
+    /** "Ya pagué" antes de la fecha: registra ya el próximo pago, con el gasto fechado hoy. */
+    fun payNext(expenseId: Long, amountMinor: Long) {
+        if (!inFlight.add(-expenseId)) return
+        viewModelScope.launch {
+            try {
+                runCatching { recurring.payNext(expenseId, amountMinor, LocalDate.now()) }
+            } finally {
+                inFlight.remove(-expenseId)
+                refresh.value += 1
+            }
+        }
+    }
+
     fun skip(occurrenceId: Long) {
         if (!inFlight.add(occurrenceId)) return
         viewModelScope.launch {

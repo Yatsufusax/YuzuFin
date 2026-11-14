@@ -126,4 +126,14 @@ class IncomeSchedulerTest {
         val s = source(IncomeSchedule.MONTHLY, listOf(0))
         assertEquals(listOf(d(2026, 10, 1)), IncomeScheduler.dueDates(s, d(2026, 10, 1), d(2026, 10, 31)))
     }
+
+    @Test fun proximo_libre_salta_el_cobro_ya_registrado_antes_de_tiempo() {
+        val s = source(IncomeSchedule.TWICE_MONTHLY, listOf(15, 31))
+        // Hoy es 14: el cobro del 15 ya se marcó como cobrado, el próximo libre es el último día.
+        assertEquals(
+            d(2026, 11, 30),
+            IncomeScheduler.nextFreeDueDate(s, d(2026, 11, 14), setOf(d(2026, 11, 15))),
+        )
+        assertEquals(d(2026, 11, 15), IncomeScheduler.nextFreeDueDate(s, d(2026, 11, 14), emptySet()))
+    }
 }

@@ -111,6 +111,32 @@ class IncomeRepository(private val db: AppDatabase) {
         return db.withTransaction { post(occurrenceId, amountMinor, alreadyNotified = true) }
     }
 
+    /**
+     * "Ya cobré" antes de tiempo: crea el cobro previsto de [dueDate] ya confirmado, con el ingreso
+     * fechado en [today] (el día que realmente se cobró). Cuando llegue [dueDate] no se vuelve a
+     * pedir, porque ese cobro ya existe. Devuelve false si el importe no es válido, la fuente ya
+     * no existe, la fecha no es futura o ese cobro ya estaba registrado.
+     */
+    suspend fun collectEarly(sourceId: Long, dueDate: LocalDate, amountMinor: Long, today: LocalDate): Boolean {
+        if (amountMinor <= 0L || !dueDate.isAfter(today)) return false
+        return db.withTransaction {
+            val source = dao.getSource(sourceId) ?: return@withTransaction false
+            val id = dao.insertOccurrence(
+                IncomeOccurrenceEntity(
+                    sourceId = source.id,
+                    dueEpochDay = dueDate.toEpochDay(),
+                    amountMinor = amountMinor,
+                    status = OccurrenceStatus.PENDING.name,
+                    transactionId = null,
+                    notified = true,
+                    createdAt = System.currentTimeMillis(),
+                ),
+            )
+            if (id == -1L) return@withTransaction false // ese cobro ya existía
+            post(id, amountMinor, alreadyNotified = true, postedOn = today)
+        }
+    }
+
     suspend fun skip(occurrenceId: Long) {
         db.withTransaction {
             val occurrence = dao.getOccurrence(occurrenceId) ?: return@withTransaction
@@ -150,6 +176,8 @@ class IncomeRepository(private val db: AppDatabase) {
         val tomorrow = today.plusDays(1)
         return dao.allSources().map { it.toDomain() }
             .filter { it.active && it.remind && IncomeScheduler.dueDates(it, tomorrow, tomorrow).isNotEmpty() }
+            // Un cobro ya registrado antes de su fecha no se avisa.
+            .filter { source -> tomorrow !in dao.dueDays(source.id).map(LocalDate::ofEpochDay) }
             .map { DueNotice(occurrenceId = 0, sourceName = it.name, amountMinor = it.amountMinor, pending = true, remind = true) }
     }
 
@@ -157,24 +185,33 @@ class IncomeRepository(private val db: AppDatabase) {
         if (ids.isNotEmpty()) dao.markNotified(ids)
     }
 
-    /** Debe llamarse dentro de una transacción. Devuelve false si el cobro ya no está pendiente. */
-    private suspend fun post(occurrenceId: Long, amountMinor: Long, alreadyNotified: Boolean): Boolean {
+    /**
+     * Debe llamarse dentro de una transacción. Devuelve false si el cobro ya no está pendiente.
+     * El ingreso se fecha en [postedOn] o, si es null, en la fecha prevista del cobro.
+     */
+    private suspend fun post(
+        occurrenceId: Long,
+        amountMinor: Long,
+        alreadyNotified: Boolean,
+        postedOn: LocalDate? = null,
+    ): Boolean {
         val occurrence = dao.getOccurrence(occurrenceId) ?: return false
         if (occurrence.status != OccurrenceStatus.PENDING.name) return false
         val source = dao.getSource(occurrence.sourceId) ?: return false
         val now = System.currentTimeMillis()
+        val dateEpochDay = postedOn?.toEpochDay() ?: occurrence.dueEpochDay
         val transactionId = transactionDao.insert(
             TransactionEntity(
                 type = TransactionType.INCOME,
                 amountMinor = amountMinor,
                 categoryId = source.categoryId,
                 description = source.name,
-                dateEpochDay = occurrence.dueEpochDay,
+                dateEpochDay = dateEpochDay,
                 createdAt = now,
                 updatedAt = now,
             ),
         )
-        setAsideForGoals(transactionId, amountMinor, occurrence.dueEpochDay, now)
+        setAsideForGoals(transactionId, amountMinor, dateEpochDay, now)
         dao.updateOccurrence(
             occurrence.copy(
                 status = OccurrenceStatus.CONFIRMED.name,

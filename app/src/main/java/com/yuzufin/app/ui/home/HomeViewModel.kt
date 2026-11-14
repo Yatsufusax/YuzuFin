@@ -218,7 +218,7 @@ class HomeViewModel(
                 userName = appSettings.userName,
                 balanceHidden = appSettings.balanceHidden,
                 pendingIncomes = pendingIncomes,
-                nextIncome = buildUpcoming(sources, today).firstOrNull(),
+                nextIncome = buildUpcoming(sources, today, occurrences).firstOrNull(),
                 upcomingBills = buildUpcomingDues(incomeData.bills, incomeData.recurring.upcoming, today),
                 attention = buildList<AttentionItem> {
                     pendingIncomes.forEach { add(AttentionItem.IncomeToConfirm(it)) }
@@ -254,6 +254,19 @@ class HomeViewModel(
                 runCatching { income.confirm(occurrenceId, amountMinor) }
             } finally {
                 inFlight.remove(occurrenceId)
+                refresh.value += 1
+            }
+        }
+    }
+
+    /** "Ya cobré" antes de la fecha prevista: registra ya ese cobro, con el ingreso fechado hoy. */
+    fun collectIncomeEarly(sourceId: Long, dueDate: LocalDate, amountMinor: Long) {
+        if (!inFlight.add(-sourceId)) return
+        viewModelScope.launch {
+            try {
+                runCatching { income.collectEarly(sourceId, dueDate, amountMinor, LocalDate.now()) }
+            } finally {
+                inFlight.remove(-sourceId)
                 refresh.value += 1
             }
         }

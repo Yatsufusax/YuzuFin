@@ -65,15 +65,25 @@ fun buildPending(sources: List<IncomeSource>, occurrences: List<IncomeOccurrence
         .sortedBy { it.dueDate }
 }
 
-fun buildUpcoming(sources: List<IncomeSource>, today: LocalDate): List<UpcomingIncome> =
-    sources
+/**
+ * Próximo cobro de cada fuente activa. Si [occurrences] ya tiene registrado ese cobro (porque se
+ * marcó como cobrado antes de su fecha), se muestra el siguiente.
+ */
+fun buildUpcoming(
+    sources: List<IncomeSource>,
+    today: LocalDate,
+    occurrences: List<IncomeOccurrence> = emptyList(),
+): List<UpcomingIncome> {
+    val taken = occurrences.groupBy({ it.sourceId }, { it.dueDate }).mapValues { it.value.toSet() }
+    return sources
         .filter { it.active }
         .mapNotNull { source ->
-            IncomeScheduler.nextDueDate(source, today)?.let { date ->
+            IncomeScheduler.nextFreeDueDate(source, today, taken[source.id].orEmpty())?.let { date ->
                 UpcomingIncome(source.id, source.name, date, source.amountMinor)
             }
         }
         .sortedBy { it.date }
+}
 
 /** “Cada mes, el día 5”, “El 15 y el último día de cada mes”, “3 fechas elegidas”. */
 @Composable

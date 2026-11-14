@@ -67,6 +67,7 @@ fun IncomesScreen(
     val viewModel: IncomesViewModel = viewModel(factory = IncomesViewModel.factory(container))
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var confirming by remember { mutableStateOf<PendingIncome?>(null) }
+    var collectingEarly by remember { mutableStateOf<UpcomingIncome?>(null) }
     val colors = MaterialTheme.monea
 
     LazyColumn(
@@ -166,6 +167,11 @@ fun IncomesScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                // Si ya cobraste antes de la fecha, no hace falta esperar.
+                                TextButton(
+                                    onClick = { collectingEarly = item },
+                                    contentPadding = PaddingValues(0.dp),
+                                ) { Text(stringResource(R.string.income_already_paid), maxLines = 1, softWrap = false) }
                             }
                             Text(
                                 MoneyFormatter.format(item.amountMinor, state.currency),
@@ -286,6 +292,23 @@ fun IncomesScreen(
                 }
             }
         }
+    }
+
+    collectingEarly?.let { item ->
+        ConfirmIncomeDialog(
+            item = PendingIncome(
+                occurrenceId = -item.sourceId,
+                sourceName = item.sourceName,
+                dueDate = item.date,
+                amountMinor = item.amountMinor,
+            ),
+            currency = state.currency,
+            onConfirm = { amount ->
+                viewModel.collectEarly(item.sourceId, item.date, amount)
+                collectingEarly = null
+            },
+            onDismiss = { collectingEarly = null },
+        )
     }
 
     confirming?.let { item ->

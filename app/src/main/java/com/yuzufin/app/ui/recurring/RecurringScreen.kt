@@ -81,6 +81,7 @@ fun RecurringScreen(
     var editing by remember { mutableStateOf<RecurringExpense?>(null) }
     var confirming by remember { mutableStateOf<PendingRecurring?>(null) }
     var advancing by remember { mutableStateOf<RecurringRow?>(null) }
+    var payingNext by remember { mutableStateOf<RecurringRow?>(null) }
     val haptic = rememberHaptic()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -228,6 +229,13 @@ fun RecurringScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                // Pagar antes de la fecha: sirve para cualquier gasto fijo, no hay que esperar.
+                                if (row.expense.active && !row.finished && row.next != null) {
+                                    TextButton(
+                                        onClick = { payingNext = row },
+                                        contentPadding = PaddingValues(0.dp),
+                                    ) { Text(stringResource(R.string.recurring_paid), maxLines = 1, softWrap = false) }
+                                }
                                 if (row.expense.isInstallments) {
                                     Text(
                                         stringResource(
@@ -322,6 +330,39 @@ fun RecurringScreen(
                 ) { Text(stringResource(R.string.recurring_advance_confirm)) }
             },
             dismissButton = { TextButton(onClick = { advancing = null }) { Text(stringResource(R.string.action_cancel)) } },
+        )
+    }
+
+    payingNext?.let { row ->
+        var text by remember(row.expense.id) { mutableStateOf(AmountParser.toInputText(row.expense.amountMinor, state.currency)) }
+        val parsed = AmountParser.parseToMinorUnits(text, state.currency)
+        AlertDialog(
+            onDismissRequest = { payingNext = null },
+            title = { Text(row.expense.name) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.recurring_confirm_body))
+                    OutlinedTextField(
+                        value = text,
+                        onValueChange = { text = AmountParser.sanitize(it, state.currency) },
+                        label = { Text(stringResource(R.string.recurring_amount)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = parsed != null && parsed > 0L,
+                    onClick = {
+                        viewModel.payNext(row.expense.id, parsed ?: return@TextButton)
+                        haptic()
+                        payingNext = null
+                    },
+                ) { Text(stringResource(R.string.recurring_paid)) }
+            },
+            dismissButton = { TextButton(onClick = { payingNext = null }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 

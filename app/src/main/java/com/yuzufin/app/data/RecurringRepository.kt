@@ -118,12 +118,29 @@ class RecurringRepository(private val db: AppDatabase) {
      * cuotas en un mes para cancelar antes. Cada cuota existe una sola vez; no pasa del total.
      * Devuelve cuántas cuotas se adelantaron.
      */
-    suspend fun advance(expenseId: Long, count: Int, amountMinor: Long, today: LocalDate): Int {
+    suspend fun advance(expenseId: Long, count: Int, amountMinor: Long, today: LocalDate): Int =
+        payFree(expenseId, count, amountMinor, today, installmentsOnly = true)
+
+    /**
+     * "Ya pagué" antes de la fecha: confirma ahora el próximo pago libre de cualquier gasto fijo
+     * (por ejemplo internet) con su gasto fechado en [today]. Cuando llegue la fecha no se vuelve
+     * a pedir, porque ese pago ya existe. Devuelve false si no había ningún pago por adelantar.
+     */
+    suspend fun payNext(expenseId: Long, amountMinor: Long, today: LocalDate): Boolean =
+        payFree(expenseId, 1, amountMinor, today, installmentsOnly = false) > 0
+
+    private suspend fun payFree(
+        expenseId: Long,
+        count: Int,
+        amountMinor: Long,
+        today: LocalDate,
+        installmentsOnly: Boolean,
+    ): Int {
         if (count <= 0 || amountMinor <= 0L) return 0
         return db.withTransaction {
             val entity = dao.getExpense(expenseId) ?: return@withTransaction 0
             val expense = entity.toDomain()
-            if (!expense.isInstallments) return@withTransaction 0
+            if (installmentsOnly && !expense.isInstallments) return@withTransaction 0
             val existing = dao.dueDays(expenseId).map(LocalDate::ofEpochDay).toSet()
             val dates = RecurringScheduler.upcomingFree(expense, existing, existing.size, today, count)
             val now = System.currentTimeMillis()

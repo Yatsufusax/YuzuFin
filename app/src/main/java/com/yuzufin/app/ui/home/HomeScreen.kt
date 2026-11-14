@@ -120,11 +120,13 @@ fun HomeScreen(
     onEditMovement: (Long) -> Unit,
     onConfirmIncome: (occurrenceId: Long, amountMinor: Long) -> Unit,
     onSkipIncome: (occurrenceId: Long) -> Unit,
+    onCollectEarly: (income: UpcomingIncome, amountMinor: Long) -> Unit,
     onBalanceHiddenChange: (Boolean) -> Unit,
     onMonthChange: (YearMonth) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var confirming by remember { mutableStateOf<PendingIncome?>(null) }
+    var collectingEarly by remember { mutableStateOf<UpcomingIncome?>(null) }
     var shortcutsOpen by remember { mutableStateOf(false) }
     val haptic = rememberHaptic()
     val headerTop = MaterialTheme.monea.headerTop
@@ -189,8 +191,15 @@ fun HomeScreen(
                 pose = MascotPose.TIP,
             )
             // Lo que viene: previsiones fundamentales, visibles sin bajar hasta el final.
-            state.nextIncome?.let {
-                Box(Modifier.entrance(2)) { NextIncomeCard(it, state, onClick = { onNavigate(Destination.Incomes) }) }
+            state.nextIncome?.let { income ->
+                Box(Modifier.entrance(2)) {
+                    NextIncomeCard(
+                        item = income,
+                        state = state,
+                        onClick = { onNavigate(Destination.Incomes) },
+                        onCollect = { collectingEarly = income },
+                    )
+                }
             }
             if (state.upcomingBills.isNotEmpty()) {
                 Box(Modifier.entrance(3)) {
@@ -223,6 +232,25 @@ fun HomeScreen(
         onAction = onQuickAction,
         bottomPadding = contentPadding.calculateBottomPadding(),
     )
+    }
+
+    // "Ya cobré" antes de la fecha prevista: no hace falta esperar a que llegue el día.
+    collectingEarly?.let { income ->
+        ConfirmIncomeDialog(
+            item = PendingIncome(
+                occurrenceId = -income.sourceId,
+                sourceName = income.sourceName,
+                dueDate = income.date,
+                amountMinor = income.amountMinor,
+            ),
+            currency = state.currency,
+            onConfirm = { amount ->
+                haptic()
+                onCollectEarly(income, amount)
+                collectingEarly = null
+            },
+            onDismiss = { collectingEarly = null },
+        )
     }
 
     confirming?.let { item ->
@@ -439,7 +467,7 @@ private fun AttentionRecurringRow(item: AttentionItem.RecurringDue, state: HomeU
 
 /** Próximo cobro previsto. Está marcado como previsión: no forma parte del saldo. */
 @Composable
-private fun NextIncomeCard(item: UpcomingIncome, state: HomeUiState, onClick: () -> Unit) {
+private fun NextIncomeCard(item: UpcomingIncome, state: HomeUiState, onClick: () -> Unit, onCollect: () -> Unit) {
     MoneaCard(modifier = Modifier.clickable(onClick = onClick)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
@@ -469,6 +497,10 @@ private fun NextIncomeCard(item: UpcomingIncome, state: HomeUiState, onClick: ()
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        TextButton(
+            onClick = onCollect,
+            contentPadding = PaddingValues(0.dp),
+        ) { Text(stringResource(R.string.income_already_paid), maxLines = 1, softWrap = false) }
     }
 }
 
